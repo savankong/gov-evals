@@ -62,6 +62,18 @@ def session_scope() -> Iterator[Session]:
 
 
 def init_db() -> None:
+    """Create any missing tables directly from the models.
+
+    This is the fast path for tests and throwaway databases, not the path a
+    running service takes. `create_all` creates tables that are absent and
+    does nothing whatsoever to tables that are present -- it will not add a
+    column, widen a type or drop a constraint. A long-lived database brought
+    up this way silently stops at the models of the day it was created.
+
+    Services call `aegis.migrate.upgrade_to_head` instead. The two are held to
+    the same result by tests/test_migrations.py, which fails if a model change
+    lands without the revision that applies it.
+    """
     from . import models  # noqa: F401  (register mappers)
     from .models import Base
 

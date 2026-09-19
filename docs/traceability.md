@@ -107,12 +107,19 @@ Things the PRD lists that were **not** built, said plainly:
 
 Two limits, because they are the difference between a control and a ritual:
 
-**The signature does not yet cover the running container.** `.do/app.yaml`
-sources its components from GitHub, so App Platform rebuilds from the
-repository and runs its own output. The signed images are an attested artifact
-of record for the commit, not the artifact serving traffic. Closing that gap
-means pointing the spec at `image:` with the verified digest, which needs a
-paid container registry.
+**The signature now covers the running container.** After verification the
+deploy job rewrites the live App Platform spec to run each component from the
+digest it verified, so the artifact serving traffic is the one that was signed.
+It patches the spec returned by `doctl apps spec get` rather than applying
+`.do/app.yaml`, whose SECRET entries are placeholders that would overwrite the
+live credentials. The committed spec stays GitHub-sourced because it bootstraps
+a deployment that has no signed image yet.
+
+The trade is that `deploy_on_push` no longer applies: this workflow is the only
+path to production, which is the point, and also means a broken workflow means
+no deploys. As with the rest of this pipeline, its shape is asserted by
+`scripts/validate_packs.py` against deliberate breakage; its first real
+execution is still ahead of it.
 
 **This has now been exercised against a real registry.** On 19 September 2026,
 commit `f874391`, both images were pushed to DigitalOcean Container Registry,

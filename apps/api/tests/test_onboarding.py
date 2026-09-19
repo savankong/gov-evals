@@ -105,6 +105,23 @@ class TestEmptyAccount:
                     f"{step['key']} is blocked on a prerequisite but also claims no screen exists"
                 )
 
+    def test_the_first_step_now_has_a_screen(self, client, auth):
+        """The walkthrough used to open by handing a new user a curl command.
+
+        Projects, mission profiles and system versions were API-only, so three
+        of seven steps advertised "there is no screen for this yet". They have
+        screens now, and the very first thing a new account sees should be a
+        link rather than a request body.
+        """
+        steps = {s["key"]: s for s in _get(client, auth)["steps"]}
+        assert steps["project"]["href"] == "/projects/new"
+        assert steps["project"]["command"] is None
+        # The two that follow need a project first, and say so rather than
+        # claiming no screen exists.
+        for key in ("mission", "system"):
+            assert steps[key]["command"] is None
+            assert steps[key]["href"] or steps[key]["blocked"]
+
     def test_each_step_reports_what_was_counted(self, client, auth):
         """"3 projects" is checkable; "completed" is not."""
         for step in _get(client, auth)["steps"]:
@@ -133,9 +150,19 @@ class TestDerivedFromRealState:
     def test_a_project_turns_the_later_steps_into_real_links(self, client, auth):
         """Before a project exists there is nowhere to send someone."""
         body = _get(client, auth)
-        plan = next(s for s in body["steps"] if s["key"] == "plan")
-        assert plan["href"] and plan["href"].startswith("/projects/")
-        assert body["project_id"] and body["project_id"] in plan["href"]
+        for key in ("mission", "system", "plan", "campaign"):
+            step = next(s for s in body["steps"] if s["key"] == key)
+            assert step["href"] and step["href"].startswith("/projects/"), key
+            assert step["blocked"] is None, key
+            assert body["project_id"] and body["project_id"] in step["href"], key
+
+    def test_no_step_hands_over_a_request_any_more(self, client, auth):
+        """Every capability the walkthrough names now has an interface.
+
+        `command` is kept for the next thing that lands API-first; it should be
+        unused today, and a step quietly falling back to it is worth noticing.
+        """
+        assert all(s["command"] is None for s in _get(client, auth)["steps"])
 
     def test_a_dataset_advances_the_cases_step_with_its_counts(self, client, auth):
         project_id = _get(client, auth)["project_id"]

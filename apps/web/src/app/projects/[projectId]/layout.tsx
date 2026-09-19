@@ -12,6 +12,8 @@ import type { ProjectDashboard } from "@/lib/types";
 
 const TABS = [
   { slug: "", label: "Readiness" },
+  { slug: "mission", label: "Mission" },
+  { slug: "systems", label: "Systems" },
   { slug: "plan", label: "Plan" },
   { slug: "campaigns", label: "Campaigns" },
   { slug: "findings", label: "Findings" },

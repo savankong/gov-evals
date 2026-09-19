@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { EvaluatorKind, Status } from "@/components/status";
 import { SlideOver } from "@/components/shell";
-import { Hash, Key, formatMs } from "@/components/ui";
+import { Hash, Key, Note, formatMs } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { ResultDetail } from "@/lib/types";
 
@@ -151,7 +151,9 @@ export function EvidencePanel({
               {result.response?.text || "(no output)"}
             </pre>
             {result.error ? (
-              <p className="mt-2 border-l-2 border-fail pl-2 text-xs text-fail">{result.error}</p>
+              <Note tone="fail" className="mt-2">
+                {result.error}
+              </Note>
             ) : null}
           </Section>
 
@@ -212,11 +214,11 @@ export function EvidencePanel({
               </div>
             )}
             {result.judgements.some((j) => j.kind === "model_based") ? (
-              <p className="mt-3 border-l border-line pl-3 text-xs leading-relaxed text-muted">
+              <Note className="mt-3">
                 A model-based judgement is advisory evidence, recorded with the judge model and
                 rubric that produced it. It is not ground truth and does not outrank the
                 deterministic or human judgements beside it.
-              </p>
+              </Note>
             ) : null}
           </Section>
 

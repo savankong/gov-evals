@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { useResource } from "@/components/shell";
-import { Button, Card, CardHead, Caveat, ErrorNote, Key, Spinner } from "@/components/ui";
+import { Button, Card, CardHead, Caveat, ErrorNote, Key, Note, Spinner } from "@/components/ui";
 import { api } from "@/lib/api";
 
 export interface OnboardingStep {
@@ -134,9 +134,7 @@ export function Primer({ open, onClose }: { open: boolean; onClose: () => void }
               <p id="primer-body" className="mt-2.5 text-sm leading-relaxed text-ink-soft">
                 {panel.body}
               </p>
-              <p className="mt-2.5 border-l-2 border-line-strong pl-2.5 text-xs leading-relaxed text-muted">
-                {panel.note}
-              </p>
+              <Note className="mt-2.5">{panel.note}</Note>
             </div>
 
             <div className="flex items-center justify-between border-t border-line px-5 py-3">

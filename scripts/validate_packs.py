@@ -140,6 +140,8 @@ def main() -> int:
     validate_pinned_base_images()
     validate_deterministic_installs()
     validate_supply_chain()
+    validate_schema_migrations()
+    validate_no_accent_rules()
 
     print(
         f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
@@ -488,12 +490,53 @@ def validate_supply_chain() -> None:
         return None
 
     verify_at = first_index(lambda b: "cosign verify" in b)
-    rollout_at = first_index(lambda b: "create-deployment" in b)
+
+    # The rollout is whichever command actually starts a deployment. Both
+    # spellings count: keying on one of them is how this check silently stopped
+    # applying when the rollout switched from `create-deployment` to
+    # `apps update --spec`, which is the failure mode this whole function is
+    # about.
+    def is_rollout(body: str) -> bool:
+        return "create-deployment" in body or ("apps update" in body and "--spec" in body)
+
+    rollout_at = first_index(is_rollout)
+    if rollout_at is None:
+        errors.append(
+            "deploy-digitalocean.yml: no rollout step found. Expected either "
+            "`doctl apps create-deployment` or `doctl apps update --spec`."
+        )
     if verify_at is not None and rollout_at is not None and verify_at > rollout_at:
         errors.append(
             "deploy-digitalocean.yml: signatures are verified after the rollout step. "
             "A failed verification must stop the deployment, not report on it."
         )
+
+    # Pinning the live spec to the verified digests is what makes the running
+    # container the artifact that was signed. Doing it before verification would
+    # point production at something unchecked.
+    pin_at = first_index(lambda b: "pin_app_images.py" in b)
+    if pin_at is not None:
+        if verify_at is not None and pin_at < verify_at:
+            errors.append(
+                "deploy-digitalocean.yml: the app spec is pinned to image digests before "
+                "those images are verified. Production would be pointed at an unchecked "
+                "artifact."
+            )
+        if rollout_at is not None and pin_at > rollout_at:
+            errors.append(
+                "deploy-digitalocean.yml: the spec is pinned after the rollout, so the "
+                "rollout would deploy the previous spec."
+            )
+
+    # Applying the committed spec to a running app overwrites its encrypted
+    # secrets with the placeholders that file carries.
+    for body in bodies:
+        if is_rollout(body) and ".do/app.yaml" in body:
+            errors.append(
+                "deploy-digitalocean.yml: the rollout applies .do/app.yaml to the running "
+                "app. That spec holds placeholders for its SECRET values, so this would "
+                "overwrite the live credentials. Patch the spec from `doctl apps spec get`."
+            )
 
     # Signing a tag is signing a mutable pointer.
     if "cosign sign" in joined and "@" not in joined.split("cosign sign")[1][:400]:
@@ -513,6 +556,140 @@ def report() -> int:
         return 1
     print("All packs and deployment specs valid.")
     return 0
+
+
+def validate_schema_migrations() -> None:
+    """A long-lived database must be brought up by migrations, not by create_all.
+
+    `Base.metadata.create_all` creates tables that are missing and does nothing
+    to tables that are present. It cannot add a column. Both long-lived
+    processes -- the API and the worker -- called it at startup, so the deployed
+    schema froze at the models of the day the database was created. Seven
+    columns added later were never applied, and every endpoint that selected one
+    of those rows returned 500 while the tables all looked present and correct.
+
+    Three things are checked, because each of them alone was once true while the
+    schema was still wrong: the services call the migration runner; the
+    revisions form one unbroken chain; and alembic is actually a dependency of
+    the image that has to run them.
+    """
+    migrations = ROOT / "apps" / "api" / "aegis" / "migrations" / "versions"
+    if not migrations.exists():
+        errors.append(
+            "apps/api/aegis/migrations/versions does not exist. Without migrations a deployed "
+            "database freezes at the models of the day it was created."
+        )
+        return
+
+    for relative in ("apps/api/aegis/main.py", "apps/api/worker.py"):
+        path = ROOT / relative
+        if not path.exists():
+            continue
+        body = path.read_text()
+        # Startup code only -- a docstring naming init_db is not a call to it.
+        calls = [
+            line.strip()
+            for line in body.splitlines()
+            if not line.strip().startswith("#") and "init_db()" in line
+        ]
+        if calls:
+            errors.append(
+                f"{relative} calls init_db() at startup. create_all never adds a column to a "
+                "table that already exists, so a deployed database stops receiving model "
+                "changes silently. Call aegis.migrate.upgrade_to_head instead."
+            )
+        if "upgrade_to_head" not in body:
+            errors.append(
+                f"{relative} never brings the schema up. It has to call "
+                "aegis.migrate.upgrade_to_head before serving, or it will run against "
+                "whatever schema happens to be there."
+            )
+
+    revisions: dict[str, str | None] = {}
+    for script in sorted(migrations.glob("[0-9]*.py")):
+        text = script.read_text()
+        revision = down = None
+        for line in text.splitlines():
+            if line.startswith("revision = "):
+                revision = line.split("=", 1)[1].strip().strip("\"'")
+            elif line.startswith("down_revision = "):
+                raw = line.split("=", 1)[1].strip()
+                down = None if raw == "None" else raw.strip("\"'")
+        if revision is None:
+            errors.append(f"{script.name}: no revision identifier")
+            continue
+        revisions[revision] = down
+
+    if not revisions:
+        errors.append("apps/api/aegis/migrations/versions holds no revisions.")
+        return
+
+    roots = [rev for rev, down in revisions.items() if down is None]
+    if len(roots) != 1:
+        errors.append(
+            f"The revision history has {len(roots)} starting points ({sorted(roots)}). "
+            "It must have exactly one, or `upgrade head` is ambiguous."
+        )
+
+    parents = {down for down in revisions.values() if down is not None}
+    heads = sorted(set(revisions) - parents)
+    if len(heads) != 1:
+        errors.append(
+            f"The revision history has {len(heads)} heads ({heads}). Alembic refuses to "
+            "upgrade a branched history, so startup would fail."
+        )
+
+    for revision, down in sorted(revisions.items()):
+        if down is not None and down not in revisions:
+            errors.append(
+                f"Revision {revision!r} follows {down!r}, which does not exist."
+            )
+
+    pyproject = (ROOT / "apps" / "api" / "pyproject.toml").read_text()
+    if "alembic" not in pyproject:
+        errors.append(
+            "apps/api/pyproject.toml does not depend on alembic, so the image that has to run "
+            "the migrations at startup will not have it installed."
+        )
+
+
+def validate_no_accent_rules() -> None:
+    """No block is flagged by a heavier rule down one of its sides.
+
+    A rule can only be darker or lighter, so it says "pay attention" and
+    nothing more, and every kind of aside ended up wearing the same one: an
+    error, a caution and a footnote about model-based judgements were all a
+    line in the margin. Worse, the error's rule was red -- the colour this
+    product reserves for a verdict about the system under evaluation, read off
+    five-pixel squares in dense tables.
+
+    Asides are marked by a glyph that names what they are, coloured by how much
+    they matter: `Note` and `ErrorNote` in components/ui.tsx. Hairline borders
+    that divide a table, a panel edge or a nesting level are structure, not
+    emphasis, and are not what this refuses.
+    """
+    web = ROOT / "apps" / "web" / "src"
+    if not web.exists():
+        return
+
+    # A rule is an accent when it is thicker than a hairline, or when a
+    # single-side hairline is drawn in a colour that carries meaning.
+    import re
+
+    thick = re.compile(r"border-(?:l|r|t|b)-2\b")
+    coloured = re.compile(r"border-(?:l|r|t|b) border-(?:fail|warn|pass|pending|accent|ink|line-strong)\b")
+
+    for path in sorted(web.rglob("*.tsx")):
+        for number, line in enumerate(path.read_text().splitlines(), 1):
+            hit = thick.search(line) or coloured.search(line)
+            if not hit:
+                continue
+            errors.append(
+                f"{path.relative_to(ROOT)}:{number}: {hit.group(0)!r} flags a block with a rule "
+                "down one side. Use Note or ErrorNote from components/ui.tsx -- the glyph says "
+                "what kind of aside it is and its colour says how much it matters, which a line "
+                "cannot."
+            )
 
 
 if __name__ == "__main__":

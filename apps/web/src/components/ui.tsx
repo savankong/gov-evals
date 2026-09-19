@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-import { IconChevron, IconClose } from "@/components/icons";
+import {
+  IconChevron,
+  IconClose,
+  IconError,
+  IconNote,
+  IconWarning,
+} from "@/components/icons";
 
 /* ------------------------------------------------------------------ *
  * Surfaces
@@ -430,10 +436,71 @@ export function Spinner({ label = "Loading" }: { label?: string }) {
   );
 }
 
-export function ErrorNote({ message }: { message: string }) {
+/** An aside, marked by what it is rather than by a rule down its side.
+ *
+ *  The rule was the wrong instrument. A line can only be darker or lighter, so
+ *  it says "pay attention" and nothing else, and every kind of aside ended up
+ *  wearing the same one. A glyph names the kind and its colour carries the
+ *  weight: red is something that went wrong, amber is something to be careful
+ *  of, and a quiet note is the product stating its own limits. */
+export function Note({
+  tone = "muted",
+  children,
+  className = "",
+}: {
+  tone?: "muted" | "warn" | "fail";
+  children: ReactNode;
+  className?: string;
+}) {
+  const Icon = tone === "fail" ? IconError : tone === "warn" ? IconWarning : IconNote;
+  const colour = tone === "fail" ? "text-fail" : tone === "warn" ? "text-warn" : "text-faint";
+  const body = tone === "fail" ? "text-fail" : tone === "warn" ? "text-warn" : "text-muted";
+
   return (
-    <div className="animate-rise border-l-2 border-fail bg-fail/[0.04] px-3 py-2 text-sm text-fail">
-      {message}
+    <div className={`flex gap-2 text-xs leading-relaxed ${className}`}>
+      <Icon className={`mt-[2px] shrink-0 ${colour}`} aria-hidden />
+      <div className={`min-w-0 flex-1 ${body}`}>{children}</div>
+    </div>
+  );
+}
+
+/** Something the interface could not do.
+ *
+ *  Red, because a failure is a failure -- but carried by the glyph, not by a
+ *  bar drawn down the edge of the block. The colour lands on the one mark
+ *  whose job is to say what kind of thing this is, and the words stay legible
+ *  text rather than a paragraph tinted to match. */
+export function ErrorNote({
+  message,
+  status,
+  onRetry,
+}: {
+  message: string;
+  status?: number | null;
+  onRetry?: () => void;
+}) {
+  return (
+    <div role="alert" className="animate-rise flex gap-2.5 bg-sunken px-3 py-2.5 text-sm">
+      <IconError className="mt-[3px] shrink-0 text-fail" aria-hidden />
+      {/* The icon sits outside the wrapping row, so when the retry drops to a
+          second line it lands under the message rather than under the glyph.
+          The message keeps a measure of its own so that on a narrow screen it
+          wraps as a sentence instead of one word to a row. */}
+      <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        {status ? (
+          <span className="tnum shrink-0 font-mono text-2xs text-faint">{status}</span>
+        ) : null}
+        <p className="min-w-[12rem] flex-1 text-ink-soft">{message}</p>
+        {onRetry ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="shrink-0 text-xs text-muted underline underline-offset-2 transition-colors duration-150 hover:text-ink"
+          >
+            Try again
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -441,9 +508,7 @@ export function ErrorNote({ message }: { message: string }) {
 /** A statement the product makes about its own limits. Appears beside
  *  anything a reader might otherwise over-read. */
 export function Caveat({ children }: { children: ReactNode }) {
-  return (
-    <p className="border-l border-line pl-3 text-xs leading-relaxed text-muted">{children}</p>
-  );
+  return <Note tone="muted">{children}</Note>;
 }
 
 /* ------------------------------------------------------------------ *
