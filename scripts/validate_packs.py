@@ -179,6 +179,21 @@ def validate_deployment_specs() -> None:
                     "with it and a mismatch fails opaquely."
                 )
 
+        # App Platform strips the matched prefix before forwarding unless a
+        # route says otherwise. The API serves absolute paths and does not know
+        # it is mounted under anything, so /health reached it as / and every
+        # API path returned 404 from a container that was running fine.
+        if component.get("name") == "api":
+            for route in component.get("routes") or []:
+                if route.get("path") not in (None, "/") and not route.get(
+                    "preserve_path_prefix"
+                ):
+                    errors.append(
+                        f".do/app.yaml: api route {route.get('path')!r} does not set "
+                        "preserve_path_prefix, so the prefix is stripped and the API "
+                        "will 404 on it."
+                    )
+
         for key in ("AEGIS_SECRET_KEY", "AEGIS_S3_SECRET_KEY", "AEGIS_BOOTSTRAP_PASSWORD"):
             if key in envs and envs[key].get("type") != "SECRET":
                 errors.append(f".do/app.yaml: {component.get('name')} must mark {key} as SECRET")

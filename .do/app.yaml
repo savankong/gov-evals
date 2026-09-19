@@ -56,11 +56,19 @@ services:
       timeout_seconds: 5
       failure_threshold: 3
 
+    # App Platform strips the matched prefix before forwarding unless told not
+    # to, so `/health` arrived at the API as `/` and every API path 404'd
+    # against a container that was running perfectly well. The API serves
+    # absolute paths; it does not know it is mounted under anything.
     routes:
       - path: /api
+        preserve_path_prefix: true
       - path: /health
+        preserve_path_prefix: true
       - path: /docs
+        preserve_path_prefix: true
       - path: /openapi.json
+        preserve_path_prefix: true
 
     envs:
       - key: AEGIS_ENV
