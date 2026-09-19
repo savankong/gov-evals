@@ -59,6 +59,35 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
+  sbom:
+    name: Software bill of materials
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate a CycloneDX SBOM per component
+        run: |
+          mkdir -p sbom
+          syft scan dir:apps/api      -o cyclonedx-json=sbom/api.cdx.json
+          syft scan dir:packages/sdk  -o cyclonedx-json=sbom/sdk.cdx.json
+          syft scan dir:apps/web      -o cyclonedx-json=sbom/web.cdx.json
+
+      # An SBOM that resolved nothing is not a bill of materials, it is an empty
+      # file that makes a pipeline look green. The same reason a run that judged
+      # nothing is NOT EVALUATED rather than a pass.
+      - name: Refuse an SBOM that lists no components
+        run: python3 scripts/check_sbom.py sbom/*.cdx.json
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-source
+          path: sbom/
+          if-no-files-found: error
+
   packs:
     name: Evaluation packs
     runs-on: ubuntu-latest

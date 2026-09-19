@@ -1,0 +1,45 @@
+# The API image builds from the repository root so it can carry packs/, which
+# means the whole tree is the build context. Keep out everything the image does
+# not need: a large context is slow to send and easy to leak secrets through.
+
+.git/
+.github/
+.claude/
+
+# Dependencies and build output, all rebuilt inside the image.
+.venv/
+venv/
+**/node_modules/
+**/.next/
+**/out/
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Never let a credential reach a build layer.
+.env
+.env.*
+!.env.example
+**/*.tfvars
+!**/*.tfvars.example
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform/
+
+# Local state and generated material.
+**/data/
+**/evidence-store/
+**/artifacts/
+**/*.db
+**/*.sqlite3
+sbom/
+**/*.cdx.json
+
+# Documentation and deployment descriptors are not inputs to the runtime image.
+docs/
+deploy/
+*.md
+!README.md

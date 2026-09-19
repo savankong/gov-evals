@@ -2,8 +2,17 @@
 #
 # Provisions the managed pieces the platform needs: Postgres for the control
 # plane, Valkey for the campaign queue, and a Space for the evidence store.
-# Run `terraform apply`, then feed the outputs into .do/app.yaml (App Platform)
-# or into the droplet's environment.
+#
+# Run this BEFORE creating the App Platform app. The app spec does not create
+# its databases -- its `databases:` entries name an existing cluster through
+# `cluster_name` and attach to it, so the cluster names here and there have to
+# agree. They did not, and the result was `doctl apps create` failing with
+# "database cluster (aegis-pg) was not found". The names are variables now and
+# default to what .do/app.yaml expects.
+#
+# The Space is the one piece App Platform cannot provide, so it comes from
+# here either way. Put its name into AEGIS_S3_BUCKET in the app spec: bucket
+# names are globally unique, so the spec ships with a placeholder.
 #
 #   export DIGITALOCEAN_TOKEN=...
 #   export SPACES_ACCESS_KEY_ID=...        # for the bucket resource
@@ -80,6 +89,24 @@ variable "app_platform_app_id" {
   description = "App Platform app ID to admit through the database firewall."
 }
 
+variable "postgres_cluster_name" {
+  type        = string
+  default     = "aegis-pg"
+  description = <<-EOT
+    Postgres cluster name. This must equal the cluster_name that
+    .do/app.yaml gives its aegis-db entry: App Platform looks the cluster up by
+    name and attaches to it. A mismatch fails app creation with
+    "database cluster (aegis-pg) was not found", and creating the app anyway
+    with its own databases block would bill for a second pair of clusters.
+  EOT
+}
+
+variable "valkey_cluster_name" {
+  type        = string
+  default     = "aegis-valkey"
+  description = "Valkey cluster name. Must equal .do/app.yaml's aegis-queue cluster_name."
+}
+
 locals {
   prefix = "${var.project_name}-${var.environment}"
   tags   = [var.project_name, var.environment, "managed-by-terraform"]
@@ -90,7 +117,9 @@ locals {
 # ---------------------------------------------------------------------------
 
 resource "digitalocean_database_cluster" "postgres" {
-  name       = "${local.prefix}-pg"
+  # Must match .do/app.yaml's databases[].cluster_name: App Platform attaches
+  # to an existing cluster by this name rather than creating one.
+  name       = var.postgres_cluster_name
   engine     = "pg"
   version    = "16"
   size       = var.db_size
@@ -141,7 +170,8 @@ resource "digitalocean_database_firewall" "postgres" {
 # ---------------------------------------------------------------------------
 
 resource "digitalocean_database_cluster" "valkey" {
-  name       = "${local.prefix}-valkey"
+  # Must match .do/app.yaml's databases[].cluster_name.
+  name       = var.valkey_cluster_name
   engine     = "valkey"
   version    = "8"
   size       = var.valkey_size

@@ -19,15 +19,46 @@ from ..models import Evaluation, FrameworkRequirement, Pack, Scenario
 
 log = logging.getLogger("aegis.packs")
 
-# Repository layout: apps/api/aegis/packs/loader.py -> <repo>/packs
-DEFAULT_PACK_DIR = Path(__file__).resolve().parents[4] / "packs"
+# Where the shipped YAML packs live, found by walking up from this module.
+#
+# This used to be parents[4] / "packs", which is correct for the repository
+# layout (apps/api/aegis/packs/loader.py -> <repo>/packs) and raises IndexError
+# anywhere shallower. Installed into a container at /app/aegis/packs/loader.py
+# there is no fourth parent, so the expression blew up while the module was
+# still being imported and took the whole API down before it could serve
+# anything -- including the health check that would have reported it.
+#
+# Walking up cannot overshoot in the same way. Two things make the search
+# honest: this module's own directory is also called "packs", so it has to be
+# skipped, and a directory only counts if it actually holds pack documents.
+_MODULE_DIR = Path(__file__).resolve().parent
+
+
+def _discover_pack_dir(start: Path) -> Path | None:
+    """Nearest ancestor directory named 'packs' that contains pack documents."""
+    for parent in start.parents:
+        candidate = parent / "packs"
+        if candidate == start:
+            continue  # aegis/packs is this Python package, not the pack library
+        if candidate.is_dir() and any(candidate.glob("*.y*ml")):
+            return candidate
+    return None
+
+
+# Kept for callers that import it, but resolved defensively.
+DEFAULT_PACK_DIR = _discover_pack_dir(_MODULE_DIR)
+
+# Where the container image puts them, used when discovery finds nothing.
+CONTAINER_PACK_DIR = Path("/packs")
 
 
 def pack_directory() -> Path:
     import os
 
     override = os.getenv("AEGIS_PACK_DIR")
-    return Path(override) if override else DEFAULT_PACK_DIR
+    if override:
+        return Path(override)
+    return DEFAULT_PACK_DIR or CONTAINER_PACK_DIR
 
 
 def discover_packs(directory: Path | None = None) -> list[Path]:

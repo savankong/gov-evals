@@ -17,7 +17,8 @@ name: aegis-eval
 services:
   api:
     build:
-      context: ./apps/api
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -87,7 +88,8 @@ services:
   worker:
     profiles: ["scale"]
     build:
-      context: ./apps/api
+      context: .
+      dockerfile: apps/api/Dockerfile
     command: ["python", "worker.py"]
     environment:
       AEGIS_SECRET_KEY: ${AEGIS_SECRET_KEY:-change-me-in-every-deployment}

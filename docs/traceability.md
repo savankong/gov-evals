@@ -95,10 +95,30 @@ Things the PRD lists that were **not** built, said plainly:
 - **No marketplace.** Packs carry the provenance and versioning a marketplace would
   need, but distribution, signing and trust are unsolved here and doing them badly
   would be worse than not doing them.
-- **No non-text modalities.** The data model accepts them; no evaluator reads them.
-- **SBOM and artifact signing** are listed as P0 security requirements and are not
-  implemented. They belong in the build pipeline rather than the application, but
-  they are absent, not done elsewhere.
+- **No non-text modality evaluators.** Repeated here because the data model
+  accepting a modality is easy to mistake for support.
+
+## Supply chain
+
+| Requirement | State | Where |
+| --- | --- | --- |
+| SBOM | Built | CycloneDX per component in CI (`sbom` job) and per image at deploy. `scripts/check_sbom.py` fails a bill of materials that resolved nothing, carries unnamed components, or was produced by a scanner pointed at the wrong directory. |
+| Artifact signing | Partial | Both images are signed by digest with cosign, keyless through the workflow's GitHub OIDC identity, and carry a CycloneDX attestation. The deploy job verifies signature and attestation against a pinned certificate identity **before** rolling out, so a failure stops the deployment. |
+
+Two limits, because they are the difference between a control and a ritual:
+
+**The signature does not yet cover the running container.** `.do/app.yaml`
+sources its components from GitHub, so App Platform rebuilds from the
+repository and runs its own output. The signed images are an attested artifact
+of record for the commit, not the artifact serving traffic. Closing that gap
+means pointing the spec at `image:` with the verified digest, which needs a
+paid container registry.
+
+**Nothing here has been exercised against a real registry.** The pipeline is
+written and its shape is asserted by `scripts/validate_packs.py`, which fails
+CI if signing, attestation, identity pinning or the verify-before-rollout
+ordering is edited out — confirmed against four deliberate breakages. But no
+image has been signed in anger.
 
 ## Known limits of what is built
 

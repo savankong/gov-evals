@@ -62,6 +62,15 @@ Space, with database firewalls that admit only the sources you name. Versioning
 matters here: evidence is write-once by design, so an accidental overwrite
 should be recoverable rather than final.
 
+**The app does not create its own databases.** The `databases:` entries in
+`.do/app.yaml` name an existing cluster through `cluster_name` and attach to
+it, so `postgres_cluster_name` and `valkey_cluster_name` here have to match
+what that file says -- they default to `aegis-pg` and `aegis-valkey`, which is
+what the shipped spec expects. If they disagree, `doctl apps create` fails with
+`database cluster (aegis-pg) was not found`. Provision first, create the app
+second; there is no configuration in which both create a cluster, and nothing
+here bills twice.
+
 ### By hand
 
 ```bash
@@ -87,7 +96,15 @@ doctl apps list   # note the app id
 ```
 
 Edit `.do/app.yaml` first to point `github.repo` at your fork and
-`AEGIS_S3_BUCKET` at the bucket Terraform created.
+`AEGIS_S3_BUCKET` at the bucket Terraform created. That one cannot ship with a
+working default: Spaces bucket names are globally unique, so the value in the
+file is a placeholder and will not exist in your account.
+
+The API and worker build from the repository root (`source_dir: /`), not from
+`apps/api`, because the image has to carry `packs/`. App Platform mounts no
+volumes, so packs that arrive only through the compose bind mount are simply
+absent in production, and the API comes up healthy with no evaluations,
+scenarios or frameworks installed.
 
 ### Confirm the deployment
 

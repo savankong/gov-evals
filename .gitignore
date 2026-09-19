@@ -17,11 +17,29 @@ out/
 # Local state
 *.db
 *.sqlite3
+# Every .env variant, not just these two: docs/deploy-digitalocean.md writes
+# terraform's environment_block to .env.production, which is a file of secrets.
 .env
-.env.local
+.env.*
+!.env.example
 data/
 artifacts/
 evidence-store/
+
+# Terraform. State holds every credential it touched in plaintext, and a real
+# tfvars file holds them before that, so neither may ever be committed.
+*.tfvars
+!*.tfvars.example
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Generated supply-chain material
+sbom/
+*.sbom.json
+*.cdx.json
 
 # OS / editors
 .DS_Store

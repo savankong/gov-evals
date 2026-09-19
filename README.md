@@ -55,7 +55,7 @@ For local development without Docker:
 make install
 make api     # :8000
 make web     # :3000
-make test    # 88 tests
+make test    # 133 tests
 ```
 
 ## How it works

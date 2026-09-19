@@ -135,6 +135,7 @@ def main() -> int:
                 errors.append(f"{source}: {name} maps to unknown framework reference {ref!r}")
 
     validate_deployment_specs()
+    validate_supply_chain()
 
     print(
         f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
@@ -186,6 +187,89 @@ def validate_deployment_specs() -> None:
                 f".do/app.yaml: {component.get('name')} enables demo seeding, which must not "
                 "run outside development."
             )
+
+
+def validate_supply_chain() -> None:
+    """SBOM and signing are build-pipeline controls, so nothing in the test
+    suite can protect them. They are one edit away from becoming decorative in
+    ways that still go green: dropping the verify step, or keeping it but
+    letting it accept a signature from anybody.
+
+    So the shape is asserted here, the same way the ephemeral-filesystem guard
+    in the App Platform spec is.
+    """
+    ci_path = ROOT / ".github" / "workflows" / "ci.yml"
+    deploy_path = ROOT / ".github" / "workflows" / "deploy-digitalocean.yml"
+
+    if ci_path.exists():
+        ci = load(ci_path)
+        jobs = ci.get("jobs") or {}
+        if "sbom" not in jobs:
+            errors.append("ci.yml: no 'sbom' job. Every build must record what went into it.")
+        else:
+            body = yaml.safe_dump(jobs["sbom"])
+            if "check_sbom.py" not in body:
+                errors.append(
+                    "ci.yml: the sbom job does not run scripts/check_sbom.py, so an SBOM "
+                    "that resolved nothing would still pass."
+                )
+
+    if not deploy_path.exists():
+        return
+    deploy = load(deploy_path)
+    job = (deploy.get("jobs") or {}).get("deploy")
+    if not job:
+        errors.append("deploy-digitalocean.yml: no 'deploy' job")
+        return
+
+    permissions = job.get("permissions") or {}
+    if permissions.get("id-token") != "write":
+        errors.append(
+            "deploy-digitalocean.yml: the deploy job needs 'id-token: write'. Keyless "
+            "signing cannot get an OIDC token without it."
+        )
+
+    steps = job.get("steps") or []
+    bodies = [str(s.get("run") or "") for s in steps]
+    joined = "\n".join(bodies)
+
+    for fragment, message in (
+        ("cosign sign", "nothing signs the images"),
+        ("cosign attest", "no SBOM is attested to the images"),
+        ("cosign verify", "nothing verifies what was signed"),
+    ):
+        if fragment not in joined:
+            errors.append(f"deploy-digitalocean.yml: {message} ({fragment!r} not found)")
+
+    # An unpinned `cosign verify` accepts a valid signature from any identity,
+    # which is the usual way this check ends up proving nothing.
+    if "cosign verify" in joined and "--certificate-identity" not in joined:
+        errors.append(
+            "deploy-digitalocean.yml: cosign verify does not pin --certificate-identity, "
+            "so it would accept a signature from any identity."
+        )
+
+    # Verifying after the rollout tells you about something already serving.
+    def first_index(predicate) -> int | None:
+        for i, body in enumerate(bodies):
+            if predicate(body):
+                return i
+        return None
+
+    verify_at = first_index(lambda b: "cosign verify" in b)
+    rollout_at = first_index(lambda b: "create-deployment" in b)
+    if verify_at is not None and rollout_at is not None and verify_at > rollout_at:
+        errors.append(
+            "deploy-digitalocean.yml: signatures are verified after the rollout step. "
+            "A failed verification must stop the deployment, not report on it."
+        )
+
+    # Signing a tag is signing a mutable pointer.
+    if "cosign sign" in joined and "@" not in joined.split("cosign sign")[1][:400]:
+        warnings.append(
+            "deploy-digitalocean.yml: cosign sign may be operating on a tag rather than "
+            "a digest. A tag can be repointed after signing."
+        )
 
 
 def report() -> int:

@@ -7,6 +7,20 @@
 #
 # Deployment runs only after CI passes on main. A push that fails tests is
 # never deployed.
+#
+# What the signing here does and does not cover, stated plainly because the
+# difference is the whole value of it:
+#
+# Both images are built, pushed, signed by digest and given a CycloneDX SBOM
+# attestation, and the job refuses to roll out if any of that fails to verify
+# against this workflow's own OIDC identity. That makes the pushed images an
+# attested artifact of record for the commit.
+#
+# It is not yet a statement about the running container. `.do/app.yaml` sources
+# its components from GitHub, so App Platform rebuilds from the repository and
+# runs its own build output rather than the image signed here. Closing that gap
+# means pointing the spec's components at `image:` with the digest this job
+# verified, which needs a paid container registry -- see docs/security.md.
 name: Deploy to DigitalOcean
 
 on:
@@ -33,6 +47,13 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'deploy') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
+    permissions:
+      contents: read
+      # Keyless signing. Sigstore issues a short-lived certificate bound to this
+      # workflow's OIDC identity, so nothing long-lived has to be stored and
+      # rotated, and a signature names the workflow that produced it.
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -44,29 +65,97 @@ jobs:
       - name: Log in to the container registry
         run: doctl registry login --expiry-seconds 1200
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
       - name: Set image tags
         id: tags
         run: |
           echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
           echo "registry=registry.digitalocean.com/${{ secrets.DO_REGISTRY }}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push the API image
+      - name: Build and push both images
+        id: images
         run: |
+          set -euo pipefail
           REG='${{ steps.tags.outputs.registry }}'
           SHA='${{ steps.tags.outputs.sha }}'
-          docker build -t "$REG/aegis-api:$SHA" -t "$REG/aegis-api:latest" apps/api
-          docker push "$REG/aegis-api:$SHA"
-          docker push "$REG/aegis-api:latest"
 
-      - name: Build and push the web image
-        run: |
-          REG='${{ steps.tags.outputs.registry }}'
-          SHA='${{ steps.tags.outputs.sha }}'
+          # The API builds from the repository root: the evaluation packs live
+          # at <repo>/packs and the image has to carry them.
+          docker build -f apps/api/Dockerfile \
+            -t "$REG/aegis-api:$SHA" -t "$REG/aegis-api:latest" .
           docker build \
             --build-arg NEXT_PUBLIC_API_BASE="${{ vars.PUBLIC_API_BASE }}" \
             -t "$REG/aegis-web:$SHA" -t "$REG/aegis-web:latest" apps/web
-          docker push "$REG/aegis-web:$SHA"
-          docker push "$REG/aegis-web:latest"
+
+          for name in aegis-api aegis-web; do
+            docker push "$REG/$name:$SHA"
+            docker push "$REG/$name:latest"
+          done
+
+          # Everything downstream refers to the digest, never the tag. A tag is
+          # a mutable pointer, so a signature over a tag says nothing about what
+          # that tag resolves to afterwards.
+          for name in api web; do
+            digest=$(docker image inspect "$REG/aegis-$name:$SHA" \
+              --format '{{index .RepoDigests 0}}' | sed 's/.*@//')
+            echo "$name=$REG/aegis-$name@$digest" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Generate an SBOM for each image
+        run: |
+          set -euo pipefail
+          mkdir -p sbom
+          syft scan "${{ steps.images.outputs.api }}" -o cyclonedx-json=sbom/api.cdx.json
+          syft scan "${{ steps.images.outputs.web }}" -o cyclonedx-json=sbom/web.cdx.json
+          # An empty bill of materials must not pass for one.
+          python3 scripts/check_sbom.py sbom/api.cdx.json sbom/web.cdx.json
+
+      - name: Sign both images and attest their SBOMs
+        env:
+          COSIGN_YES: "true"
+        run: |
+          set -euo pipefail
+          for pair in "api:${{ steps.images.outputs.api }}" "web:${{ steps.images.outputs.web }}"; do
+            name="${pair%%:*}"; ref="${pair#*:}"
+            cosign sign "$ref"
+            cosign attest --type cyclonedx --predicate "sbom/$name.cdx.json" "$ref"
+          done
+
+      # Signing and then deploying without checking is a ritual, not a control.
+      # This re-reads what the registry now holds and fails the job -- before
+      # any rollout -- if the signature or the attestation does not verify
+      # against this workflow's own identity.
+      #
+      # The identity is pinned deliberately. `cosign verify` with no identity
+      # constraint accepts a valid signature from anybody, which is the usual
+      # way this check ends up proving nothing.
+      - name: Verify the signatures and attestations before rolling out
+        run: |
+          set -euo pipefail
+          IDENTITY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/.github/workflows/deploy-digitalocean.yml@${GITHUB_REF}"
+          ISSUER="https://token.actions.githubusercontent.com"
+          echo "Requiring signer identity: $IDENTITY"
+          for ref in "${{ steps.images.outputs.api }}" "${{ steps.images.outputs.web }}"; do
+            cosign verify \
+              --certificate-identity "$IDENTITY" \
+              --certificate-oidc-issuer "$ISSUER" "$ref" > /dev/null
+            cosign verify-attestation --type cyclonedx \
+              --certificate-identity "$IDENTITY" \
+              --certificate-oidc-issuer "$ISSUER" "$ref" > /dev/null
+            echo "verified: $ref"
+          done
+
+      - name: Publish the bills of materials
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-images-${{ steps.tags.outputs.sha }}
+          path: sbom/
+          if-no-files-found: error
 
       - name: Roll out to App Platform
         run: doctl apps create-deployment "${{ secrets.DO_APP_ID }}" --wait

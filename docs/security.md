@@ -75,14 +75,48 @@ confirm it at a glance. The platform never phones home.
 
 The API image installs into a prefix and copies the result into a slim runtime with
 no build toolchain. The web image uses Next.js standalone output. Both run as an
-unprivileged user and carry a healthcheck.
+unprivileged user and carry a healthcheck. Both have been built and run: they
+serve, and they drop to uid 10001.
+
+**Bill of materials.** CI generates a CycloneDX SBOM for the API, the SDK and the
+web app on every pull request, and the deploy job generates one per image.
+`scripts/check_sbom.py` refuses a document that lists no components, that carries
+components with no name, or whose contents say the scanner was aimed at the wrong
+directory. An empty SBOM is the supply-chain version of a run that judged nothing,
+and it does not pass for one.
+
+**Signing.** The deploy job signs both images with cosign, keyless, using the
+workflow's GitHub OIDC identity, and attaches the SBOM as a CycloneDX
+attestation. Signing is by digest, never by tag: a tag is a mutable pointer, so a
+signature over one says nothing about what it resolves to afterwards.
+
+**Verification is the control.** Signing and then deploying without checking
+proves nothing, so the job re-reads what the registry holds and verifies both the
+signature and the attestation against a pinned certificate identity and issuer.
+`cosign verify` with no identity constraint accepts a valid signature from anyone,
+which is the usual way this check quietly stops meaning anything. Verification runs
+before the rollout step, so a failure stops the deployment rather than reporting on
+one already serving.
+
+`scripts/validate_packs.py` fails CI if the signing, the attestation, the identity
+pinning, the `id-token: write` permission or the verify-before-rollout ordering is
+edited out. That was confirmed against four deliberate breakages rather than
+assumed.
+
+Two things it does not cover, which matter:
+
+- **The running container is not what was signed.** `.do/app.yaml` builds from
+  GitHub source, so App Platform runs its own build output. The signed images are
+  an attested artifact of record for the commit. Pointing the spec at `image:`
+  with the verified digest closes this, and needs a paid container registry.
+- **No image has been signed against a real registry.** The pipeline's shape is
+  asserted; its execution is not yet demonstrated.
 
 ## Not yet implemented
 
 Stated plainly rather than omitted:
 
 - Customer-managed encryption keys.
-- SBOM generation and artifact signing in the build pipeline.
 - Field-level encryption at rest (rely on volume or database encryption).
 - SAML (OIDC is implemented; SAML is P1).
 - Attribute-based access control beyond role and project scope.
