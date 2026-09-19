@@ -14,15 +14,15 @@ are looking at is the one that was evaluated (section 52).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     Float,
     ForeignKey,
     Integer,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -37,7 +37,7 @@ def _uuid() -> str:
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
@@ -79,7 +79,7 @@ class Organization(Base, TimestampMixin):
     risk_scoring: Mapped[dict] = mapped_column(JSON, default=dict)
     settings: Mapped[dict] = mapped_column(JSON, default=dict)
 
-    programs: Mapped[list["Program"]] = relationship(
+    programs: Mapped[list[Program]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
     )
 
@@ -99,7 +99,7 @@ class User(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)
 
-    memberships: Mapped[list["Membership"]] = relationship(
+    memberships: Mapped[list[Membership]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -153,7 +153,7 @@ class Program(Base, TimestampMixin):
     program_office: Mapped[str | None] = mapped_column(String(255))
 
     organization: Mapped[Organization] = relationship(back_populates="programs")
-    projects: Mapped[list["Project"]] = relationship(
+    projects: Mapped[list[Project]] = relationship(
         back_populates="program", cascade="all, delete-orphan"
     )
 
@@ -180,19 +180,19 @@ class Project(Base, TimestampMixin, GovernedArtifactMixin):
     status: Mapped[str] = mapped_column(String(32), default="active")
 
     program: Mapped[Program] = relationship(back_populates="projects")
-    mission_profile: Mapped["MissionProfile | None"] = relationship(
+    mission_profile: Mapped[MissionProfile | None] = relationship(
         back_populates="project", cascade="all, delete-orphan", uselist=False
     )
-    systems: Mapped[list["System"]] = relationship(
+    systems: Mapped[list[System]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
-    datasets: Mapped[list["Dataset"]] = relationship(
+    datasets: Mapped[list[Dataset]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
-    campaigns: Mapped[list["Campaign"]] = relationship(
+    campaigns: Mapped[list[Campaign]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
-    requirements: Mapped[list["Requirement"]] = relationship(
+    requirements: Mapped[list[Requirement]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
 
@@ -266,7 +266,7 @@ class System(Base, TimestampMixin, GovernedArtifactMixin):
     description: Mapped[str | None] = mapped_column(Text)
 
     project: Mapped[Project] = relationship(back_populates="systems")
-    versions: Mapped[list["SystemVersion"]] = relationship(
+    versions: Mapped[list[SystemVersion]] = relationship(
         back_populates="system", cascade="all, delete-orphan", order_by="SystemVersion.created_at"
     )
 
@@ -337,7 +337,7 @@ class Dataset(Base, TimestampMixin, GovernedArtifactMixin):
     tags: Mapped[list] = mapped_column(JSON, default=list)
 
     project: Mapped[Project] = relationship(back_populates="datasets")
-    versions: Mapped[list["DatasetVersion"]] = relationship(
+    versions: Mapped[list[DatasetVersion]] = relationship(
         back_populates="dataset", cascade="all, delete-orphan"
     )
 
@@ -359,7 +359,7 @@ class DatasetVersion(Base, TimestampMixin):
     is_current: Mapped[bool] = mapped_column(Boolean, default=True)
 
     dataset: Mapped[Dataset] = relationship(back_populates="versions")
-    items: Mapped[list["DatasetItem"]] = relationship(
+    items: Mapped[list[DatasetItem]] = relationship(
         back_populates="dataset_version", cascade="all, delete-orphan"
     )
 
@@ -475,7 +475,7 @@ class EvaluationPlan(Base, TimestampMixin):
     approved_by: Mapped[str | None] = mapped_column(String(255))
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    items: Mapped[list["EvaluationPlanItem"]] = relationship(
+    items: Mapped[list[EvaluationPlanItem]] = relationship(
         back_populates="plan", cascade="all, delete-orphan"
     )
 
@@ -532,7 +532,7 @@ class Campaign(Base, TimestampMixin):
     summary: Mapped[dict] = mapped_column(JSON, default=dict)
 
     project: Mapped[Project] = relationship(back_populates="campaigns")
-    runs: Mapped[list["Run"]] = relationship(
+    runs: Mapped[list[Run]] = relationship(
         back_populates="campaign", cascade="all, delete-orphan"
     )
 
@@ -580,7 +580,7 @@ class Run(Base, TimestampMixin):
     campaign: Mapped[Campaign] = relationship(back_populates="runs")
     evaluation: Mapped[Evaluation] = relationship()
     system_version: Mapped[SystemVersion] = relationship()
-    results: Mapped[list["Result"]] = relationship(
+    results: Mapped[list[Result]] = relationship(
         back_populates="run", cascade="all, delete-orphan"
     )
 
@@ -779,7 +779,7 @@ class AssuranceCase(Base, TimestampMixin):
     residual_risk_statement: Mapped[str | None] = mapped_column(Text)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    claims: Mapped[list["AssuranceClaim"]] = relationship(
+    claims: Mapped[list[AssuranceClaim]] = relationship(
         back_populates="case", cascade="all, delete-orphan"
     )
 
@@ -807,7 +807,7 @@ class AssuranceClaim(Base, TimestampMixin):
     ordinal: Mapped[int] = mapped_column(Integer, default=0)
 
     case: Mapped[AssuranceCase] = relationship(back_populates="claims")
-    evidence_links: Mapped[list["AssuranceEvidenceLink"]] = relationship(
+    evidence_links: Mapped[list[AssuranceEvidenceLink]] = relationship(
         back_populates="claim", cascade="all, delete-orphan"
     )
 

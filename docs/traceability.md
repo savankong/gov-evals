@@ -31,7 +31,7 @@ a stated limit · **Not built** is absent.
 | 19 | Evidence storage | Built | File or S3-compatible, SHA-256 digests |
 | 20 | Report generation | Built | Five kinds, hashed, downloadable |
 | 21 | Audit logs | Built | Hash-chained, tamper-evident, verifiable |
-| 22 | API | Built | 101 endpoints; the UI uses no private path |
+| 22 | API | Built | 82 paths, 102 operations; the UI uses no private path |
 | 23 | Docker deployment | Built | Compose, single node and scaled profile |
 | 24 | No mandatory telemetry | Built | Off by default; state shown on `/health` |
 

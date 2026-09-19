@@ -16,7 +16,6 @@ from ..models import (
     EvaluationPlan,
     Gate,
     GateCheck,
-    Project,
     Report,
     User,
     utcnow,

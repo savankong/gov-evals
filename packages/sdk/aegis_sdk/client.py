@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator
+from typing import Any, TypeVar
 
 import httpx
 
 DEFAULT_TIMEOUT = 60.0
+# typing.Self is 3.11+; the SDK supports 3.9, so a bound TypeVar is used instead.
+_AegisT = TypeVar("_AegisT", bound="Aegis")
 TERMINAL_STATUSES = {"completed", "failed", "cancelled", "awaiting_human"}
 
 
@@ -127,16 +130,16 @@ class GateResult:
 
     def explain(self) -> str:
         lines = [f"Gate {self.raw.get('gate', {}).get('name', '')}: {self.status.upper()}"]
-        for criterion in self.raw.get("criteria_results", []):
-            lines.append(
-                f"  [{criterion.get('status', '').upper():<14}] "
-                f"{criterion.get('label')}: {criterion.get('detail')}"
-            )
+        lines.extend(
+            f"  [{criterion.get('status', '').upper():<14}] "
+            f"{criterion.get('label')}: {criterion.get('detail')}"
+            for criterion in self.raw.get("criteria_results", [])
+        )
         return "\n".join(lines)
 
 
 class _Namespace:
-    def __init__(self, client: "Aegis") -> None:
+    def __init__(self, client: Aegis) -> None:
         self._client = client
 
 
@@ -318,7 +321,7 @@ class Aegis:
                 detail = response.json()
                 if isinstance(detail.get("detail"), str):
                     message = detail["detail"]
-            except Exception:  # noqa: BLE001
+            except Exception:
                 detail = response.text
             raise AegisError(message, response.status_code, detail)
         if response.status_code == 204 or not response.content:
@@ -427,7 +430,7 @@ class Aegis:
     def close(self) -> None:
         self._client.close()
 
-    def __enter__(self) -> "Aegis":
+    def __enter__(self) -> Aegis:
         return self
 
     def __exit__(self, *exc: object) -> None:

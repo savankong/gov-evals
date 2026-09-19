@@ -1,6 +1,6 @@
 """Evaluation, scenario, attack and framework packs."""
 
-from .loader import (  # noqa: F401
+from .loader import (
     discover_packs,
     install_all,
     install_pack,

@@ -58,7 +58,7 @@ def _parse(content: bytes, filename: str) -> tuple[list[dict], str]:
     name = (filename or "").lower()
     text = content.decode("utf-8-sig", errors="replace")
 
-    if name.endswith(".jsonl") or name.endswith(".ndjson"):
+    if name.endswith((".jsonl", ".ndjson")):
         rows = [json.loads(line) for line in text.splitlines() if line.strip()]
         return rows, "jsonl"
     if name.endswith(".json"):
@@ -66,7 +66,7 @@ def _parse(content: bytes, filename: str) -> tuple[list[dict], str]:
         if isinstance(parsed, dict):
             parsed = parsed.get("items") or parsed.get("data") or [parsed]
         return list(parsed), "json"
-    if name.endswith(".csv") or name.endswith(".tsv"):
+    if name.endswith((".csv", ".tsv")):
         delimiter = "\t" if name.endswith(".tsv") else ","
         return list(csv.DictReader(io.StringIO(text), delimiter=delimiter)), "csv"
 

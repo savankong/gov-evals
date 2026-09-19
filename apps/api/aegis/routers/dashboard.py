@@ -27,7 +27,6 @@ from ..models import (
     Run,
     Scenario,
     System,
-    SystemVersion,
     User,
 )
 from ..runner.comparison import compare_campaigns
@@ -212,23 +211,22 @@ def project_dashboard(
                 "regression_detected": diff["regression_detected"],
             }
 
-    current_versions = []
-    for system in systems:
-        for version in system.versions:
-            if version.is_current:
-                current_versions.append(
-                    {
-                        "system": system.name,
-                        "system_id": system.id,
-                        "kind": system.kind,
-                        "version_id": version.id,
-                        "version": version.version,
-                        "model_name": version.model_name,
-                        "model_provider": version.model_provider,
-                        "connector": version.connector_type,
-                        "config_hash": version.config_hash,
-                    }
-                )
+    current_versions = [
+        {
+            "system": system.name,
+            "system_id": system.id,
+            "kind": system.kind,
+            "version_id": version.id,
+            "version": version.version,
+            "model_name": version.model_name,
+            "model_provider": version.model_provider,
+            "connector": version.connector_type,
+            "config_hash": version.config_hash,
+        }
+        for system in systems
+        for version in system.versions
+        if version.is_current
+    ]
 
     return {
         "project": {
@@ -318,18 +316,17 @@ def framework_coverage(
         evaluation = db.get(Evaluation, run.evaluation_id)
         if not evaluation:
             continue
+        entry = {
+            "run_id": run.id,
+            "evaluation_key": evaluation.key,
+            "evaluation_name": evaluation.name,
+            "verdict": run.verdict,
+            "executions": run.scenario_count,
+            "passed": run.passed,
+            "failed": run.failed,
+        }
         for ref in evaluation.framework_refs or []:
-            evidence.setdefault(ref, []).append(
-                {
-                    "run_id": run.id,
-                    "evaluation_key": evaluation.key,
-                    "evaluation_name": evaluation.name,
-                    "verdict": run.verdict,
-                    "executions": run.scenario_count,
-                    "passed": run.passed,
-                    "failed": run.failed,
-                }
-            )
+            evidence.setdefault(ref, []).append(entry)
 
     requirements = list(db.execute(select(FrameworkRequirement)).scalars())
     rows = []
@@ -389,23 +386,25 @@ def trust_calibration(
     )
 
     by_result = {r.id: r for r in results}
-    points, over, under, calibrated = [], 0, 0, 0
-    for review in reviews:
-        if review.confidence is None:
-            continue
-        result = by_result.get(review.result_id)
-        if result is None:
-            continue
+    scored = [
+        (review, by_result[review.result_id])
+        for review in reviews
+        if review.confidence is not None and review.result_id in by_result
+    ]
+    points = [
+        {
+            "result_id": result.id,
+            "reviewer": review.reviewer_label,
+            "operator_confidence": review.confidence,
+            "system_correct": result.status == ResultStatus.PASS,
+            "result_status": result.status,
+        }
+        for review, result in scored
+    ]
+
+    over, under, calibrated = 0, 0, 0
+    for review, result in scored:
         system_correct = result.status == ResultStatus.PASS
-        points.append(
-            {
-                "result_id": result.id,
-                "reviewer": review.reviewer_label,
-                "operator_confidence": review.confidence,
-                "system_correct": system_correct,
-                "result_status": result.status,
-            }
-        )
         if not system_correct and review.confidence > 0.6:
             over += 1
         elif system_correct and review.confidence < 0.4:

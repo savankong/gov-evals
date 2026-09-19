@@ -8,7 +8,7 @@ artifact.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -37,7 +37,7 @@ STATUS_LABEL = {
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
 
 
 def _banner(classification: str) -> str:
@@ -86,10 +86,12 @@ def executive_report(db: Session, project: Project, campaign: Campaign | None = 
         "",
     ]
 
-    versions = {}
+    versions: dict[str, SystemVersion] = {}
     for run in runs:
+        if run.system_version_id in versions:
+            continue
         version = db.get(SystemVersion, run.system_version_id)
-        if version and version.id not in versions:
+        if version:
             versions[version.id] = version
     if versions:
         for version in versions.values():
@@ -252,12 +254,12 @@ def _limitations(db: Session, project: Project, runs: list[Run], findings: list[
         if evaluation:
             covered_layers.add(evaluation.layer)
 
-    for layer in TEVVLayer.ALL:
-        if layer not in covered_layers:
-            notes.append(
-                f"- **{TEVVLayer.LABELS[layer]}** was not performed. This evaluation says "
-                f"nothing about that area."
-            )
+    notes.extend(
+        f"- **{TEVVLayer.LABELS[layer]}** was not performed. This evaluation says "
+        f"nothing about that area."
+        for layer in TEVVLayer.ALL
+        if layer not in covered_layers
+    )
 
     if any(run.pending_human for run in runs):
         outstanding = sum(run.pending_human for run in runs)
@@ -343,10 +345,10 @@ def evaluation_plan_report(db: Session, project: Project, plan) -> str:
             lines.append("")
 
     lines += ["## Coverage", "", "| CDAO T&E area | Evaluations |", "| --- | --- |"]
-    for layer, info in coverage["layers"].items():
+    for info in coverage["layers"].values():
         lines.append(f"| {info['label']} | {info['count'] if info['count'] else '**none**'} |")
     lines += ["", "| Domain | Evaluations |", "| --- | --- |"]
-    for domain, info in coverage["domains"].items():
+    for info in coverage["domains"].values():
         lines.append(f"| {info['label']} | {info['count'] if info['count'] else '**none**'} |")
 
     if coverage["uncovered_domains"]:

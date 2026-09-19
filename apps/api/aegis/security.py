@@ -9,7 +9,7 @@ belongs to the reverse proxy or the service mesh.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -56,7 +56,7 @@ def verify_password(password: str, password_hash: str | None) -> bool:
 
 def create_access_token(user: User, extra: dict | None = None) -> str:
     settings = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user.id,
         "email": user.email,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -497,7 +497,7 @@ def accept_case(
 @router.get("/projects/{project_id}/evidence-graph")
 def evidence_graph(project_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     """The section 30 graph: mission through to assurance claim."""
-    project = get_project(db, project_id)
+    get_project(db, project_id)  # 404s on an unknown project
     mission = db.execute(
         select(MissionProfile).where(MissionProfile.project_id == project_id)
     ).scalar_one_or_none()
@@ -521,9 +521,12 @@ def evidence_graph(project_id: str, db: Session = Depends(get_db), _: User = Dep
     nodes, edges = [], []
     nodes.append({"id": f"mission:{project_id}", "type": "mission",
                   "label": mission.mission[:80] if mission else "No mission profile"})
-    for requirement in requirements:
-        nodes.append({"id": f"requirement:{requirement.id}", "type": "requirement", "label": requirement.key})
-        edges.append({"from": f"mission:{project_id}", "to": f"requirement:{requirement.id}"})
+    nodes.extend(
+        {"id": f"requirement:{r.id}", "type": "requirement", "label": r.key} for r in requirements
+    )
+    edges.extend(
+        {"from": f"mission:{project_id}", "to": f"requirement:{r.id}"} for r in requirements
+    )
     for run in runs:
         evaluation = db.get(Evaluation, run.evaluation_id)
         nodes.append(
@@ -541,20 +544,44 @@ def evidence_graph(project_id: str, db: Session = Depends(get_db), _: User = Dep
                       "label": finding.key, "status": finding.status, "severity": finding.severity})
         if finding.run_id:
             edges.append({"from": f"run:{finding.run_id}", "to": f"finding:{finding.id}"})
-    for risk in risks:
-        nodes.append({"id": f"risk:{risk.id}", "type": "risk", "label": risk.key,
-                      "status": risk.status, "severity": risk.severity})
-        for finding_id in risk.finding_ids or []:
-            edges.append({"from": f"finding:{finding_id}", "to": f"risk:{risk.id}"})
+    nodes.extend(
+        {
+            "id": f"risk:{risk.id}",
+            "type": "risk",
+            "label": risk.key,
+            "status": risk.status,
+            "severity": risk.severity,
+        }
+        for risk in risks
+    )
+    edges.extend(
+        {"from": f"finding:{finding_id}", "to": f"risk:{risk.id}"}
+        for risk in risks
+        for finding_id in risk.finding_ids or []
+    )
     for case in cases:
         nodes.append({"id": f"assurance:{case.id}", "type": "assurance_case",
                       "label": case.title[:60], "status": case.status})
+        nodes.extend(
+            {
+                "id": f"claim:{claim.id}",
+                "type": "claim",
+                "label": claim.statement[:70],
+                "status": claim.support_status,
+            }
+            for claim in case.claims
+        )
+        edges.extend(
+            {"from": f"assurance:{case.id}", "to": f"claim:{claim.id}"} for claim in case.claims
+        )
         for claim in case.claims:
-            nodes.append({"id": f"claim:{claim.id}", "type": "claim",
-                          "label": claim.statement[:70], "status": claim.support_status})
-            edges.append({"from": f"assurance:{case.id}", "to": f"claim:{claim.id}"})
-            for link in claim.evidence_links:
-                edges.append({"from": f"{link.ref_type}:{link.ref_id}", "to": f"claim:{claim.id}",
-                              "stance": link.stance})
+            edges.extend(
+                {
+                    "from": f"{link.ref_type}:{link.ref_id}",
+                    "to": f"claim:{claim.id}",
+                    "stance": link.stance,
+                }
+                for link in claim.evidence_links
+            )
 
     return {"nodes": nodes, "edges": edges}

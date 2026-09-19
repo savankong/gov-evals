@@ -1,6 +1,6 @@
 """Test artifact generation (sections 40, 41)."""
 
-from .generators import (  # noqa: F401
+from .generators import (
     REPORT_KINDS,
     assurance_case_report,
     comparison_report,

@@ -31,7 +31,7 @@ def _run_campaign(campaign_id: str, judge_config: dict | None) -> None:
             return
         try:
             execute_campaign(db, campaign, judge_config)
-        except Exception:  # noqa: BLE001
+        except Exception:
             log.exception("Campaign %s failed", campaign_id)
             campaign = db.get(Campaign, campaign_id)
             if campaign:

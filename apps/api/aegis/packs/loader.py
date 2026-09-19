@@ -181,7 +181,7 @@ def install_all(db: Session, directory: Path | None = None) -> list[dict]:
         try:
             document = load_pack_file(path)
             results.append(install_pack(db, document, source_path=path.name))
-        except Exception as exc:  # noqa: BLE001 - one bad pack must not block the rest
+        except Exception as exc:
             log.error("Failed to install pack %s: %s", path.name, exc)
             results.append({"pack": path.stem, "status": "error", "error": str(exc)})
     return results

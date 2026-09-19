@@ -25,9 +25,9 @@ def evaluate_gate(db: Session, gate: Gate, campaign: Campaign) -> GateCheck:
         ).scalars()
     )
 
-    outcomes = []
-    for criterion in gate.criteria or []:
-        outcomes.append(_evaluate_criterion(db, criterion, runs, findings))
+    outcomes = [
+        _evaluate_criterion(db, criterion, runs, findings) for criterion in gate.criteria or []
+    ]
 
     if any(o["status"] == ResultStatus.FAIL for o in outcomes):
         status = ResultStatus.FAIL

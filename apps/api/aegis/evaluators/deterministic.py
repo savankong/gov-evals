@@ -154,13 +154,14 @@ class JsonSchemaEvaluator(Evaluator):
         types = self.config.get("key_types") or {}
         problems = []
         if isinstance(parsed, dict):
-            for key in required:
-                if key not in parsed:
-                    problems.append(f"missing key '{key}'")
-            for key, expected in types.items():
-                if key in parsed and expected in self._TYPES:
-                    if not isinstance(parsed[key], self._TYPES[expected]):
-                        problems.append(f"key '{key}' should be {expected}")
+            problems.extend(f"missing key '{k}'" for k in required if k not in parsed)
+            problems.extend(
+                f"key '{key}' should be {expected}"
+                for key, expected in types.items()
+                if key in parsed
+                and expected in self._TYPES
+                and not isinstance(parsed[key], self._TYPES[expected])
+            )
         elif required:
             problems.append("output was not a JSON object")
 
@@ -222,7 +223,7 @@ class CitationValidityEvaluator(Evaluator):
             for d in (ctx.request.get("documents") or []) + ctx.retrieved
             if d.get("source_id")
         }
-        cited = {str(c.get("source_id")) for c in ctx.citations if c.get("source_id")}
+        cited = {str(c["source_id"]) for c in ctx.citations if c.get("source_id")}
         for match in self._CITE.finditer(ctx.output_text):
             token = match.group(1) or match.group(2)
             if token:
@@ -296,7 +297,7 @@ class GroundednessOverlapEvaluator(Evaluator):
         min_ratio = float(self.config.get("min_sentence_overlap", 0.35))
         grounded, ungrounded = 0, []
         for sentence in sentences:
-            tokens = {t for t in re.findall(r"[a-z0-9]{4,}", sentence.lower())}
+            tokens = set(re.findall(r"[a-z0-9]{4,}", sentence.lower()))
             if not tokens:
                 continue
             overlap = sum(1 for t in tokens if t in corpus) / len(tokens)
@@ -309,7 +310,7 @@ class GroundednessOverlapEvaluator(Evaluator):
         ratio = grounded / total if total else 0.0
         threshold = float(ctx.threshold.get("min_groundedness", self.config.get("min_score", 0.8)))
         status = ResultStatus.PASS if ratio >= threshold else ResultStatus.FAIL
-        if ResultStatus.FAIL == status and ratio >= threshold - 0.1:
+        if status == ResultStatus.FAIL and ratio >= threshold - 0.1:
             status = ResultStatus.WARNING
         return self._judgement(
             status=status,
@@ -525,9 +526,7 @@ class RetrievalRecallEvaluator(Evaluator):
     description = "Share of the scenario's known-relevant sources that retrieval actually returned."
 
     def evaluate(self, ctx: EvaluationContext) -> Judgement:
-        relevant = set(
-            str(s) for s in (ctx.scenario.get("relevant_source_ids") or [])
-        )
+        relevant = {str(s) for s in (ctx.scenario.get("relevant_source_ids") or [])}
         if not relevant:
             return self._judgement(
                 status=ResultStatus.NOT_EVALUATED,
@@ -556,7 +555,7 @@ class RetrievalPrecisionEvaluator(Evaluator):
     description = "Share of retrieved passages that are actually relevant to the task."
 
     def evaluate(self, ctx: EvaluationContext) -> Judgement:
-        relevant = set(str(s) for s in (ctx.scenario.get("relevant_source_ids") or []))
+        relevant = {str(s) for s in (ctx.scenario.get("relevant_source_ids") or [])}
         retrieved = [str(p.get("source_id")) for p in ctx.retrieved if p.get("source_id")]
         if not relevant or not retrieved:
             return self._judgement(
@@ -588,9 +587,10 @@ class ConsistencyEvaluator(Evaluator):
                 status=ResultStatus.NOT_EVALUATED,
                 rationale="Consistency needs at least two repetitions of the scenario.",
             )
-        ratios = []
-        for i in range(len(siblings) - 1):
-            ratios.append(SequenceMatcher(None, siblings[i], siblings[i + 1]).ratio())
+        ratios = [
+            SequenceMatcher(None, siblings[i], siblings[i + 1]).ratio()
+            for i in range(len(siblings) - 1)
+        ]
         mean = sum(ratios) / len(ratios)
         threshold = float(ctx.threshold.get("min_consistency", self.config.get("min_similarity", 0.7)))
         return self._judgement(

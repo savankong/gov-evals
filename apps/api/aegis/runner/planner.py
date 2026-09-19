@@ -107,17 +107,14 @@ def generate_plan(
     applicable: list[Evaluation] = []
     for evaluation in library:
         types = evaluation.system_types or []
-        if types and system_kind and system_kind not in types:
-            # Keep RAG and agent evaluations when the architecture shows those
-            # components even if the system is registered as a plain LLM.
-            if not (
-                system_version
-                and (
-                    (SystemKind.RAG in types and system_version.rag_architecture)
-                    or (SystemKind.AGENT in types and system_version.agent_capabilities)
-                )
-            ):
-                continue
+        # Keep RAG and agent evaluations when the architecture shows those
+        # components even if the system is registered as a plain LLM.
+        architecture_matches = system_version is not None and (
+            (SystemKind.RAG in types and system_version.rag_architecture)
+            or (SystemKind.AGENT in types and system_version.agent_capabilities)
+        )
+        if types and system_kind and system_kind not in types and not architecture_matches:
+            continue
         applicable.append(evaluation)
 
     plan = EvaluationPlan(
@@ -189,8 +186,8 @@ def coverage_report(db: Session, plan: EvaluationPlan) -> dict:
                 }
             )
 
-    by_layer = {layer: 0 for layer in TEVVLayer.ALL}
-    by_domain = {domain: 0 for domain in Domain.ALL}
+    by_layer = dict.fromkeys(TEVVLayer.ALL, 0)
+    by_domain = dict.fromkeys(Domain.ALL, 0)
     for evaluation in evaluations:
         if evaluation.layer in by_layer:
             by_layer[evaluation.layer] += 1

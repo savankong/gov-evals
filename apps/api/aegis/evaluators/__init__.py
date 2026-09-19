@@ -1,6 +1,7 @@
 """Evaluator framework (sections 20, 21, 56)."""
 
-from .base import (  # noqa: F401
+from . import deterministic, external, human, model_based  # noqa: F401
+from .base import (
     EvaluationContext,
     Evaluator,
     Judgement,
@@ -10,7 +11,6 @@ from .base import (  # noqa: F401
     get_evaluator,
     register_evaluator,
 )
-from . import deterministic, external, human, model_based  # noqa: F401
 
 __all__ = [
     "EvaluationContext",

@@ -11,7 +11,7 @@
     print(run.summary())
 """
 
-from .client import Aegis, AegisError, Campaign, GateResult, Run  # noqa: F401
+from .client import Aegis, AegisError, Campaign, GateResult, Run
 
 __version__ = "0.1.0"
 __all__ = ["Aegis", "AegisError", "Campaign", "GateResult", "Run", "__version__"]

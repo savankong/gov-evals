@@ -53,7 +53,7 @@ class ExternalCommandEvaluator(Evaluator):
         timeout = float(self.config.get("timeout_seconds", 120))
 
         try:
-            completed = subprocess.run(  # noqa: S603 - argv is operator-supplied, never scenario-derived
+            completed = subprocess.run(
                 argv,
                 input=payload,
                 capture_output=True,
@@ -121,7 +121,7 @@ class ExternalHttpEvaluator(Evaluator):
                 )
             response.raise_for_status()
             parsed = response.json()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return self._judgement(status=ResultStatus.ERROR, error=f"{type(exc).__name__}: {exc}")
 
         return self._judgement(

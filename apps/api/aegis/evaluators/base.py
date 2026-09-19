@@ -9,8 +9,9 @@ explicit aggregation rule, and every judgement records who produced it.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from ..enums import EvaluatorKind, ResultStatus
 
@@ -180,7 +181,9 @@ def aggregate(judgements: list[Judgement], rule: str = "all_must_pass") -> tuple
         weights = [float(j.evaluator_metadata.get("weight", 1.0)) for j in scored]
         total = sum(weights)
         weighted_score = (
-            sum(j.score * w for j, w in zip(scored, weights)) / total if total else mean_score
+            sum(j.score * w for j, w in zip(scored, weights, strict=True)) / total
+            if total
+            else mean_score
         )
         if weighted_score is None:
             return _worst(judgements), None

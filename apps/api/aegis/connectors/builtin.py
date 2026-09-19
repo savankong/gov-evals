@@ -79,7 +79,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
                 response, elapsed = self._timed(client.post, url, json=payload, headers=headers)
             response.raise_for_status()
             body = response.json()
-        except Exception as exc:  # noqa: BLE001 - surfaced as an errored result
+        except Exception as exc:
             return TargetResponse(text="", error=f"{type(exc).__name__}: {exc}")
 
         choice = (body.get("choices") or [{}])[0]
@@ -145,7 +145,7 @@ class AnthropicMessagesAdapter(ModelAdapter):
                 response, elapsed = self._timed(client.post, url, json=payload, headers=headers)
             response.raise_for_status()
             body = response.json()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return TargetResponse(text="", error=f"{type(exc).__name__}: {exc}")
 
         text_parts, trace = [], []
@@ -208,7 +208,7 @@ class GenericRestAdapter(ModelAdapter):
                 )
             response.raise_for_status()
             body = response.json() if response.content else {}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return TargetResponse(text="", error=f"{type(exc).__name__}: {exc}")
 
         text = self._extract(body, self.parameters.get("response_path", "output"))

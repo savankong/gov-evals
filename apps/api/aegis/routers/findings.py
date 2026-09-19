@@ -272,7 +272,6 @@ def update_risk(
     user: User = Depends(require(Permission.FINDING_WRITE)),
 ):
     risk = fetch(db, Risk, risk_id, "Risk")
-    project = risk.project if hasattr(risk, "project") else None
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(risk, field, value)
 

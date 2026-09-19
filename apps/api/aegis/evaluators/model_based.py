@@ -58,7 +58,7 @@ class LlmJudgeEvaluator(Evaluator):
 
         try:
             raw = ctx.judge(JUDGE_SYSTEM_PROMPT, prompt, self.config)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return self._judgement(
                 status=ResultStatus.ERROR,
                 error=f"{type(exc).__name__}: {exc}",
@@ -191,7 +191,7 @@ class LlmPairwiseEvaluator(Evaluator):
         )
         try:
             raw = ctx.judge(JUDGE_SYSTEM_PROMPT, prompt, self.config)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return self._judgement(status=ResultStatus.ERROR, error=str(exc))
 
         parsed = LlmJudgeEvaluator._parse(raw.get("text") or "")

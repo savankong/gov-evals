@@ -20,8 +20,8 @@ import platform
 import random
 import sys
 import time
-from datetime import datetime, timezone
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,7 +34,6 @@ from ..hashing import content_hash, evidence_store
 from ..models import (
     Campaign,
     DatasetItem,
-    DatasetVersion,
     Evaluation,
     Evidence,
     Finding,
@@ -310,7 +309,7 @@ def execute_run(db: Session, run: Run, judge_config: dict | None = None) -> Run:
     evaluator_specs = evaluation.evaluators or []
     repetitions = max(1, int((evaluation.scenario_selector or {}).get("repetitions", 1)))
 
-    counts = {k: 0 for k in ResultStatus.ALL}
+    counts = dict.fromkeys(ResultStatus.ALL, 0)
     latencies: list[int] = []
     evaluator_scores: dict[str, list[float]] = {}
 
@@ -412,7 +411,7 @@ def _execute_one(
         "retrieved": response.retrieved,
         "citations": response.citations,
         "error": response.error,
-        "repetition_outputs": repetition_texts + [response.text] if repetition_texts else [],
+        "repetition_outputs": [*repetition_texts, response.text] if repetition_texts else [],
         "system_correct": (scenario.get("input") or {}).get("system_correct"),
     }
 
@@ -700,7 +699,7 @@ def execute_campaign(db: Session, campaign: Campaign, judge_config: dict | None 
             continue
         try:
             execute_run(db, run, judge_config)
-        except Exception as exc:  # noqa: BLE001 - one bad run must not kill the campaign
+        except Exception as exc:
             run.status = RunStatus.FAILED
             run.error = f"{type(exc).__name__}: {exc}"
             run.completed_at = utcnow()
