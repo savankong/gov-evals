@@ -1,0 +1,239 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Aegis Eval design system.
+ *
+ * Monochrome by construction. The only saturated colour in the interface is
+ * the small square that carries a status, which is what makes those squares
+ * readable at a glance in a dense table. Borders are hairlines, corners are
+ * effectively square, and nothing casts a shadow: depth is expressed by
+ * borders and surface value, not by elevation.
+ */
+
+:root {
+  /* Surfaces, light to dark. `canvas` is the page, `panel` is a card. */
+  --canvas: 250 250 249;
+  --panel: 255 255 255;
+  --sunken: 246 246 245;
+  --line: 229 229 227;
+  --line-strong: 212 212 209;
+
+  --ink: 23 23 23;
+  --ink-soft: 82 82 82;
+  --muted: 115 115 115;
+  --faint: 163 163 163;
+
+  /* The accent is ink. Emphasis comes from weight and contrast, not hue. */
+  --accent: 23 23 23;
+  --accent-ink: 255 255 255;
+
+  /* Status. Used as small squares and as text only where a verdict is read. */
+  --pass: 22 128 61;
+  --warn: 180 105 8;
+  --fail: 190 30 30;
+  --pending: 37 99 195;
+  --unknown: 140 140 138;
+
+  --shimmer: 0 0 0;
+
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: 10 10 10;
+  --panel: 18 18 18;
+  --sunken: 24 24 24;
+  --line: 38 38 38;
+  --line-strong: 56 56 56;
+
+  --ink: 237 237 235;
+  --ink-soft: 190 190 187;
+  --muted: 138 138 135;
+  --faint: 100 100 98;
+
+  --accent: 237 237 235;
+  --accent-ink: 10 10 10;
+
+  --pass: 110 200 140;
+  --warn: 224 176 78;
+  --fail: 235 130 130;
+  --pending: 130 172 245;
+  --unknown: 120 120 118;
+
+  --shimmer: 255 255 255;
+
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: rgb(var(--canvas));
+  color: rgb(var(--ink));
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numerals must not reflow as values change during a running campaign. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Display numerals: large, light, tight. The signature of this interface. */
+.numeral {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+}
+
+::selection {
+  background: rgb(var(--ink) / 0.14);
+}
+
+/* Focus is always visible, never a glow. A crisp offset ring on a square
+   corner reads as deliberate at this density. */
+:focus-visible {
+  outline: 1px solid rgb(var(--ink));
+  outline-offset: 2px;
+}
+
+/* Scrollbars, sized down to match the hairline language. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line-strong)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-strong));
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------------- *
+ * Motion
+ *
+ * Two durations and two curves, used everywhere. `--ease-out` for things
+ * entering, `--ease-spring` for the slide-over, which benefits from a little
+ * overshoot. Everything is fast: this is a tool, and motion should confirm an
+ * action rather than perform for the viewer.
+ * ---------------------------------------------------------------------- */
+:root {
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* A live campaign pulses its status square. Slow enough to read as "working",
+   not as an alarm. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-rise {
+  animation: rise var(--dur) var(--ease-out) both;
+}
+
+.animate-fade {
+  animation: fade var(--dur) var(--ease-out) both;
+}
+
+.animate-breathe {
+  animation: breathe 1.8s var(--ease-in-out) infinite;
+}
+
+/* Skeleton: a sweep across a sunken block, not a pulsing grey box. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgb(var(--sunken));
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--shimmer) / 0.045),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+/* Rows and cards stagger in. The delay is set inline per index and capped, so
+   a 300-row table never waits on the animation. */
+.stagger {
+  animation: rise var(--dur) var(--ease-out) both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+/* Underline that draws from the left on hover, used for inline navigation. */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size var(--dur) var(--ease-out);
+}
+.link-underline:hover {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton::after {
+    display: none;
+  }
+}

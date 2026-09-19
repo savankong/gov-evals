@@ -1,0 +1,63 @@
+[project]
+name = "aegis-api"
+version = "0.1.0"
+description = "Aegis Eval - AI test, evaluation, verification, validation and assurance control plane"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sqlalchemy>=2.0",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "python-multipart>=0.0.9",
+  "bcrypt>=4.1",
+  "pyjwt>=2.8",
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+  "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.1"]
+redis = ["redis>=5.0"]
+s3 = ["boto3>=1.34"]
+otel = ["opentelemetry-sdk>=1.25", "opentelemetry-exporter-otlp>=1.25", "opentelemetry-instrumentation-fastapi>=0.46b0"]
+# The s3 extra is part of dev deliberately. The S3 evidence backend shipped
+# once with no coverage at all, which is how it came to be missing the signing
+# region; tests that quietly skip when boto3 is absent would recreate exactly
+# that blind spot on every machine that installs the default way.
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "aegis-api[s3]"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["aegis*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PERF", "PIE", "RUF"]
+ignore = [
+  # FastAPI's dependency injection is expressed as a call in a default
+  # argument. It is the framework's documented idiom, not a mistake.
+  "B008",
+  # SQLAlchemy mapped columns and the enum constant classes use class-level
+  # mutable defaults deliberately.
+  "RUF012",
+  # Long lines are caught by the formatter, not here.
+  "E501",
+  # `Self` is 3.11+; the SDK supports 3.9 and uses a bound TypeVar instead.
+  "PYI034",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert on values a linter reads as unused.
+"tests/*" = ["F841", "B017", "SIM117"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

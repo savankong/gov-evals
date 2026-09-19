@@ -1,0 +1,134 @@
+# Checks that must pass before anything is deployed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API tests and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "apps/api[dev,s3]"
+          pip install -e "packages/sdk"
+
+      - name: Lint
+        run: ruff check apps/api/aegis packages/sdk/aegis_sdk
+
+      - name: Test
+        working-directory: apps/api
+        run: pytest -q
+
+  web:
+    name: Web typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        working-directory: apps/web
+        run: npm ci || npm install
+
+      - name: Typecheck
+        working-directory: apps/web
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: apps/web
+        run: npm run build
+
+  sbom:
+    name: Software bill of materials
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      # Scanning the Python source directories produced SBOMs with no components
+      # at all: there is no lockfile, and a PEP 621 pyproject alone gives a
+      # scanner declared ranges rather than resolved versions. An SBOM has to say
+      # which version shipped, so these are installed first and the resulting
+      # environment is what gets scanned -- transitive dependencies included,
+      # which is most of what the document is for. The web app needs no such
+      # step: package-lock.json already pins the whole tree.
+      - name: Install the Python components as they ship
+        run: |
+          set -euo pipefail
+          for component in api sdk; do
+            python -m venv ".sbom-$component"
+          done
+          .sbom-api/bin/pip install --quiet --upgrade pip
+          .sbom-api/bin/pip install --quiet "./apps/api[postgres,redis,s3]"
+          .sbom-sdk/bin/pip install --quiet --upgrade pip
+          .sbom-sdk/bin/pip install --quiet ./packages/sdk
+
+      - name: Generate a CycloneDX SBOM per component
+        run: |
+          set -euo pipefail
+          mkdir -p sbom
+          syft scan dir:.sbom-api -o cyclonedx-json=sbom/api.cdx.json
+          syft scan dir:.sbom-sdk -o cyclonedx-json=sbom/sdk.cdx.json
+          syft scan dir:apps/web  -o cyclonedx-json=sbom/web.cdx.json
+
+      # An SBOM that resolved nothing is not a bill of materials, it is an empty
+      # file that makes a pipeline look green. The same reason a run that judged
+      # nothing is NOT EVALUATED rather than a pass.
+      - name: Refuse an SBOM that lists no components
+        run: python3 scripts/check_sbom.py sbom/*.cdx.json
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-source
+          path: sbom/
+          if-no-files-found: error
+
+  packs:
+    name: Evaluation packs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The spec validator verifies that each component's App Platform
+          # branch actually contains its Dockerfile and the packs directory.
+          # A shallow clone has no other refs, so the check would downgrade to
+          # a warning and miss exactly the mistake it exists to catch.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install pyyaml
+
+      - name: Validate packs and deployment specs
+        run: python scripts/validate_packs.py

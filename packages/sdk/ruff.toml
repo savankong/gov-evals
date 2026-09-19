@@ -1,0 +1,11 @@
+# The SDK supports Python 3.9, so a few modern-syntax rules do not apply.
+line-length = 100
+target-version = "py39"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "SIM", "C4", "PERF", "PIE", "RUF"]
+ignore = [
+  "E501",
+  # `typing.Self` is 3.11+; a bound TypeVar is the portable equivalent.
+  "PYI034",
+]
