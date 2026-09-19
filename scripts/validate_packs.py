@@ -135,6 +135,7 @@ def main() -> int:
                 errors.append(f"{source}: {name} maps to unknown framework reference {ref!r}")
 
     validate_deployment_specs()
+    validate_build_sources()
     validate_container_entrypoints()
     validate_supply_chain()
 
@@ -218,6 +219,76 @@ def validate_deployment_specs() -> None:
                 f".do/app.yaml: {component.get('name')} enables demo seeding, which must not "
                 "run outside development."
             )
+
+
+def validate_build_sources() -> None:
+    """Every component must build from a branch that contains its build inputs.
+
+    App Platform resolves `github.branch` at build time, not from whatever
+    branch a person happened to push. A spec naming a branch without the
+    Dockerfile still builds something -- a buildpack fallback over whatever is
+    there -- and the resulting container exits immediately with no application
+    log output, because there is no application in it. The deploy reports
+    DeployContainerExitNonZero and says nothing about the cause.
+
+    This check is the reason that is now a CI failure instead of a deployment
+    that has to be diagnosed against a live app.
+    """
+    import subprocess
+
+    spec_path = ROOT / ".do" / "app.yaml"
+    if not spec_path.exists():
+        return
+    spec = load(spec_path)
+
+    def git(*args) -> subprocess.CompletedProcess:
+        # check=False throughout: a non-zero exit is the answer here, not an
+        # error. `cat-file -e` returning 1 is exactly how absence is reported.
+        return subprocess.run(
+            ["git", *args], cwd=ROOT, capture_output=True, text=True, check=False
+        )
+
+    if git("rev-parse", "--git-dir").returncode != 0:
+        warnings.append("Not a git checkout, so spec build sources were not verified.")
+        return
+
+    components = [("service", c) for c in spec.get("services") or []]
+    components += [("worker", c) for c in spec.get("workers") or []]
+
+    for kind, component in components:
+        name = component.get("name")
+        branch = (component.get("github") or {}).get("branch")
+        dockerfile = component.get("dockerfile_path")
+        if not branch or not dockerfile:
+            continue
+
+        # Prefer the remote ref: it is what App Platform will fetch.
+        ref = None
+        for candidate in (f"origin/{branch}", branch):
+            if git("rev-parse", "--verify", "--quiet", candidate).returncode == 0:
+                ref = candidate
+                break
+        if ref is None:
+            warnings.append(
+                f".do/app.yaml: {kind} {name} builds from {branch!r}, which is not available "
+                "in this checkout, so its contents were not verified. Fetch it to check "
+                "(actions/checkout needs fetch-depth: 0)."
+            )
+            continue
+
+        required = [dockerfile]
+        # A component built from the repository root also needs the evaluation
+        # packs, which the image copies in because App Platform mounts nothing.
+        if component.get("source_dir") in ("/", "", None):
+            required.append("packs")
+
+        for path in required:
+            if git("cat-file", "-e", f"{ref}:{path}").returncode != 0:
+                errors.append(
+                    f".do/app.yaml: {kind} {name} builds from branch {branch!r}, which does "
+                    f"not contain {path!r}. Applying this spec would build a container with "
+                    "no application in it, which exits immediately and logs nothing."
+                )
 
 
 def validate_container_entrypoints() -> None:

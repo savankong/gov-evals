@@ -46,7 +46,14 @@ services:
     source_dir: /
     github:
       repo: savankong/gov-evals
-      branch: main
+      # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
+      # and packs/. `main` holds only a README until PR #1 merges, and applying
+      # a spec that names it builds a container with no application in it --
+      # which exits immediately and logs nothing, reported only as
+      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
+      # scripts/validate_packs.py fails CI if it ever names a branch without
+      # the build inputs.
+      branch: claude/aegis-eval-platform-yoxzrk
       deploy_on_push: true
 
     health_check:
@@ -137,7 +144,14 @@ services:
     source_dir: apps/web
     github:
       repo: savankong/gov-evals
-      branch: main
+      # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
+      # and packs/. `main` holds only a README until PR #1 merges, and applying
+      # a spec that names it builds a container with no application in it --
+      # which exits immediately and logs nothing, reported only as
+      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
+      # scripts/validate_packs.py fails CI if it ever names a branch without
+      # the build inputs.
+      branch: claude/aegis-eval-platform-yoxzrk
       deploy_on_push: true
 
     health_check:
@@ -166,7 +180,14 @@ workers:
     run_command: python worker.py
     github:
       repo: savankong/gov-evals
-      branch: main
+      # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
+      # and packs/. `main` holds only a README until PR #1 merges, and applying
+      # a spec that names it builds a container with no application in it --
+      # which exits immediately and logs nothing, reported only as
+      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
+      # scripts/validate_packs.py fails CI if it ever names a branch without
+      # the build inputs.
+      branch: claude/aegis-eval-platform-yoxzrk
       deploy_on_push: true
 
     envs:

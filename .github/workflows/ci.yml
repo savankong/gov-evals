@@ -116,6 +116,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The spec validator verifies that each component's App Platform
+          # branch actually contains its Dockerfile and the packs directory.
+          # A shallow clone has no other refs, so the check would downgrade to
+          # a warning and miss exactly the mistake it exists to catch.
+          fetch-depth: 0
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
