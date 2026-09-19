@@ -9,16 +9,19 @@ db_node_count = 1
 
 valkey_size = "db-s-1vcpu-1gb"
 
-# Container registry for the deploy workflow's signed images.
+# Container registry for the deploy workflow's signed images. This name is
+# also the DO_REGISTRY repository secret; the two must agree.
 # The name is globally unique across DigitalOcean -- change it on a 409.
 # `starter` is free but holds only ONE repository and this pushes two, so
 # `basic` (~$5/mo, 5 repositories) is the smallest tier that works.
 registry_name = "aegis-eval"
 registry_tier = "basic"
 
-# DigitalOcean allows one registry per account. Set false and reuse the
-# existing one if this account already has it.
-create_registry = true
+# DigitalOcean allows ONE registry per account.
+#   false -> attach to an existing registry (the reference deployment's case:
+#            aegis-eval already exists on Basic in nyc3)
+#   true  -> create it, which a fresh account needs
+create_registry = false
 
 # Droplet IDs permitted to reach the databases. Leave empty for App Platform.
 trusted_sources = []

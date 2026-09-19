@@ -80,8 +80,15 @@ variable "registry_name" {
   default     = "aegis-eval"
   description = <<-EOT
     Container registry name, and the value of the DO_REGISTRY repository secret
-    the deploy workflow reads. Images land at
+    the deploy workflow reads -- the two must agree. Images land at
     registry.digitalocean.com/<registry_name>/aegis-api and .../aegis-web.
+
+    A name, not a credential. It is read from `secrets` because that is where
+    the workflow looks, and GitHub redacts every registered secret value from
+    logs regardless of whether it is sensitive -- which is why it shows as
+    `***` beside the image digests rather than because it needs hiding.
+
+    The default matches the live reference deployment.
 
     DigitalOcean registry names are GLOBALLY unique, like Spaces buckets, so
     this can collide with another account's. Terraform reports that as a plain
@@ -110,12 +117,19 @@ variable "registry_tier" {
 
 variable "create_registry" {
   type        = bool
-  default     = true
+  default     = false
   description = <<-EOT
-    Set false if this account already has a container registry. DigitalOcean
-    allows exactly ONE registry per account, so creating a second fails -- and
-    an existing one is already usable: put its name in DO_REGISTRY and leave
-    this off.
+    Whether to create the registry, as opposed to attaching to one that exists.
+
+    Defaults to FALSE because the reference deployment's registry already
+    exists: `aegis-eval`, Basic tier, NYC3, created 19 Sep 2026. DigitalOcean
+    allows exactly one registry per account, so leaving this on would make
+    every apply fail against the one already there.
+
+    A NEW deployment on a fresh account must set this to `true`. Getting that
+    wrong is not silent: `doctl registry login` fails in the deploy workflow
+    before anything is built, and the workflow's preflight names what is
+    missing.
   EOT
 }
 
@@ -361,7 +375,11 @@ output "spaces_region" {
 }
 
 output "registry_name" {
-  value       = var.create_registry ? digitalocean_container_registry.aegis[0].name : var.registry_name
+  # Deliberately the variable rather than the resource attribute. The resource's
+  # name IS var.registry_name, so reading it back proves nothing -- and indexing
+  # [0] through a conditional is a trap when create_registry is false and the
+  # resource has count 0.
+  value       = var.registry_name
   description = <<-EOT
     Set as the DO_REGISTRY repository secret, under
     Settings -> Secrets and variables -> Actions. It is a name rather than a
@@ -371,7 +389,10 @@ output "registry_name" {
 }
 
 output "registry_endpoint" {
-  value       = var.create_registry ? digitalocean_container_registry.aegis[0].endpoint : "registry.digitalocean.com/${var.registry_name}"
+  # Constructed, not read back, for the same reason -- and because this is
+  # exactly how the deploy workflow builds it from DO_REGISTRY, so the two
+  # cannot drift.
+  value       = "registry.digitalocean.com/${var.registry_name}"
   description = "Where the deploy workflow pushes. Images are addressed by digest downstream, never by tag."
 }
 

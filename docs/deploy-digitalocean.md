@@ -136,9 +136,16 @@ who has to set it.
 
 ### The registry
 
-`terraform apply` creates it; `terraform output registry_name` is the value
-`DO_REGISTRY` wants. It is a name rather than a credential, but the workflow
-reads it from `secrets`, so that is where it goes.
+`terraform output registry_name` is the value `DO_REGISTRY` wants, and the two
+must agree. It is a name rather than a credential — GitHub redacts every
+registered secret value from logs regardless of sensitivity, which is why it
+appears as `***` beside the image digests rather than because it needs hiding.
+
+`create_registry` decides whether Terraform creates the registry or attaches to
+one that already exists. It **defaults to `false`**, because the reference
+deployment's registry already exists (`aegis-eval`, Basic, nyc3). A new
+deployment on a fresh account sets it to `true`. Getting that wrong is not
+silent: `doctl registry login` fails before anything is built.
 
 Two things worth knowing before choosing a tier:
 
