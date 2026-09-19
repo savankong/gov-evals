@@ -12,7 +12,7 @@ import {
   Empty,
   ErrorNote,
   Figure,
-  FilterChips,
+  Select,
   Spinner,
   Table,
   Td,
@@ -68,15 +68,20 @@ export default function FrameworksPage({ params }: { params: Promise<{ projectId
         </div>
       </Card>
 
-      <FilterChips
-        options={frameworks.map((f) => ({
-          key: f,
-          label: f,
-          count: data.rows.filter((r) => r.framework === f).length,
-        }))}
-        active={framework}
-        onChange={setFramework}
-        allLabel="All frameworks"
+      {/* Framework names are sentences -- "DoD Responsible AI Strategy and
+          Implementation Pathway" -- and a chip row cannot hold them without
+          wrapping each one inside its own button. */}
+      <Select
+        label="Framework"
+        value={framework ?? ""}
+        onChange={(value) => setFramework(value === "" ? null : value)}
+        options={[
+          { value: "", label: `All frameworks (${data.rows.length})` },
+          ...frameworks.map((f) => ({
+            value: f,
+            label: `${f} · ${data.rows.filter((r) => r.framework === f).length}`,
+          })),
+        ]}
       />
 
       <Card>

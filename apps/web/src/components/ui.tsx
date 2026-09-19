@@ -181,7 +181,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex h-7 items-center justify-center gap-1.5 border px-2.5 text-sm transition-[opacity,background-color,border-color] duration-150 ease-out disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`inline-flex h-7 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap border px-2.5 text-sm transition-[opacity,background-color,border-color] duration-150 ease-out disabled:cursor-not-allowed ${variants[variant]} ${className}`}
     >
       {children}
     </button>
@@ -199,25 +199,30 @@ export function Segmented({
   onChange: (key: string | null) => void;
 }) {
   return (
-    <div className="inline-flex border border-line bg-panel">
-      {options.map((option, index) => (
-        <button
-          key={option.key ?? "all"}
-          onClick={() => onChange(option.key)}
-          className={`h-7 px-2.5 text-sm transition-colors duration-150 ease-out ${
-            index > 0 ? "border-l border-line" : ""
-          } ${
-            active === option.key
-              ? "bg-sunken font-medium text-ink"
-              : "text-muted hover:text-ink"
-          }`}
-        >
-          {option.label}
-          {option.count !== undefined ? (
-            <span className="tnum ml-1.5 text-faint">{option.count}</span>
-          ) : null}
-        </button>
-      ))}
+    // Scrolls rather than wraps. A label that wraps inside a fixed-height
+    // segment breaks the control open; one that runs past the edge of a strip
+    // is still a control. Long option sets belong in a Select instead.
+    <div className="-mx-1 max-w-full overflow-x-auto px-1 py-px">
+      <div className="inline-flex border border-line bg-panel">
+        {options.map((option, index) => (
+          <button
+            key={option.key ?? "all"}
+            onClick={() => onChange(option.key)}
+            className={`h-7 shrink-0 whitespace-nowrap px-2.5 text-sm transition-colors duration-150 ease-out ${
+              index > 0 ? "border-l border-line" : ""
+            } ${
+              active === option.key
+                ? "bg-sunken font-medium text-ink"
+                : "text-muted hover:text-ink"
+            }`}
+          >
+            {option.label}
+            {option.count !== undefined ? (
+              <span className="tnum ml-1.5 text-faint">{option.count}</span>
+            ) : null}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -613,7 +618,7 @@ export function Tag({
       ) : null}
     </>
   );
-  const shared = `inline-flex items-center gap-1 whitespace-nowrap border px-1.5 py-px text-2xs tracking-wide ${
+  const shared = `inline-flex shrink-0 items-center gap-1 whitespace-nowrap border px-1.5 py-px text-2xs tracking-wide ${
     mono ? "font-mono" : ""
   } ${tones[tone]}`;
 

@@ -147,13 +147,16 @@ export function useDeclaredClassification(classification: string | null | undefi
  * The one place in the interface where a saturated fill is used edge to edge:
  * a marking has to be unmissable, and it is the only element allowed to shout.
  */
-export function ClassificationBanner({
-  classification,
-  position,
-}: {
-  classification: string;
-  position: "top" | "bottom";
-}) {
+/**
+ * The marking banner.
+ *
+ * Shown once, at the top. The paper convention is to repeat the marking at the
+ * foot of every page; on a single continuously scrolling application view a
+ * second copy is pinned to the bottom of the viewport rather than to the end
+ * of the content, so it marks the window and not the document -- which is not
+ * what the convention is for.
+ */
+export function ClassificationBanner({ classification }: { classification: string }) {
   const level = classification.toUpperCase();
   const tone = level.includes("TOP SECRET")
     ? "bg-[#c2410c] text-white"
@@ -166,9 +169,7 @@ export function ClassificationBanner({
           : "bg-[#166534] text-white";
   return (
     <div
-      className={`${tone} shrink-0 px-3 py-[3px] text-center text-2xs font-semibold tracking-[0.2em] ${
-        position === "top" ? "" : "mt-auto"
-      }`}
+      className={`${tone} shrink-0 px-3 py-[3px] text-center text-2xs font-semibold tracking-[0.2em]`}
     >
       {level}
     </div>
@@ -620,7 +621,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ClassificationContext.Provider value={classificationValue}>
       <div className="flex h-screen flex-col overflow-hidden">
-        <ClassificationBanner classification={classification} position="top" />
+        <ClassificationBanner classification={classification} />
 
         <div className="flex min-h-0 flex-1">
           <Rail />
@@ -670,8 +671,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </main>
           </div>
         </div>
-
-        <ClassificationBanner classification={classification} position="bottom" />
       </div>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />

@@ -105,9 +105,6 @@ export default function LoginPage() {
         </motion.div>
       </div>
 
-      <div className="mt-auto bg-[#166534] px-3 py-[3px] text-center text-2xs font-semibold tracking-[0.2em] text-white">
-        UNCLASSIFIED
-      </div>
     </div>
   );
 }

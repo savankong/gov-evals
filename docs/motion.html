@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motion Specification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400&family=Instrument+Serif&display=swap" rel="stylesheet" />
+<style>
+/* ===================================================================
+   These are the production tokens and keyframes, copied verbatim from
+   apps/web/src/app/globals.css. Nothing on this page is a mock-up: if
+   a timing is wrong here it is wrong in the product.
+   =================================================================== */
+:root {
+  --canvas: 250 250 249;
+  --panel: 255 255 255;
+  --sunken: 246 246 245;
+  --line: 229 229 227;
+  --line-strong: 212 212 209;
+  --ink: 23 23 23;
+  --ink-soft: 82 82 82;
+  --muted: 115 115 115;
+  --faint: 163 163 163;
+  --pass: 22 128 61;
+  --warn: 180 105 8;
+  --fail: 190 30 30;
+  --pending: 37 99 195;
+  --unknown: 140 140 138;
+  --shimmer: 0 0 0;
+
+  /* Motion. Two durations, two curves, used everywhere. */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  color-scheme: light;
+}
+:root:not([data-theme="light"]) { }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: 10 10 10; --panel: 18 18 18; --sunken: 24 24 24;
+    --line: 38 38 38; --line-strong: 56 56 56;
+    --ink: 237 237 235; --ink-soft: 190 190 187; --muted: 138 138 135; --faint: 100 100 98;
+    --pass: 110 200 140; --warn: 224 176 78; --fail: 235 130 130;
+    --pending: 130 172 245; --unknown: 120 120 118; --shimmer: 255 255 255;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: 10 10 10; --panel: 18 18 18; --sunken: 24 24 24;
+  --line: 38 38 38; --line-strong: 56 56 56;
+  --ink: 237 237 235; --ink-soft: 190 190 187; --muted: 138 138 135; --faint: 100 100 98;
+  --pass: 110 200 140; --warn: 224 176 78; --fail: 235 130 130;
+  --pending: 130 172 245; --unknown: 120 120 118; --shimmer: 255 255 255;
+  color-scheme: dark;
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.animate-rise { animation: rise var(--dur) var(--ease-out) both; }
+.animate-fade { animation: fade var(--dur) var(--ease-out) both; }
+.animate-breathe { animation: breathe 1.8s var(--ease-in-out) infinite; }
+.stagger { animation: rise var(--dur) var(--ease-out) both; animation-delay: var(--stagger-delay, 0ms); }
+
+.skeleton { position: relative; overflow: hidden; background: rgb(var(--sunken)); }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(var(--shimmer) / 0.045), transparent);
+  animation: shimmer 1.4s infinite;
+}
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px; background-repeat: no-repeat; background-position: 0 100%;
+  transition: background-size var(--dur) var(--ease-out);
+}
+.link-underline:hover { background-size: 100% 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+  .skeleton::after { display: none; }
+}
+
+/* ---- page chrome (this document only) ---- */
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: rgb(var(--canvas)); color: rgb(var(--ink));
+  font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-family: "Instrument Serif", ui-serif, Georgia, serif; font-weight: 400; font-size: 38px; line-height: 44px; margin: 0; letter-spacing: -0.01em; }
+h1 span { color: rgb(var(--faint)); }
+.lede { color: rgb(var(--muted)); margin: 6px 0 0; max-width: 62ch; }
+h2 { font-size: 13px; font-weight: 500; margin: 0; }
+.sub { font-size: 11px; color: rgb(var(--muted)); margin: 2px 0 0; }
+section { border: 1px solid rgb(var(--line)); background: rgb(var(--panel)); margin-top: 16px; }
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 14px 16px 12px; }
+.body { border-top: 1px solid rgb(var(--line)); padding: 16px; }
+.spec { font-family: "Geist Mono", ui-monospace, monospace; font-size: 10px; letter-spacing: 0.04em; color: rgb(var(--faint)); text-transform: uppercase; white-space: nowrap; }
+.btn {
+  height: 28px; padding: 0 10px; font: inherit; font-size: 12px; white-space: nowrap;
+  border: 1px solid rgb(var(--line)); background: rgb(var(--panel)); color: rgb(var(--ink)); cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.btn:hover { border-color: rgb(var(--line-strong)); background: rgb(var(--sunken)); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; font-weight: 400; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: rgb(var(--faint)); padding: 6px 12px; border-bottom: 1px solid rgb(var(--line)); }
+td { padding: 8px 12px; border-bottom: 1px solid rgb(var(--line)); vertical-align: top; }
+tbody tr { transition: background-color var(--dur-fast) var(--ease-out); }
+tbody tr:hover { background: rgb(var(--sunken)); }
+.sq { display: inline-block; width: 7px; height: 7px; flex: none; }
+.pass { background: rgb(var(--pass)); } .warn { background: rgb(var(--warn)); } .fail { background: rgb(var(--fail)); }
+.pending { background: rgb(var(--pending)); }
+.unknown { background: transparent; border: 1px dashed rgb(var(--unknown)); }
+.numeral { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; font-weight: 400; font-size: 30px; line-height: 34px; }
+.tnum { font-variant-numeric: tabular-nums; }
+.label { font-size: 11px; color: rgb(var(--muted)); }
+.bar { height: 2px; background: rgb(var(--sunken)); }
+.bar > i { display: block; height: 100%; width: 0; background: rgb(var(--ink)); transition: width 500ms var(--ease-out); }
+.theme { position: fixed; top: 12px; right: 12px; }
+:focus-visible { outline: 1px solid rgb(var(--ink)); outline-offset: 2px; }
+.panel-demo { position: relative; height: 200px; border: 1px solid rgb(var(--line)); background: rgb(var(--sunken)); overflow: hidden; }
+.slideover {
+  position: absolute; inset: 0 0 0 auto; width: 62%; background: rgb(var(--panel));
+  border-left: 1px solid rgb(var(--line)); transform: translateX(100%); padding: 14px;
+}
+.scrim { position: absolute; inset: 0; background: rgb(var(--ink) / 0.10); opacity: 0; pointer-events: none; transition: opacity var(--dur-fast) linear; }
+.disc { border-bottom: 1px solid rgb(var(--line)); padding: 8px 0; }
+.disc:last-child { border-bottom: 0; }
+.disc summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.disc summary::-webkit-details-marker { display: none; }
+.chev { transition: transform 200ms var(--ease-out); color: rgb(var(--faint)); flex: none; }
+.disc[open] .chev { transform: rotate(90deg); }
+.disc .inner { overflow: hidden; }
+.mono { font-family: "Geist Mono", ui-monospace, monospace; }
+code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px; color: rgb(var(--ink-soft)); }
+.note { border-left: 1px solid rgb(var(--line)); padding-left: 12px; color: rgb(var(--muted)); font-size: 11px; line-height: 18px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<button class="btn theme" id="theme">Dark</button>
+<div class="wrap">
+
+  <h1>Motion, <span>in full</span></h1>
+  <p class="lede">
+    Every animation in the product, running on the production tokens. Two durations and two
+    curves do all of the work. Nothing bounces, nothing loops except a live campaign, and
+    everything here stops entirely when the operating system asks for reduced motion.
+  </p>
+
+  <section>
+    <div class="head">
+      <div><h2>The whole vocabulary</h2><p class="sub">Four values. Every timing below is one of these.</p></div>
+    </div>
+    <div class="body">
+      <table>
+        <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><code>--dur-fast</code></td><td class="tnum">120ms</td><td>Hover, focus, colour changes — anything that must feel instant.</td></tr>
+          <tr><td><code>--dur</code></td><td class="tnum">180ms</td><td>Entrances: rows, cards, page sections.</td></tr>
+          <tr><td><code>--dur-slow</code></td><td class="tnum">260ms</td><td>Reserved for the largest surfaces. Used sparingly.</td></tr>
+          <tr><td><code>--ease-out</code></td><td class="mono" style="font-size:11px">cubic-bezier(0.16, 1, 0.3, 1)</td><td>Everything entering. Fast start, long settle, no overshoot.</td></tr>
+          <tr><td><code>--ease-in-out</code></td><td class="mono" style="font-size:11px">cubic-bezier(0.65, 0, 0.35, 1)</td><td>The one looping animation: a running campaign.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <div><h2>Row stagger</h2><p class="sub">Tables and lists. The signature entrance.</p></div>
+      <span class="spec">rise · 180ms · ease-out · 18ms per row, capped at 14</span>
+    </div>
+    <div class="body">
+      <div class="row" style="margin-bottom:12px"><button class="btn" id="replay-rows">Replay</button>
+        <span class="note" style="border:0;padding:0">The cap matters: a 300-row table finishes entering in 250ms, not 5 seconds.</span></div>
+      <table id="rows-demo">
+        <thead><tr><th style="width:80px">ID</th><th style="width:90px">Severity</th><th>Finding</th><th style="width:110px">Reproduced</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section>
+      <div class="head">
+        <div><h2>Figures count up</h2><p class="sub">Large numerals on first paint.</p></div>
+        <span class="spec">520ms · cubic ease-out</span>
+      </div>
+      <div class="body">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div><div class="label">Executions</div><div class="numeral" data-count="266">0</div></div>
+          <div><div class="label">Failures</div><div class="numeral" style="color:rgb(var(--fail))" data-count="29">0</div></div>
+          <div><div class="label">Pass rate</div><div class="numeral" data-count="94" data-suffix="%">0%</div></div>
+          <button class="btn" id="replay-count">Replay</button>
+        </div>
+        <p class="note" style="margin-top:14px">
+          The curve always lands exactly on the target. A figure that settles on 93.7% when the
+          real number is 94% is a lie told by an animation, so the final frame is assigned, not
+          interpolated.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="head">
+        <div><h2>Proportion bars</h2><p class="sub">Grow from zero on mount.</p></div>
+        <span class="spec">width · 500ms · ease-out</span>
+      </div>
+      <div class="body">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <span class="label">Severity distribution</span><button class="btn" id="replay-bars">Replay</button>
+        </div>
+        <div id="bars">
+          <div class="row" style="flex-wrap:nowrap;gap:12px;padding:6px 0">
+            <span class="label" style="width:70px;color:rgb(var(--fail))">CRITICAL</span>
+            <span class="bar" style="flex:1"><i data-w="50" style="background:rgb(var(--fail))"></i></span>
+            <span class="tnum" style="width:24px;text-align:right">2</span>
+          </div>
+          <div class="row" style="flex-wrap:nowrap;gap:12px;padding:6px 0">
+            <span class="label" style="width:70px;color:rgb(var(--warn))">HIGH</span>
+            <span class="bar" style="flex:1"><i data-w="50" style="background:rgb(var(--warn))"></i></span>
+            <span class="tnum" style="width:24px;text-align:right">2</span>
+          </div>
+          <div class="row" style="flex-wrap:nowrap;gap:12px;padding:6px 0">
+            <span class="label" style="width:70px">LOW</span>
+            <span class="bar" style="flex:1"><i data-w="100" style="background:rgb(var(--line-strong))"></i></span>
+            <span class="tnum" style="width:24px;text-align:right">4</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <div class="head">
+      <div><h2>Slide-over</h2><p class="sub">Evidence panels and report previews.</p></div>
+      <span class="spec">spring · stiffness 420 · damping 40 · mass 0.8 · scrim 140ms</span>
+    </div>
+    <div class="body">
+      <div class="row" style="margin-bottom:12px"><button class="btn" id="toggle-panel">Open panel</button>
+        <span class="note" style="border:0;padding:0">Esc closes it. The scrim fades linearly so it never draws attention to itself.</span></div>
+      <div class="panel-demo">
+        <div style="padding:14px" class="label">Run results — 5 executions, 0 passed</div>
+        <div class="scrim" id="scrim"></div>
+        <aside class="slideover" id="panel">
+          <div class="row" style="justify-content:space-between">
+            <strong style="font-weight:500;font-size:13px">Evidence</strong>
+            <span class="spec">record 7936d5a9</span>
+          </div>
+          <p class="label" style="margin-top:8px">The request, the source material, the output, every judgement and its provenance.</p>
+          <div class="row" style="margin-top:10px"><span class="sq fail"></span><span class="label">groundedness_overlap</span></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section>
+      <div class="head">
+        <div><h2>Disclosure</h2><p class="sub">The assurance tree.</p></div>
+        <span class="spec">height + opacity · 200ms · ease-out</span>
+      </div>
+      <div class="body">
+        <details class="disc" open>
+          <summary>
+            <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+            <span class="sq fail"></span><span>Acquisition Copilot v2.3 accomplishes its assigned mission tasks correctly.</span>
+          </summary>
+          <div class="inner"><p class="label" style="padding:6px 0 0 20px">COUNTERS &nbsp;RAG groundedness &nbsp;<span class="tnum">0/3 passed</span></p></div>
+        </details>
+        <details class="disc">
+          <summary>
+            <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+            <span class="sq unknown"></span><span>Acquisition Copilot v2.3 continues to function when inputs vary.</span>
+          </summary>
+          <div class="inner"><p class="label" style="padding:6px 0 0 20px">INCONCLUSIVE &nbsp;Prompt robustness &nbsp;— run produced no judgement against a threshold.</p></div>
+        </details>
+        <p class="note" style="margin-top:12px">The chevron rotates rather than swapping glyphs, and the body is measured by the browser, so a claim with twelve pieces of evidence animates like one with none.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="head">
+        <div><h2>Loading and live state</h2><p class="sub">The only two things that repeat.</p></div>
+        <span class="spec">shimmer 1.4s · breathe 1.8s</span>
+      </div>
+      <div class="body">
+        <div class="label" style="margin-bottom:6px">Skeleton — shaped like the table it precedes, so nothing jumps when data lands</div>
+        <div class="skeleton" style="height:10px;width:34%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:10px;width:56%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:10px;width:22%"></div>
+        <div class="row" style="margin-top:18px;gap:10px">
+          <span class="sq pending animate-breathe"></span>
+          <span class="label">A running campaign breathes. Slow enough to read as “working”, never as an alarm.</span>
+        </div>
+        <div class="row" style="margin-top:14px;gap:10px">
+          <a href="#" class="link-underline" style="color:rgb(var(--ink-soft));text-decoration:none">Hover me — the underline draws from the left</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <div class="head">
+      <div><h2>Reduced motion</h2><p class="sub">Not a degraded path. A supported one.</p></div>
+      <span class="spec">prefers-reduced-motion: reduce</span>
+    </div>
+    <div class="body">
+      <p class="note">
+        Under the OS setting, every animation and transition on this page collapses to 0.01ms, the
+        shimmer is removed outright, and figures are assigned their final value without counting.
+        The interface is identical; it simply arrives. Turn the setting on and reload to check —
+        nothing on this page should move.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Theme toggle for reviewing both palettes. */
+const themeBtn = document.getElementById("theme");
+themeBtn.addEventListener("click", () => {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  themeBtn.textContent = dark ? "Dark" : "Light";
+});
+
+/* Row stagger. */
+const ROWS = [
+  ["F-0007", "fail", "CRITICAL", "Prompt injection resistance: attack success", "3/9 exec"],
+  ["F-0008", "fail", "CRITICAL", "Prompt injection resistance: attack success", "6/9 exec"],
+  ["F-0001", "warn", "HIGH", "Hallucination and unsupported claims", "5/5 exec"],
+  ["F-0002", "warn", "HIGH", "Hallucination and unsupported claims", "5/5 exec"],
+  ["F-0003", "unknown", "LOW", "RAG groundedness: groundedness overlap", "3/3 exec"],
+  ["F-0004", "unknown", "LOW", "Mission task accuracy: contains all", "2/16 exec"],
+];
+function paintRows() {
+  const tb = document.querySelector("#rows-demo tbody");
+  tb.innerHTML = "";
+  ROWS.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    tr.className = "stagger";
+    tr.style.setProperty("--stagger-delay", `${Math.min(i, 14) * 18}ms`);
+    tr.innerHTML =
+      `<td><span class="mono" style="font-size:10px;color:rgb(var(--faint))">${r[0]}</span></td>` +
+      `<td><span class="sq ${r[1]}"></span> <span style="font-size:10px;letter-spacing:.04em;color:rgb(var(--${r[1] === "unknown" ? "muted" : r[1]}))">${r[2]}</span></td>` +
+      `<td>${r[3]}</td><td class="tnum" style="color:rgb(var(--muted))">${r[4]}</td>`;
+    tb.appendChild(tr);
+  });
+}
+paintRows();
+document.getElementById("replay-rows").addEventListener("click", paintRows);
+
+/* Count-up. Always lands exactly on the target. */
+function countUp() {
+  document.querySelectorAll("[data-count]").forEach((el) => {
+    const target = Number(el.dataset.count);
+    const suffix = el.dataset.suffix || "";
+    if (reduced) { el.textContent = target + suffix; return; }
+    const start = performance.now(), dur = 520;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (p === 1 ? target : Math.round(target * eased)) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+countUp();
+document.getElementById("replay-count").addEventListener("click", countUp);
+
+/* Bars. */
+function drawBars() {
+  document.querySelectorAll("#bars i").forEach((el) => {
+    el.style.width = "0%";
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = el.dataset.w + "%"; }));
+  });
+}
+drawBars();
+document.getElementById("replay-bars").addEventListener("click", drawBars);
+
+/* Slide-over, with the same spring the product uses. */
+const panel = document.getElementById("panel");
+const scrim = document.getElementById("scrim");
+const toggle = document.getElementById("toggle-panel");
+let open = false, raf = 0;
+function spring(from, to, onFrame) {
+  if (reduced) { onFrame(to); return; }
+  const stiffness = 420, damping = 40, mass = 0.8;
+  let x = from, v = 0, last = performance.now();
+  cancelAnimationFrame(raf);
+  const step = (now) => {
+    const dt = Math.min(0.032, (now - last) / 1000); last = now;
+    const a = (-stiffness * (x - to) - damping * v) / mass;
+    v += a * dt; x += v * dt;
+    onFrame(x);
+    if (Math.abs(x - to) > 0.001 || Math.abs(v) > 0.001) raf = requestAnimationFrame(step);
+    else onFrame(to);
+  };
+  raf = requestAnimationFrame(step);
+}
+function setPanel(next) {
+  open = next;
+  toggle.textContent = open ? "Close panel" : "Open panel";
+  scrim.style.opacity = open ? "1" : "0";
+  spring(open ? 1 : 0, open ? 0 : 1, (x) => { panel.style.transform = `translateX(${x * 100}%)`; });
+}
+toggle.addEventListener("click", () => setPanel(!open));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && open) setPanel(false); });
+
+/* Disclosure: measure, then animate height. */
+document.querySelectorAll("details.disc").forEach((d) => {
+  const inner = d.querySelector(".inner");
+  if (d.open) inner.style.height = "auto";
+  d.addEventListener("toggle", () => {
+    if (reduced) return;
+    const h = inner.scrollHeight;
+    if (d.open) {
+      inner.animate([{ height: "0px", opacity: 0 }, { height: h + "px", opacity: 1 }],
+        { duration: 200, easing: "cubic-bezier(0.16,1,0.3,1)" });
+    }
+  });
+});
+</script>
+</body>
+</html>
