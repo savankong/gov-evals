@@ -183,3 +183,10 @@ export const IconExpand = (p: Props) => (
     <path d="M9.5 6.5L11.5 8l-2 1.5" />
   </svg>
 );
+
+export const IconCompass = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="8" r="6" />
+    <path d="M10.5 5.5 9.2 9.2 5.5 10.5 6.8 6.8z" />
+  </svg>
+);

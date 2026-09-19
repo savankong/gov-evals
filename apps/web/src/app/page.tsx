@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { GettingStarted, Primer, useOnboarding, usePrimer } from "@/components/onboarding";
 import { SeverityTag } from "@/components/status";
 import { useAuth, useResource } from "@/components/shell";
 import {
@@ -27,6 +28,8 @@ const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
 export default function PortfolioPage() {
   const { session } = useAuth();
   const { data, error, loading } = useResource<Overview>(() => api.get<Overview>("/dashboard"));
+  const onboarding = useOnboarding();
+  const primer = usePrimer();
 
   const firstName = (session?.fullName ?? session?.email ?? "").split(/[\s@]/)[0];
 
@@ -51,6 +54,10 @@ export default function PortfolioPage() {
               : "Nothing to report."}
         </p>
       </div>
+
+      {onboarding.data && !onboarding.data.complete ? (
+        <GettingStarted data={onboarding.data} onOpenPrimer={primer.open} />
+      ) : null}
 
       {error ? <ErrorNote message={error} /> : null}
 
@@ -219,6 +226,8 @@ export default function PortfolioPage() {
           </div>
         </>
       ) : null}
+    
+      <Primer open={primer.show} onClose={primer.close} />
     </div>
   );
 }
