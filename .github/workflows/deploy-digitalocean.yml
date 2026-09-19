@@ -57,6 +57,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # This job had never run when it was written, so its first real execution
+      # is somebody's first deployment. A missing secret otherwise surfaces as
+      # `doctl auth` failing to parse an empty token, which names neither the
+      # secret nor the person who has to set it.
+      - name: Check the deployment credentials are present
+        env:
+          DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          DO_APP_ID: ${{ secrets.DO_APP_ID }}
+          DO_REGISTRY: ${{ secrets.DO_REGISTRY }}
+          PUBLIC_API_BASE: ${{ vars.PUBLIC_API_BASE }}
+        run: |
+          missing=()
+          [ -n "$DO_TOKEN" ]       || missing+=("secret DIGITALOCEAN_ACCESS_TOKEN (token with registry and app write scope)")
+          [ -n "$DO_APP_ID" ]      || missing+=("secret DO_APP_ID (doctl apps list --format ID,Spec.Name)")
+          [ -n "$DO_REGISTRY" ]    || missing+=("secret DO_REGISTRY (doctl registry get --format Name)")
+          [ -n "$PUBLIC_API_BASE" ]|| missing+=("variable PUBLIC_API_BASE (the app's public https URL, no trailing slash)")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::This repository is not configured to deploy yet."
+            printf '%s\n' "Set the following under Settings -> Secrets and variables -> Actions:" >&2
+            for item in "${missing[@]}"; do printf '  - %s\n' "$item" >&2; done
+            exit 1
+          fi
+          echo "All four are set."
+
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
