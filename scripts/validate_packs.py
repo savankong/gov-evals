@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""Validate evaluation packs and deployment specifications.
+
+Runs in CI with only PyYAML installed, so it does not import the application.
+It catches the mistakes that are invisible until a campaign runs and produces
+nothing: an evaluation whose selector matches no scenario, a threshold with no
+recognised key, a framework reference nothing maps to.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKS = ROOT / "packs"
+
+LAYERS = {"model", "human_systems", "systems_integration", "operational"}
+DOMAINS = {
+    "performance", "reliability", "robustness", "security", "safety",
+    "responsible_ai", "human_factors", "mission_effectiveness", "integration",
+    "resilience", "traceability",
+}
+THRESHOLD_KEYS = {
+    "min_pass_rate", "max_failures", "max_latency_ms", "latency_statistic",
+    "min_scores", "finding_severity", "min_recall", "min_precision",
+    "min_groundedness", "min_consistency", "source",
+}
+SEVERITIES = {"critical", "high", "medium", "low", "info"}
+
+# Tags the red-team materialiser produces at run time rather than shipping in a
+# scenario pack. A selector using these is satisfied once attacks are built.
+RUNTIME_TAGS = {"red-team", "agent", "prompt_injection", "data_poisoning",
+                "agent_abuse", "exfiltration", "disclosure", "jailbreak",
+                "evasion", "extraction"}
+
+errors: list[str] = []
+warnings: list[str] = []
+
+
+def load(path: Path) -> dict:
+    try:
+        return yaml.safe_load(path.read_text()) or {}
+    except yaml.YAMLError as exc:
+        errors.append(f"{path.name}: not valid YAML: {exc}")
+        return {}
+
+
+def main() -> int:
+    pack_files = sorted(PACKS.glob("*.y*ml"))
+    if not pack_files:
+        errors.append("No packs found in packs/")
+        return report()
+
+    scenarios: list[dict] = []
+    evaluations: list[tuple[str, dict]] = []
+    framework_refs: set[str] = set()
+    keys_seen: dict[str, str] = {}
+
+    for path in pack_files:
+        doc = load(path)
+        if not doc:
+            continue
+
+        for field in ("key", "kind", "version"):
+            if not doc.get(field):
+                errors.append(f"{path.name}: missing required field '{field}'")
+
+        key = doc.get("key")
+        if key in keys_seen:
+            errors.append(f"{path.name}: pack key {key!r} already used by {keys_seen[key]}")
+        elif key:
+            keys_seen[key] = path.name
+
+        for spec in doc.get("scenarios") or []:
+            scenarios.append(spec)
+            if not spec.get("key"):
+                errors.append(f"{path.name}: a scenario has no key")
+            if not (spec.get("input") or {}).get("prompt"):
+                errors.append(f"{path.name}: scenario {spec.get('key')!r} has no input prompt")
+            # A scenario without expectations cannot be argued with, which is
+            # the whole point of stating them.
+            if not spec.get("expected_behavior") and not spec.get("reference_answer"):
+                warnings.append(
+                    f"{path.name}: scenario {spec.get('key')!r} states no expected behaviour"
+                )
+
+        for spec in doc.get("evaluations") or []:
+            evaluations.append((path.name, spec))
+
+        for framework in doc.get("frameworks") or []:
+            for requirement in framework.get("requirements") or []:
+                framework_refs.add(requirement.get("ref"))
+
+    scenario_tags = [set(s.get("tags") or []) for s in scenarios]
+
+    for source, spec in evaluations:
+        name = spec.get("key", "<unnamed>")
+
+        if spec.get("layer") not in LAYERS:
+            errors.append(f"{source}: {name} has layer {spec.get('layer')!r}, expected one of {sorted(LAYERS)}")
+        if spec.get("domain") not in DOMAINS:
+            errors.append(f"{source}: {name} has domain {spec.get('domain')!r}, expected one of {sorted(DOMAINS)}")
+        if not spec.get("evaluators"):
+            errors.append(f"{source}: {name} declares no evaluators")
+
+        for entry in spec.get("evaluators") or []:
+            if not entry.get("evaluator"):
+                errors.append(f"{source}: {name} has an evaluator entry with no 'evaluator' key")
+
+        threshold = spec.get("default_threshold") or {}
+        for field in threshold:
+            if field not in THRESHOLD_KEYS:
+                errors.append(f"{source}: {name} threshold has unknown key {field!r}")
+        severity = threshold.get("finding_severity")
+        if severity and severity not in SEVERITIES:
+            errors.append(f"{source}: {name} has finding_severity {severity!r}")
+
+        # Selectors require every tag. An evaluation matching nothing reports
+        # NOT EVALUATED, which is honest but useless, so catch it here.
+        wanted = set((spec.get("scenario_selector") or {}).get("tags") or [])
+        if wanted:
+            if wanted & RUNTIME_TAGS:
+                continue
+            if not any(wanted <= tags for tags in scenario_tags):
+                errors.append(
+                    f"{source}: {name} selects tags {sorted(wanted)}, which no shipped scenario "
+                    "carries. It would report NOT EVALUATED."
+                )
+
+        for ref in spec.get("framework_refs") or []:
+            if ref not in framework_refs:
+                errors.append(f"{source}: {name} maps to unknown framework reference {ref!r}")
+
+    validate_deployment_specs()
+
+    print(
+        f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
+        f"{len(scenarios)} scenarios, {len(framework_refs)} framework references."
+    )
+    return report()
+
+
+def validate_deployment_specs() -> None:
+    """The App Platform spec is a deployment contract; a typo is an outage."""
+    spec_path = ROOT / ".do" / "app.yaml"
+    if not spec_path.exists():
+        return
+    spec = load(spec_path)
+
+    names = [s.get("name") for s in spec.get("services") or []]
+    if "api" not in names or "web" not in names:
+        errors.append(".do/app.yaml: expected services named 'api' and 'web'")
+
+    components = (spec.get("services") or []) + (spec.get("workers") or [])
+    for component in components:
+        envs = {e.get("key"): e for e in component.get("envs") or []}
+
+        # App Platform containers have an ephemeral filesystem. Any component
+        # holding state must be told, so it refuses to start on local disk.
+        if "AEGIS_EVIDENCE_BACKEND" in envs:
+            if envs["AEGIS_EVIDENCE_BACKEND"].get("value") != "s3":
+                errors.append(
+                    f".do/app.yaml: {component.get('name')} must use the s3 evidence backend; "
+                    "App Platform storage does not survive a deploy."
+                )
+            if envs.get("AEGIS_EPHEMERAL_FILESYSTEM", {}).get("value") != "true":
+                errors.append(
+                    f".do/app.yaml: {component.get('name')} sets an evidence backend but not "
+                    "AEGIS_EPHEMERAL_FILESYSTEM=true, so the startup guard is disabled."
+                )
+            if not envs.get("AEGIS_S3_REGION", {}).get("value"):
+                errors.append(
+                    f".do/app.yaml: {component.get('name')} has no AEGIS_S3_REGION. SigV4 signs "
+                    "with it and a mismatch fails opaquely."
+                )
+
+        for key in ("AEGIS_SECRET_KEY", "AEGIS_S3_SECRET_KEY", "AEGIS_BOOTSTRAP_PASSWORD"):
+            if key in envs and envs[key].get("type") != "SECRET":
+                errors.append(f".do/app.yaml: {component.get('name')} must mark {key} as SECRET")
+
+        if envs.get("AEGIS_SEED_DEMO", {}).get("value") == "true":
+            errors.append(
+                f".do/app.yaml: {component.get('name')} enables demo seeding, which must not "
+                "run outside development."
+            )
+
+
+def report() -> int:
+    for warning in warnings:
+        print(f"warning: {warning}")
+    for error in errors:
+        print(f"error: {error}", file=sys.stderr)
+    if errors:
+        print(f"\n{len(errors)} error(s).", file=sys.stderr)
+        return 1
+    print("All packs and deployment specs valid.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

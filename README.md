@@ -141,7 +141,28 @@ with Aegis() as client:
 | Local / air-gapped | SQLite, file evidence store, inline queue. No outbound call. |
 | Single node | Docker Compose, as above. |
 | Scaled | `docker compose --profile scale up` adds Postgres, Redis and worker replicas. |
+| DigitalOcean | App Platform or a droplet. See [the guide](docs/deploy-digitalocean.md). |
 | Customer cloud | Any SQLAlchemy database, any S3-compatible object store. |
+
+### DigitalOcean
+
+```bash
+cd deploy/digitalocean && terraform init && terraform apply
+doctl apps create --spec .do/app.yaml
+```
+
+Terraform provisions managed Postgres, managed Valkey and a private versioned
+Space; the app spec wires them together and GitHub Actions deploys on green CI.
+
+Two things that deployment enforces rather than documents. App Platform
+containers have an ephemeral filesystem, so the API refuses to start on SQLite
+or a local evidence directory when `AEGIS_EPHEMERAL_FILESYSTEM` is set —
+evidence lost silently on a redeploy is the worst failure this product can
+have. And because DigitalOcean is not FedRAMP authorized and carries no DoD
+provisional authorization, the spec sets `AEGIS_MAX_CLASSIFICATION=UNCLASSIFIED`
+and the API refuses artifacts marked above it. That path holds development and
+unclassified data; CUI and IL4+ belong in a government cloud region under the
+customer's own authorization.
 
 Set `AEGIS_EGRESS_POLICY=deny` with an allowlist and a connector whose host is not
 listed is refused before any request leaves the deployment. Telemetry is off unless
@@ -183,3 +204,4 @@ says so in those words.
 - [Writing a pack](docs/writing-packs.md)
 - [Requirement traceability](docs/traceability.md)
 - [Security posture](docs/security.md)
+- [Deploying on DigitalOcean](docs/deploy-digitalocean.md)

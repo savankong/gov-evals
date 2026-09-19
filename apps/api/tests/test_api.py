@@ -496,3 +496,94 @@ class TestAssuranceScoping:
         for run_id in linked:
             assert runs_by_id[run_id]["system_version_id"] == versions[1]["id"]
         assert detail["case"]["system_version_id"] == versions[1]["id"]
+
+
+class TestClassificationCeilingAtTheApi:
+    """A ceiling is only meaningful if the route enforces it.
+
+    A deployment on infrastructure that is not accredited for a marking should
+    refuse the data, not rely on every operator remembering which deployment
+    they are typing into.
+    """
+
+    def _ceiling(self, monkeypatch, level):
+        monkeypatch.setattr("aegis.classification.ceiling", lambda: level)
+
+    def test_project_above_the_ceiling_is_refused(self, client, auth, monkeypatch):
+        self._ceiling(monkeypatch, "UNCLASSIFIED")
+        response = client.post(
+            f"{API}/projects",
+            headers=auth,
+            json={
+                "program_id": client.program_id,
+                "name": "Over Ceiling Project",
+                "classification": "CUI",
+            },
+        )
+        assert response.status_code == 422
+        assert "up to UNCLASSIFIED" in response.json()["detail"]
+
+    def test_data_classification_is_checked_too(self, client, auth, monkeypatch):
+        """A project can be marked UNCLASSIFIED while declaring it holds CUI."""
+        self._ceiling(monkeypatch, "UNCLASSIFIED")
+        response = client.post(
+            f"{API}/projects",
+            headers=auth,
+            json={
+                "program_id": client.program_id,
+                "name": "Mixed Marking Project",
+                "classification": "UNCLASSIFIED",
+                "data_classification": "CUI",
+            },
+        )
+        assert response.status_code == 422
+        assert "data_classification" in response.json()["detail"]
+
+    def test_at_or_below_the_ceiling_is_accepted(self, client, auth, monkeypatch):
+        self._ceiling(monkeypatch, "CUI")
+        response = client.post(
+            f"{API}/projects",
+            headers=auth,
+            json={
+                "program_id": client.program_id,
+                "name": "Within Ceiling Project",
+                "classification": "CUI",
+            },
+        )
+        assert response.status_code == 201
+
+    def test_raising_a_project_past_the_ceiling_is_refused(self, client, auth, monkeypatch):
+        """The check belongs on update as much as on create."""
+        project_id = client.post(
+            f"{API}/projects",
+            headers=auth,
+            json={"program_id": client.program_id, "name": "Upgrade Attempt"},
+        ).json()["id"]
+        self._ceiling(monkeypatch, "UNCLASSIFIED")
+        response = client.patch(
+            f"{API}/projects/{project_id}", headers=auth, json={"classification": "SECRET"}
+        )
+        assert response.status_code == 422
+
+    def test_the_ceiling_is_advertised_before_data_is_entered(self, client, auth, monkeypatch):
+        self._ceiling(monkeypatch, "UNCLASSIFIED")
+        policy = client.get(f"{API}/vocabularies", headers=auth).json()["classification_policy"]
+        assert policy["max_classification"] == "UNCLASSIFIED"
+        assert policy["permitted"] == ["UNCLASSIFIED"]
+
+    def test_no_ceiling_by_default(self, client, auth):
+        policy = client.get(f"{API}/vocabularies", headers=auth).json()["classification_policy"]
+        assert policy["max_classification"] is None
+
+
+class TestStorageHealth:
+    def test_storage_health_reports_the_backend(self, client):
+        body = client.get("/health/storage").json()
+        assert body["status"] == "ok"
+        assert body["backend"] == "file"
+        assert body["writable"] is True
+
+    def test_health_states_the_ceiling_and_filesystem_posture(self, client):
+        body = client.get("/health").json()
+        assert "max_classification" in body
+        assert body["ephemeral_filesystem"] is False

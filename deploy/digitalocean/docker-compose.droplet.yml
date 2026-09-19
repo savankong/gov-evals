@@ -1,0 +1,66 @@
+# Aegis Eval on a single DigitalOcean droplet.
+#
+# Cheaper and simpler than App Platform, and the droplet's disk is a real
+# filesystem, so evidence may stay local if you prefer. This file still points
+# at Spaces by default: a droplet disk is one failure away from losing the
+# evidence chain, and object storage costs little.
+#
+#   scp -r . root@<droplet>:/opt/aegis
+#   ssh root@<droplet> 'cd /opt/aegis && docker compose -f deploy/digitalocean/docker-compose.droplet.yml up -d'
+#
+# Put Caddy or nginx in front for TLS, or use a DigitalOcean load balancer with
+# a managed certificate.
+
+name: aegis-eval
+
+services:
+  api:
+    image: ${AEGIS_IMAGE_API:-registry.digitalocean.com/aegis/aegis-api:latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file: [.env]
+    environment:
+      AEGIS_ENV: production
+      AEGIS_PACK_DIR: /packs
+      # A droplet volume survives a restart, so the ephemeral guard stays off.
+      AEGIS_EPHEMERAL_FILESYSTEM: "false"
+    volumes:
+      - ./packs:/packs:ro
+      - aegis-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    image: ${AEGIS_IMAGE_API:-registry.digitalocean.com/aegis/aegis-api:latest}
+    restart: unless-stopped
+    command: ["python", "worker.py"]
+    env_file: [.env]
+    environment:
+      AEGIS_ENV: production
+      AEGIS_PACK_DIR: /packs
+      AEGIS_QUEUE_BACKEND: redis
+      AEGIS_EPHEMERAL_FILESYSTEM: "false"
+    volumes:
+      - ./packs:/packs:ro
+      - aegis-data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+
+  web:
+    image: ${AEGIS_IMAGE_WEB:-registry.digitalocean.com/aegis/aegis-web:latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  aegis-data:

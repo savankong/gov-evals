@@ -1,0 +1,203 @@
+# DigitalOcean App Platform specification for Aegis Eval.
+#
+#   doctl apps create --spec .do/app.yaml
+#   doctl apps update <APP_ID> --spec .do/app.yaml
+#
+# App Platform gives each container an ephemeral filesystem, so this spec
+# configures managed Postgres for the database and Spaces for the evidence
+# store. AEGIS_EPHEMERAL_FILESYSTEM tells the API to refuse to start if either
+# is ever pointed back at local disk, because evidence written there would be
+# lost on the next deploy without anyone noticing.
+#
+# Before creating the app, set these as encrypted values (see
+# docs/deploy-digitalocean.md):
+#   AEGIS_SECRET_KEY, AEGIS_BOOTSTRAP_PASSWORD, SPACES_KEY, SPACES_SECRET
+
+name: aegis-eval
+region: nyc
+
+features:
+  - buildpack-stack=ubuntu-22
+
+databases:
+  - name: aegis-db
+    engine: PG
+    version: "16"
+    production: true
+    cluster_name: aegis-pg
+    size: db-s-1vcpu-1gb
+    num_nodes: 1
+
+  # Valkey is DigitalOcean's Redis-compatible managed cache. The queue speaks
+  # the Redis protocol, so no application change is needed.
+  - name: aegis-queue
+    engine: VALKEY
+    version: "8"
+    production: true
+    cluster_name: aegis-valkey
+    size: db-s-1vcpu-1gb
+
+services:
+  - name: api
+    http_port: 8000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    dockerfile_path: apps/api/Dockerfile
+    source_dir: apps/api
+    github:
+      repo: savankong/gov-evals
+      branch: main
+      deploy_on_push: true
+
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 25
+      period_seconds: 15
+      timeout_seconds: 5
+      failure_threshold: 3
+
+    routes:
+      - path: /api
+      - path: /health
+      - path: /docs
+      - path: /openapi.json
+
+    envs:
+      - key: AEGIS_ENV
+        value: production
+      - key: AEGIS_SECRET_KEY
+        type: SECRET
+        value: ${AEGIS_SECRET_KEY}
+      - key: AEGIS_BOOTSTRAP_EMAIL
+        value: admin@aegis-eval.app
+      - key: AEGIS_BOOTSTRAP_PASSWORD
+        type: SECRET
+        value: ${AEGIS_BOOTSTRAP_PASSWORD}
+
+      # App Platform injects these under its own names. The API adopts them
+      # into AEGIS_DATABASE_URL / AEGIS_REDIS_URL at startup and names the
+      # psycopg driver, so no shell wrapper is needed to rewrite the URL.
+      - key: DATABASE_URL
+        value: ${aegis-db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${aegis-queue.DATABASE_URL}
+
+      - key: AEGIS_QUEUE_BACKEND
+        value: redis
+      - key: AEGIS_EVIDENCE_BACKEND
+        value: s3
+      - key: AEGIS_S3_BUCKET
+        value: aegis-evidence
+      - key: AEGIS_S3_REGION
+        value: nyc3
+      - key: AEGIS_S3_ENDPOINT_URL
+        value: https://nyc3.digitaloceanspaces.com
+      - key: AEGIS_S3_ACCESS_KEY
+        type: SECRET
+        value: ${SPACES_KEY}
+      - key: AEGIS_S3_SECRET_KEY
+        type: SECRET
+        value: ${SPACES_SECRET}
+      - key: AEGIS_S3_PREFIX
+        value: production
+
+      # The container filesystem does not survive a deploy. The API refuses to
+      # start if the database or evidence store is on local disk.
+      - key: AEGIS_EPHEMERAL_FILESYSTEM
+        value: "true"
+
+      # DigitalOcean is not FedRAMP authorized and carries no DoD provisional
+      # authorization. This deployment refuses artifacts above UNCLASSIFIED at
+      # the API rather than trusting operators to remember that.
+      - key: AEGIS_MAX_CLASSIFICATION
+        value: UNCLASSIFIED
+
+      - key: AEGIS_SEED_DEMO
+        value: "false"
+      - key: AEGIS_TELEMETRY_ENABLED
+        value: "false"
+      - key: AEGIS_CORS_ORIGINS
+        value: ${APP_URL}
+      - key: AEGIS_PACK_DIR
+        value: /packs
+
+  - name: web
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    dockerfile_path: apps/web/Dockerfile
+    source_dir: apps/web
+    github:
+      repo: savankong/gov-evals
+      branch: main
+      deploy_on_push: true
+
+    health_check:
+      http_path: /login
+      initial_delay_seconds: 20
+      period_seconds: 15
+
+    routes:
+      - path: /
+
+    envs:
+      # Next.js inlines NEXT_PUBLIC_* into the client bundle at build time, so
+      # this is a build argument rather than a runtime variable.
+      - key: NEXT_PUBLIC_API_BASE
+        scope: BUILD_TIME
+        value: ${APP_URL}
+
+workers:
+  # Campaign execution runs here rather than in the API, so a long campaign
+  # never competes with request handling. Scale this independently.
+  - name: worker
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    dockerfile_path: apps/api/Dockerfile
+    source_dir: apps/api
+    run_command: python worker.py
+    github:
+      repo: savankong/gov-evals
+      branch: main
+      deploy_on_push: true
+
+    envs:
+      - key: AEGIS_ENV
+        value: production
+      - key: AEGIS_SECRET_KEY
+        type: SECRET
+        value: ${AEGIS_SECRET_KEY}
+      - key: DATABASE_URL
+        value: ${aegis-db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${aegis-queue.DATABASE_URL}
+      - key: AEGIS_QUEUE_BACKEND
+        value: redis
+      - key: AEGIS_EVIDENCE_BACKEND
+        value: s3
+      - key: AEGIS_S3_BUCKET
+        value: aegis-evidence
+      - key: AEGIS_S3_REGION
+        value: nyc3
+      - key: AEGIS_S3_ENDPOINT_URL
+        value: https://nyc3.digitaloceanspaces.com
+      - key: AEGIS_S3_ACCESS_KEY
+        type: SECRET
+        value: ${SPACES_KEY}
+      - key: AEGIS_S3_SECRET_KEY
+        type: SECRET
+        value: ${SPACES_SECRET}
+      - key: AEGIS_S3_PREFIX
+        value: production
+      - key: AEGIS_EPHEMERAL_FILESYSTEM
+        value: "true"
+      - key: AEGIS_MAX_CLASSIFICATION
+        value: UNCLASSIFIED
+      - key: AEGIS_SEED_DEMO
+        value: "false"
+      - key: AEGIS_PACK_DIR
+        value: /packs
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

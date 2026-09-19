@@ -124,7 +124,10 @@ def frameworks(db: Session = Depends(get_db), _: object = Depends(get_current_us
 @router.get("/vocabularies")
 def vocabularies(_: object = Depends(get_current_user)) -> dict:
     """Controlled vocabularies, so the UI never hard-codes a list."""
+    from ..classification import describe as describe_classification
+
     return {
+        "classification_policy": describe_classification(),
         "layers": [{"key": k, "label": TEVVLayer.LABELS[k]} for k in TEVVLayer.ALL],
         "domains": [{"key": k, "label": Domain.LABELS[k]} for k in Domain.ALL],
         "result_statuses": ResultStatus.ALL,

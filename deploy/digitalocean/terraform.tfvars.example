@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars and edit. Never commit the real file.
+project_name = "aegis-eval"
+region       = "nyc3"
+environment  = "production"
+
+# Postgres. Two nodes gives a standby for failover.
+db_size       = "db-s-1vcpu-1gb"
+db_node_count = 1
+
+valkey_size = "db-s-1vcpu-1gb"
+
+# Droplet IDs permitted to reach the databases. Leave empty for App Platform.
+trusted_sources = []
+
+# App Platform app ID to admit through the database firewall.
+app_platform_app_id = ""

@@ -62,6 +62,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["system"])
     def health() -> dict:
+        from .classification import describe as describe_classification
         from .runner import get_queue
 
         return {
@@ -72,18 +73,55 @@ def create_app() -> FastAPI:
             "queue": {"backend": settings.queue_backend, "depth": get_queue().depth()},
             "evidence_backend": settings.evidence_backend,
             "egress_policy": settings.egress_policy,
-            # Stated explicitly so an operator can confirm it at a glance.
+            # Stated explicitly so an operator can confirm them at a glance.
             "telemetry_enabled": settings.telemetry_enabled,
+            "max_classification": describe_classification()["max_classification"],
+            "ephemeral_filesystem": settings.ephemeral_filesystem,
         }
+
+    @app.get("/health/storage", tags=["system"])
+    def storage_health() -> dict:
+        """Confirm the evidence store is reachable and writable.
+
+        Separate from /health because it performs a round trip to the object
+        store, which a liveness probe should not do on every check.
+        """
+        from .hashing import evidence_store
+
+        result = evidence_store().check()
+        return {"status": "ok" if result.get("writable") else "degraded", **result}
 
     @app.on_event("startup")
     def startup() -> None:
         init_db()
+
+        # Confirm the evidence store before accepting work. A campaign that
+        # runs and then cannot store what it produced is worse than one that
+        # never started.
+        from .hashing import evidence_store
+
+        storage = evidence_store().check()
+        if storage.get("writable"):
+            log.info("Evidence store ready: %s", storage.get("location"))
+        else:
+            log.error(
+                "Evidence store is NOT writable (%s): %s. Evaluations will fail to store "
+                "evidence until this is fixed.",
+                storage.get("location"),
+                storage.get("error"),
+            )
+
         from .seed import bootstrap
 
         with session_scope() as db:
             result = bootstrap(db)
         log.info("Startup complete: %s", result)
+
+        if settings.max_classification:
+            log.info(
+                "Classification ceiling: %s. Artifacts above this marking are refused.",
+                settings.max_classification,
+            )
 
         if settings.telemetry_enabled and settings.otlp_endpoint:
             _configure_telemetry(app)

@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..classification import enforce as enforce_classification
 from ..db import get_db
 from ..models import (
     Membership,
@@ -158,6 +159,8 @@ def create_project(
 
     data = payload.model_dump()
     data["slug"] = data.get("slug") or slugify(payload.name)
+    enforce_classification(data.get("classification"))
+    enforce_classification(data.get("data_classification"), field="data_classification")
     project = Project(**data, owner=user.email)
     db.add(project)
     db.flush()
@@ -195,6 +198,11 @@ def update_project(
         "name", "description", "capability_type", "impact_level", "data_classification",
         "deployment_environment", "system_owner", "evaluation_owner", "classification", "status",
     }
+    if "classification" in payload:
+        enforce_classification(payload["classification"])
+    if "data_classification" in payload:
+        enforce_classification(payload["data_classification"], field="data_classification")
+
     changed = {}
     for field, value in payload.items():
         if field in editable and getattr(project, field) != value:

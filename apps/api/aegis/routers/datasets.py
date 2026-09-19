@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..classification import enforce as enforce_classification
 from ..db import get_db
 from ..hashing import content_hash
 from ..models import Dataset, DatasetItem, DatasetVersion, User
@@ -39,6 +40,7 @@ def create_dataset(
     user: User = Depends(require(Permission.DATASET_WRITE)),
 ):
     project = get_project(db, project_id)
+    enforce_classification(payload.classification)
     dataset = Dataset(project_id=project_id, owner=user.email, **payload.model_dump())
     db.add(dataset)
     db.flush()

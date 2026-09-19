@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..classification import enforce as enforce_classification
 from ..connectors import TargetRequest, build_adapter, get_adapter
 from ..db import get_db
 from ..hashing import content_hash
@@ -59,6 +60,7 @@ def create_system(
     user: User = Depends(require(Permission.SYSTEM_WRITE)),
 ):
     project = get_project(db, project_id)
+    enforce_classification(payload.classification)
     data = payload.model_dump()
     data["slug"] = data.get("slug") or slugify(payload.name)
     system = System(project_id=project_id, owner=user.email, **data)

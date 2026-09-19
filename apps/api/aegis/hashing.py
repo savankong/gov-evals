@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
 from typing import Any
 
 from .config import get_settings
@@ -37,22 +36,23 @@ def content_hash(value: Any) -> str:
 class EvidenceStore:
     """Writes evidence artifacts and returns a URI plus digest.
 
-    The file backend keeps everything inside the customer boundary with no
-    outbound dependency; the s3 backend targets any S3-compatible endpoint
-    (including MinIO running on-premises).
+    Storage itself lives in `aegis.storage`; this class owns hashing and the
+    key layout, so the two concerns stay separable.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, backend=None) -> None:
+        from .storage import build_backend
+
         self.settings = get_settings()
-        self.backend = self.settings.evidence_backend
-        self.root = Path(self.settings.evidence_path)
+        self.backend = backend or build_backend(self.settings)
+
+    @property
+    def backend_name(self) -> str:
+        return self.backend.name
 
     def put(self, key: str, data: bytes, media_type: str = "application/json") -> dict:
         digest = sha256_bytes(data)
-        if self.backend == "s3":
-            uri = self._put_s3(key, data, media_type)
-        else:
-            uri = self._put_file(key, data)
+        uri = self.backend.put(key, data, media_type)
         return {
             "storage_uri": uri,
             "sha256": digest,
@@ -64,38 +64,11 @@ class EvidenceStore:
         return self.put(key, canonical_json(value).encode("utf-8"), "application/json")
 
     def get(self, uri: str) -> bytes:
-        if uri.startswith("s3://"):
-            return self._get_s3(uri)
-        return Path(uri.removeprefix("file://")).read_bytes()
+        return self.backend.get(uri)
 
-    # -- backends ----------------------------------------------------------
-
-    def _put_file(self, key: str, data: bytes) -> str:
-        path = self.root / key
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-        return f"file://{path.resolve()}"
-
-    def _client(self):  # pragma: no cover - requires boto3 + an endpoint
-        import boto3
-
-        return boto3.client(
-            "s3",
-            endpoint_url=self.settings.s3_endpoint_url or None,
-            aws_access_key_id=self.settings.s3_access_key or None,
-            aws_secret_access_key=self.settings.s3_secret_key or None,
-        )
-
-    def _put_s3(self, key: str, data: bytes, media_type: str) -> str:  # pragma: no cover
-        self._client().put_object(
-            Bucket=self.settings.s3_bucket, Key=key, Body=data, ContentType=media_type
-        )
-        return f"s3://{self.settings.s3_bucket}/{key}"
-
-    def _get_s3(self, uri: str) -> bytes:  # pragma: no cover
-        _, _, rest = uri.partition("s3://")
-        bucket, _, key = rest.partition("/")
-        return self._client().get_object(Bucket=bucket, Key=key)["Body"].read()
+    def check(self) -> dict:
+        """Confirm the store is reachable and writable."""
+        return self.backend.check()
 
 
 _store: EvidenceStore | None = None
@@ -106,3 +79,9 @@ def evidence_store() -> EvidenceStore:
     if _store is None:
         _store = EvidenceStore()
     return _store
+
+
+def reset_evidence_store() -> None:
+    """Drop the cached store. Used by tests and after a configuration change."""
+    global _store
+    _store = None

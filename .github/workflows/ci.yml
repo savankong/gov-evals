@@ -1,0 +1,75 @@
+# Checks that must pass before anything is deployed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API tests and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "apps/api[dev,s3]"
+          pip install -e "packages/sdk"
+
+      - name: Lint
+        run: ruff check apps/api/aegis packages/sdk/aegis_sdk
+
+      - name: Test
+        working-directory: apps/api
+        run: pytest -q
+
+  web:
+    name: Web typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        working-directory: apps/web
+        run: npm ci || npm install
+
+      - name: Typecheck
+        working-directory: apps/web
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: apps/web
+        run: npm run build
+
+  packs:
+    name: Evaluation packs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install pyyaml
+
+      - name: Validate packs and deployment specs
+        run: python scripts/validate_packs.py

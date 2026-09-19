@@ -1,0 +1,96 @@
+# Build images, push them to DigitalOcean Container Registry, and roll out.
+#
+# Required repository secrets:
+#   DIGITALOCEAN_ACCESS_TOKEN   token with registry and app write scope
+#   DO_APP_ID                   App Platform app id
+#   DO_REGISTRY                 registry name, e.g. "aegis"
+#
+# Deployment runs only after CI passes on main. A push that fails tests is
+# never deployed.
+name: Deploy to DigitalOcean
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type "deploy" to confirm a manual rollout
+        required: true
+
+concurrency:
+  group: deploy-digitalocean
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build, push and roll out
+    runs-on: ubuntu-latest
+    # A manual run needs the typed confirmation; an automatic one needs CI green.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'deploy') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to the container registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Set image tags
+        id: tags
+        run: |
+          echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "registry=registry.digitalocean.com/${{ secrets.DO_REGISTRY }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push the API image
+        run: |
+          REG='${{ steps.tags.outputs.registry }}'
+          SHA='${{ steps.tags.outputs.sha }}'
+          docker build -t "$REG/aegis-api:$SHA" -t "$REG/aegis-api:latest" apps/api
+          docker push "$REG/aegis-api:$SHA"
+          docker push "$REG/aegis-api:latest"
+
+      - name: Build and push the web image
+        run: |
+          REG='${{ steps.tags.outputs.registry }}'
+          SHA='${{ steps.tags.outputs.sha }}'
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE="${{ vars.PUBLIC_API_BASE }}" \
+            -t "$REG/aegis-web:$SHA" -t "$REG/aegis-web:latest" apps/web
+          docker push "$REG/aegis-web:$SHA"
+          docker push "$REG/aegis-web:latest"
+
+      - name: Roll out to App Platform
+        run: doctl apps create-deployment "${{ secrets.DO_APP_ID }}" --wait
+
+      - name: Verify the deployment is serving
+        run: |
+          BASE='${{ vars.PUBLIC_API_BASE }}'
+          for attempt in $(seq 1 30); do
+            if curl -fsS "$BASE/health" > /tmp/health.json; then
+              echo "Health check passed:"; cat /tmp/health.json; exit 0
+            fi
+            echo "Attempt $attempt: not ready yet"; sleep 10
+          done
+          echo "The deployment did not become healthy."; exit 1
+
+      - name: Verify the evidence store is writable
+        # A deployment whose object store is unreachable would run campaigns
+        # and fail to keep what they produced. Catch it here, not later.
+        run: |
+          BASE='${{ vars.PUBLIC_API_BASE }}'
+          STATUS=$(curl -fsS "$BASE/health/storage" | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])')
+          echo "Evidence store: $STATUS"
+          test "$STATUS" = "ok"
+
+      - name: Prune old images
+        if: success()
+        run: doctl registry garbage-collection start --include-untagged-manifests --force || true

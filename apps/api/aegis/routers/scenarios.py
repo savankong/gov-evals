@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..classification import enforce as enforce_classification
 from ..db import get_db
 from ..hashing import content_hash
 from ..models import MissionProfile, Scenario, User
@@ -69,6 +70,7 @@ def create_scenario(
     user: User = Depends(require(Permission.EVALUATION_WRITE)),
 ):
     project = get_project(db, project_id)
+    enforce_classification(payload.classification)
     scenario = Scenario(project_id=project_id, owner=user.email, **payload.model_dump())
     scenario.content_hash = content_hash(
         {"key": scenario.key, "input": scenario.input, "version": scenario.version}
