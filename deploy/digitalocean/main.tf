@@ -1,7 +1,8 @@
 # Aegis Eval on DigitalOcean.
 #
 # Provisions the managed pieces the platform needs: Postgres for the control
-# plane, Valkey for the campaign queue, and a Space for the evidence store.
+# plane, Valkey for the campaign queue, a Space for the evidence store, and the
+# container registry the deploy workflow pushes signed images to.
 #
 # Run this BEFORE creating the App Platform app. The app spec does not create
 # its databases -- its `databases:` entries name an existing cluster through
@@ -72,6 +73,50 @@ variable "valkey_size" {
   type        = string
   default     = "db-s-1vcpu-1gb"
   description = "Managed Valkey node size."
+}
+
+variable "registry_name" {
+  type        = string
+  default     = "aegis-eval"
+  description = <<-EOT
+    Container registry name, and the value of the DO_REGISTRY repository secret
+    the deploy workflow reads. Images land at
+    registry.digitalocean.com/<registry_name>/aegis-api and .../aegis-web.
+
+    DigitalOcean registry names are GLOBALLY unique, like Spaces buckets, so
+    this can collide with another account's. Terraform reports that as a plain
+    409; change the name rather than retrying.
+  EOT
+}
+
+variable "registry_tier" {
+  type        = string
+  default     = "basic"
+  description = <<-EOT
+    Registry subscription tier.
+
+    `starter` is free but holds ONE repository, and this deployment pushes two
+    -- aegis-api and aegis-web -- so it cannot work here. The second push fails
+    with a quota error after the first has already succeeded, which reads like
+    a flake and is not one. `basic` is ~$5/month for 5 repositories and 5 GB,
+    and is the smallest tier that actually fits.
+  EOT
+
+  validation {
+    condition     = contains(["starter", "basic", "professional"], var.registry_tier)
+    error_message = "registry_tier must be starter, basic or professional."
+  }
+}
+
+variable "create_registry" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    Set false if this account already has a container registry. DigitalOcean
+    allows exactly ONE registry per account, so creating a second fails -- and
+    an existing one is already usable: put its name in DO_REGISTRY and leave
+    this off.
+  EOT
 }
 
 variable "trusted_sources" {
@@ -223,8 +268,8 @@ resource "digitalocean_spaces_bucket" "evidence" {
   }
 
   lifecycle_rule {
-    id      = "abort-incomplete-uploads"
-    enabled = true
+    id                                     = "abort-incomplete-uploads"
+    enabled                                = true
     abort_incomplete_multipart_upload_days = 7
   }
 }
@@ -250,6 +295,29 @@ resource "digitalocean_spaces_bucket_policy" "evidence_private" {
       }
     ]
   })
+}
+
+# ---------------------------------------------------------------------------
+# Container registry
+# ---------------------------------------------------------------------------
+
+# Holds the images the deploy workflow builds, signs by digest and verifies
+# before rolling out. Without it that workflow stops at its own preflight and
+# the signing pipeline never runs at all -- which is what happened on the first
+# real deployment.
+#
+# Note what this does and does not buy. The registry makes the signed images an
+# attested artifact of record for a commit. It does not yet make them the thing
+# that serves traffic: .do/app.yaml still builds from GitHub source, so App
+# Platform runs its own build output. Closing that gap means pointing the
+# spec's components at `image:` with the digest the workflow verified, and this
+# registry is the prerequisite for it, not the whole of it. See docs/security.md.
+resource "digitalocean_container_registry" "aegis" {
+  count = var.create_registry ? 1 : 0
+
+  name                   = var.registry_name
+  subscription_tier_slug = var.registry_tier
+  region                 = var.region
 }
 
 # ---------------------------------------------------------------------------
@@ -292,6 +360,21 @@ output "spaces_region" {
   description = "Set as AEGIS_S3_REGION. SigV4 signs with this; a mismatch fails opaquely."
 }
 
+output "registry_name" {
+  value       = var.create_registry ? digitalocean_container_registry.aegis[0].name : var.registry_name
+  description = <<-EOT
+    Set as the DO_REGISTRY repository secret, under
+    Settings -> Secrets and variables -> Actions. It is a name rather than a
+    credential, but the workflow reads it from `secrets`, so that is where it
+    goes.
+  EOT
+}
+
+output "registry_endpoint" {
+  value       = var.create_registry ? digitalocean_container_registry.aegis[0].endpoint : "registry.digitalocean.com/${var.registry_name}"
+  description = "Where the deploy workflow pushes. Images are addressed by digest downstream, never by tag."
+}
+
 output "secret_key" {
   value       = random_password.secret_key.result
   sensitive   = true
@@ -299,7 +382,7 @@ output "secret_key" {
 }
 
 output "environment_block" {
-  sensitive = true
+  sensitive   = true
   description = "Ready to paste into a droplet .env file."
   value       = <<-EOT
     AEGIS_ENV=${var.environment}

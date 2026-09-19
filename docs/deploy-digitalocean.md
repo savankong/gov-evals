@@ -129,6 +129,34 @@ tests is never deployed.
 Repository secrets: `DIGITALOCEAN_ACCESS_TOKEN`, `DO_APP_ID`, `DO_REGISTRY`.
 Repository variable: `PUBLIC_API_BASE`.
 
+The workflow checks all four before it does anything and names the ones that
+are missing, because a missing secret otherwise surfaces as `doctl auth`
+failing to parse an empty token, which names neither the secret nor the person
+who has to set it.
+
+### The registry
+
+`terraform apply` creates it; `terraform output registry_name` is the value
+`DO_REGISTRY` wants. It is a name rather than a credential, but the workflow
+reads it from `secrets`, so that is where it goes.
+
+Two things worth knowing before choosing a tier:
+
+- **The free `starter` tier holds one repository, and this deployment pushes
+  two** — `aegis-api` and `aegis-web`. The second push fails on quota *after*
+  the first has succeeded, which reads like a flake and is not one. `basic`
+  (~$5/month, 5 repositories, 5 GB) is the smallest tier that fits.
+- **DigitalOcean allows one registry per account.** If this account already has
+  one, set `create_registry = false` and put its existing name in `DO_REGISTRY`.
+
+Without the registry the deploy workflow stops at its preflight and the
+signing pipeline never runs, while App Platform's own `deploy_on_push` keeps
+deploying the app from source regardless. That pair — a red workflow beside a
+healthy app — is the confusing state the registry resolves.
+
+Storage is not reclaimed automatically: every commit pushes two tagged images,
+so run a registry garbage collection periodically or the 5 GB fills.
+
 ## Cost
 
 Roughly, at list price:
@@ -139,7 +167,8 @@ Roughly, at list price:
 | Managed Postgres | 1 node, 1 vCPU / 1 GB | ~$15 |
 | Managed Valkey | 1 node, 1 vCPU / 1 GB | ~$15 |
 | Spaces | 250 GB included | $5 |
-| **Total** | | **~$50–60** |
+| Container registry | basic: 5 repositories, 5 GB | $5 |
+| **Total** | | **~$55–65** |
 
 Evidence accumulates: a campaign stores one record per execution, so a project
 running thousands of scenarios weekly will grow into the Spaces allowance over
