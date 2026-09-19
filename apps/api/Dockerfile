@@ -27,6 +27,12 @@ COPY --from=build /install /usr/local
 COPY apps/api/aegis ./aegis
 COPY apps/api/pyproject.toml ./
 
+# The worker component and the compose worker service both run `python
+# worker.py`, and this image is what they run it in. It was never copied, so
+# that container exited immediately with "can't open file '/app/worker.py'" --
+# the API served fine, and campaigns simply had nothing executing them.
+COPY apps/api/worker.py ./
+
 # The evaluation packs are data the API installs at startup. The image shipped
 # without them, relying on the compose bind mount that App Platform has no
 # equivalent for, so AEGIS_PACK_DIR named an empty directory in production and

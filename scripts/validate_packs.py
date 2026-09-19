@@ -135,6 +135,7 @@ def main() -> int:
                 errors.append(f"{source}: {name} maps to unknown framework reference {ref!r}")
 
     validate_deployment_specs()
+    validate_container_entrypoints()
     validate_supply_chain()
 
     print(
@@ -186,6 +187,57 @@ def validate_deployment_specs() -> None:
             errors.append(
                 f".do/app.yaml: {component.get('name')} enables demo seeding, which must not "
                 "run outside development."
+            )
+
+
+def validate_container_entrypoints() -> None:
+    """Every script a component is told to run must be inside its image.
+
+    The worker is configured with `run_command: python worker.py` in the App
+    Platform spec and `command: ["python", "worker.py"]` in compose, but the
+    Dockerfile never copied worker.py. Both exited immediately with "can't open
+    file '/app/worker.py'". Nothing caught it: the API image built, started and
+    served, so the only visible symptom was campaigns that never executed.
+    """
+    dockerfile = ROOT / "apps" / "api" / "Dockerfile"
+    if not dockerfile.exists():
+        return
+
+    # Only COPY instructions count. Matching the file as one string would let a
+    # comment mentioning worker.py satisfy the check -- which it did, on the
+    # first version of this function, while the COPY was missing.
+    copied = " ".join(
+        line.strip()
+        for line in dockerfile.read_text().splitlines()
+        if line.strip().upper().startswith(("COPY ", "ADD "))
+    )
+
+    wanted: set[tuple[str, str]] = set()
+
+    spec_path = ROOT / ".do" / "app.yaml"
+    if spec_path.exists():
+        spec = load(spec_path)
+        for comp in (spec.get("services") or []) + (spec.get("workers") or []):
+            command = comp.get("run_command") or ""
+            for token in str(command).split():
+                if token.endswith(".py"):
+                    wanted.add((token, f".do/app.yaml: {comp.get('name')}"))
+
+    compose_path = ROOT / "docker-compose.yml"
+    if compose_path.exists():
+        compose = load(compose_path)
+        for name, service in (compose.get("services") or {}).items():
+            command = service.get("command")
+            tokens = command.split() if isinstance(command, str) else list(command or [])
+            for token in tokens:
+                if str(token).endswith(".py"):
+                    wanted.add((str(token), f"docker-compose.yml: {name}"))
+
+    for script, source in sorted(wanted):
+        if script not in copied:
+            errors.append(
+                f"{source} runs {script}, but apps/api/Dockerfile never copies it into the "
+                f"image. That container exits immediately with 'can't open file'."
             )
 
 
