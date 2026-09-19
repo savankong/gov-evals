@@ -150,8 +150,12 @@ def read_finding(finding_id: str, db: Session = Depends(get_db), _: User = Depen
             }
         )
     run = db.get(Run, finding.run_id) if finding.run_id else None
+    from ..models import Project
+
+    project = db.get(Project, finding.project_id)
     return {
         "finding": FindingOut.model_validate(finding).model_dump(),
+        "classification": project.classification if project else None,
         "results": results,
         "reproducibility": run.reproducibility if run else {},
         "linked_risks": [

@@ -407,3 +407,92 @@ class TestGuardrails:
 
     def test_health_states_telemetry_is_off(self, client):
         assert client.get("/health").json()["telemetry_enabled"] is False
+
+
+class TestAssuranceScoping:
+    """A case argues about one system version, not a campaign's worth of them."""
+
+    def test_draft_covers_a_single_system_version(self, client, auth):
+        project_id = client.post(
+            f"{API}/projects",
+            headers=auth,
+            json={"program_id": client.program_id, "name": "Assurance Scope Project"},
+        ).json()["id"]
+        client.put(
+            f"{API}/projects/{project_id}/mission",
+            headers=auth,
+            json={"mission": "Support a mission.", "tasks": ["Do the task."]},
+        )
+        system = client.post(
+            f"{API}/projects/{project_id}/systems", headers=auth, json={"name": "Dual"}
+        ).json()
+        versions = [
+            client.post(
+                f"{API}/systems/{system['id']}/versions",
+                headers=auth,
+                json={"version": v, "connector_type": "echo", "parameters": {"profile": "cooperative"}},
+            ).json()
+            for v in ("v1", "v2")
+        ]
+        client.post(
+            f"{API}/projects/{project_id}/scenarios",
+            headers=auth,
+            json={
+                "key": "scope-1",
+                "title": "Scope scenario",
+                "tags": ["mission-task"],
+                "input": {"prompt": "Do the task.", "documents": []},
+            },
+        )
+        evaluation = client.post(
+            f"{API}/projects/{project_id}/evaluations",
+            headers=auth,
+            json={
+                "key": "scope-eval",
+                "name": "Scope evaluation",
+                "evaluators": [{"evaluator": "citation_validity"}],
+                "scenario_selector": {"tags": ["mission-task"]},
+            },
+        ).json()
+        campaign = client.post(
+            f"{API}/projects/{project_id}/campaigns",
+            headers=auth,
+            json={
+                "name": "Dual campaign",
+                "evaluation_ids": [evaluation["id"]],
+                "system_version_ids": [v["id"] for v in versions],
+                "thresholds": {"scope-eval": {"min_pass_rate": 0.5}},
+            },
+        ).json()
+        client.post(f"{API}/campaigns/{campaign['id']}/execute", headers=auth)
+
+        import time
+
+        for _ in range(60):
+            summary = client.get(f"{API}/campaigns/{campaign['id']}/summary", headers=auth).json()
+            if summary["campaign"]["status"] in ("completed", "awaiting_human", "failed"):
+                break
+            time.sleep(0.2)
+        assert len(summary["runs"]) == 2, "campaign should have produced one run per version"
+
+        case_id = client.post(
+            f"{API}/projects/{project_id}/assurance/draft?campaign_id={campaign['id']}"
+            f"&system_version_id={versions[1]['id']}",
+            headers=auth,
+        ).json()["id"]
+        detail = client.get(f"{API}/assurance/{case_id}", headers=auth).json()
+
+        # Every linked run must belong to the version the case covers.
+        linked: list[str] = []
+        def walk(claim):
+            linked.extend(e["ref_id"] for e in claim["evidence"] if e["ref_type"] == "run")
+            for child in claim["children"]:
+                walk(child)
+
+        for claim in detail["claims"]:
+            walk(claim)
+
+        runs_by_id = {r["id"]: r for r in summary["runs"]}
+        for run_id in linked:
+            assert runs_by_id[run_id]["system_version_id"] == versions[1]["id"]
+        assert detail["case"]["system_version_id"] == versions[1]["id"]

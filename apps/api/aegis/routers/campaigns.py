@@ -15,6 +15,7 @@ from ..models import (
     EvaluationPlan,
     Evidence,
     HumanReview,
+    Project,
     Result,
     Run,
     Scenario,
@@ -203,8 +204,10 @@ def campaign_summary(campaign_id: str, db: Session = Depends(get_db), _: User = 
     campaign = fetch(db, Campaign, campaign_id, "Campaign")
     summary = campaign.summary or summarize_campaign(db, campaign)
     runs = list(db.execute(select(Run).where(Run.campaign_id == campaign_id)).scalars())
+    project = db.get(Project, campaign.project_id)
     return {
         "campaign": CampaignOut.model_validate(campaign).model_dump(),
+        "classification": project.classification if project else None,
         "summary": summary,
         "runs": [
             {
@@ -325,8 +328,12 @@ def read_result(result_id: str, db: Session = Depends(get_db), _: User = Depends
     reviews = list(
         db.execute(select(HumanReview).where(HumanReview.result_id == result_id)).scalars()
     )
+    campaign = db.get(Campaign, run.campaign_id) if run else None
+    project = db.get(Project, campaign.project_id) if campaign else None
     return {
         "result": ResultOut.model_validate(result).model_dump(),
+        "classification": project.classification if project else None,
+        "project_id": project.id if project else None,
         "run": RunOut.model_validate(run).model_dump() if run else None,
         "evaluation": _evaluation_brief(db, run.evaluation_id) if run else None,
         "system_version": _version_brief(db, run.system_version_id) if run else None,

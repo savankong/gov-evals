@@ -20,6 +20,7 @@ from ..models import (
     Requirement,
     Risk,
     Run,
+    SystemVersion,
     User,
     utcnow,
 )
@@ -98,16 +99,30 @@ def draft_case(
         else []
     )
 
+    # A case argues about one system version. A campaign often evaluates
+    # several, so the runs are narrowed to the version this case covers --
+    # otherwise the argument would draw on evidence from a system it is not
+    # about, which is exactly the confusion an assurance case exists to prevent.
+    target_version_id = system_version_id or (runs[0].system_version_id if runs else None)
+    if target_version_id:
+        runs = [r for r in runs if r.system_version_id == target_version_id]
+
+    covered_version = db.get(SystemVersion, target_version_id) if target_version_id else None
+    version_label = (
+        f"{covered_version.system.name} {covered_version.version}"
+        if covered_version and covered_version.system
+        else "the evaluated system"
+    )
+
     case = AssuranceCase(
         project_id=project_id,
-        system_version_id=system_version_id
-        or (runs[0].system_version_id if runs else None),
+        system_version_id=target_version_id,
         title=f"Deployment assurance case: {project.name}",
         context=(
             f"Mission: {mission.mission}" if mission else "No mission profile is recorded."
         )
         + (
-            f" Evidence drawn from campaign '{campaign.name}'."
+            f" Covers {version_label}. Evidence drawn from campaign '{campaign.name}'."
             if campaign
             else " No campaign has been executed."
         ),
@@ -119,7 +134,7 @@ def draft_case(
     root = AssuranceClaim(
         case_id=case.id,
         statement=(
-            f"{project.name} is suitable for its intended mission under the conditions "
+            f"{version_label} is suitable for its intended mission under the conditions "
             "and limitations recorded in this case."
         ),
         argument=(
@@ -155,7 +170,7 @@ def draft_case(
         claim = AssuranceClaim(
             case_id=case.id,
             parent_id=root.id,
-            statement=_claim_statement(domain, project.name),
+            statement=_claim_statement(domain, version_label),
             argument=(
                 f"Supported by {len(domain_runs)} evaluation run(s) in this campaign."
                 if domain_runs
@@ -345,8 +360,15 @@ def _evidence_detail(db: Session, link: AssuranceEvidenceLink) -> dict:
         run = db.get(Run, link.ref_id)
         if run:
             evaluation = db.get(Evaluation, run.evaluation_id)
+            version = db.get(SystemVersion, run.system_version_id)
+            system_label = (
+                f"{version.system.name} {version.version}"
+                if version and version.system
+                else None
+            )
             return {
                 "label": evaluation.name if evaluation else "Evaluation run",
+                "system": system_label,
                 "verdict": run.verdict,
                 "passed": run.passed,
                 "failed": run.failed,
