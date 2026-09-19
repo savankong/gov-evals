@@ -7,7 +7,13 @@
 #
 # Built on a slim base with no build toolchain in the final image, so the
 # runtime carries nothing an evaluation deployment does not need.
-FROM python:3.11-slim AS build
+#
+# The base is pinned by digest, not by tag. `python:3.11-slim` is a moving
+# pointer: two builds of the same commit a week apart can sit on different
+# bases, and every layer above changes with it. A signature over an image whose
+# inputs nobody recorded says when it was built, not what it was built from.
+# Bump this deliberately -- that is the point of it being a line in the diff.
+FROM python:3.11-slim@sha256:da047cb8f9d1d98e5c070f5300ba9f7274e33b8fc0e5be5ed88740aed1b95ba9 AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /build
@@ -16,7 +22,7 @@ COPY apps/api/pyproject.toml ./
 COPY apps/api/aegis ./aegis
 RUN pip install --no-cache-dir --prefix=/install ".[postgres,redis,s3]"
 
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:da047cb8f9d1d98e5c070f5300ba9f7274e33b8fc0e5be5ed88740aed1b95ba9
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 # Runs unprivileged.

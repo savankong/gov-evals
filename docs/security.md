@@ -119,6 +119,41 @@ document. The rollout, the health check and the evidence-store check all passed
 in the same run. Until then the pipeline's shape was asserted and its execution
 was not; that is no longer the case.
 
+### What the signature lets you re-derive
+
+Both base images are pinned by digest rather than by tag, and
+`scripts/validate_packs.py` fails CI if a `FROM` goes back to a tag — confirmed
+against deliberate breakage, like every other guard here. The web image also
+builds with `npm ci` alone: the previous `npm ci || npm install` fallback read
+as a safety net and behaved as a hole, since a lockfile that did not match
+`package.json` silently became a fresh resolution of whatever was newest that
+day, inside an image this pipeline then signs. That fallback is now a CI
+failure too.
+
+This was not tidiness. Between two deploys, an **unchanged** `apps/web` build
+context produced a different image digest, because `node:22-alpine` is a moving
+pointer.
+
+**Pinning makes the inputs known. It does not make the build reproducible.**
+The distinction matters and is easy to blur:
+
+- *Known inputs* is what this buys. A reader of the signature can see exactly
+  which base the image was built on, and the dependency tree is locked.
+- *Bit reproducibility* — the same source yielding the same digest — is not
+  claimed and does not hold. Image layers embed timestamps, and `actions/checkout`
+  stamps every file with the checkout time, so a `COPY` layer differs between
+  runs of the same commit regardless of pinning.
+
+So the signature attests that this pipeline built this artifact from these
+recorded inputs. It does not let a third party rebuild the source and expect to
+arrive at the same digest.
+
+One further gap, stated rather than omitted: the API image installs from
+`pyproject.toml` ranges with no lockfile, so its Python dependency set is
+resolved at build time. The SBOMs have reported an identical 2,986 components
+across every run so far, which is consistent with stable resolution but does not
+guarantee it.
+
 One thing it still does not cover, which matters:
 
 - **The running container is not what was signed.** `.do/app.yaml` builds from

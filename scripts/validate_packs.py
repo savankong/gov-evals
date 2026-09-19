@@ -137,6 +137,8 @@ def main() -> int:
     validate_deployment_specs()
     validate_build_sources()
     validate_container_entrypoints()
+    validate_pinned_base_images()
+    validate_deterministic_installs()
     validate_supply_chain()
 
     print(
@@ -340,6 +342,82 @@ def validate_container_entrypoints() -> None:
                 f"{source} runs {script}, but apps/api/Dockerfile never copies it into the "
                 f"image. That container exits immediately with 'can't open file'."
             )
+
+
+def validate_pinned_base_images() -> None:
+    """Every FROM must name a digest, not a tag.
+
+    A tag is a moving pointer. Two builds of the same commit a week apart can
+    sit on different bases, and every layer above changes with it -- which is
+    what happened here: an unchanged apps/web context produced a different image
+    digest between two deploys.
+
+    That matters more than untidiness, because these images are signed. A
+    signature over an artifact whose inputs nobody recorded attests that this
+    pipeline built something at that time, not that this source yields this
+    artifact. Pinning does not make the build bit-reproducible -- layer
+    timestamps and checkout mtimes still vary -- but it makes the inputs known,
+    which is the part a reader of the signature is entitled to.
+    """
+    for relative in ("apps/api/Dockerfile", "apps/web/Dockerfile"):
+        path = ROOT / relative
+        if not path.exists():
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            stripped = line.strip()
+            if not stripped.upper().startswith("FROM "):
+                continue
+            image = stripped.split()[1]
+            # A stage reference (FROM build AS x) carries no registry path and
+            # is resolved inside the file, so it needs no digest.
+            if "/" not in image and ":" not in image and "@" not in image:
+                continue
+            if "@sha256:" not in image:
+                errors.append(
+                    f"{relative}:{number} builds FROM {image}, which is a tag rather than a "
+                    "digest. These images are signed; a signature over an artifact whose base "
+                    "nobody recorded says when it was built, not what from. Pin it as "
+                    "name:tag@sha256:<digest>."
+                )
+
+
+def validate_deterministic_installs() -> None:
+    """The web build must not be able to fall back to an unlocked install.
+
+    `npm ci || npm install` reads as a safety net and behaves as a hole: a
+    lockfile that does not match package.json silently becomes a fresh
+    resolution of whatever was newest that day -- a dependency change nobody
+    reviewed, inside a build that is then signed and attested. A stale lockfile
+    should stop the build.
+    """
+    path = ROOT / "apps" / "web" / "Dockerfile"
+    if not path.exists():
+        return
+    text = path.read_text()
+
+    for number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        if "npm ci" in stripped and "npm install" in stripped:
+            errors.append(
+                f"apps/web/Dockerfile:{number} falls back from `npm ci` to `npm install`. "
+                "That turns a lockfile mismatch into an unreviewed dependency resolution "
+                "inside an image this pipeline signs."
+            )
+        # `package-lock.json*` globs to nothing when the lockfile is absent,
+        # letting the build proceed without one.
+        if stripped.upper().startswith("COPY ") and "package-lock.json*" in stripped:
+            errors.append(
+                f"apps/web/Dockerfile:{number} copies `package-lock.json*`, which matches "
+                "nothing if the lockfile is missing rather than failing. Copy it by name."
+            )
+
+    if not (ROOT / "apps" / "web" / "package-lock.json").exists():
+        errors.append(
+            "apps/web/package-lock.json is missing, so `npm ci` cannot pin the web "
+            "dependency tree."
+        )
 
 
 def validate_supply_chain() -> None:
