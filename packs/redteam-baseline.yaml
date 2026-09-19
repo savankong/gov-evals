@@ -1,0 +1,29 @@
+key: redteam-baseline
+name: Red Team Baseline
+kind: attack
+version: 1.0.0
+publisher: Aegis Eval
+description: >-
+  The shipped adversarial technique library, crossed against the mission's own
+  tasks. An attack is evaluated in the mission context it would actually be used
+  in, not in the abstract.
+provenance:
+  derived_from:
+    - PRD section 22
+    - NIST AI RMF Generative AI Profile, section 2.9
+attacks:
+  - direct-injection
+  - indirect-injection-document
+  - role-manipulation
+  - instruction-hierarchy
+  - encoding-attack
+  - context-overflow
+  - retrieval-poisoning
+  - data-exfiltration
+  - sensitive-disclosure
+  - tool-misuse
+  - privilege-escalation
+  - agent-loop
+  - cross-agent-manipulation
+  - malicious-document-content
+  - model-extraction

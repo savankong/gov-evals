@@ -1,0 +1,151 @@
+key: framework-library
+name: Framework Reference Library
+kind: framework
+version: 1.0.0
+publisher: Aegis Eval
+description: >-
+  Reference points evaluations can be tagged against. Each entry names a
+  framework and a reference, and carries a topic label written by this project --
+  not the framework's own normative text. Read the authoritative source before
+  relying on any mapping.
+provenance:
+  note: >-
+    `compliance_claimable` is false on every entry as shipped. The platform
+    reports which evaluations speak to which reference and what evidence exists.
+    It does not assert that passing an evaluation satisfies a requirement. Only a
+    customer with authority over a given requirement should change that flag, and
+    doing so is an audited action.
+  caution: >-
+    Framework documents are revised. Treat this library as a starting point to be
+    updated against the current published guidance, as PRD section 80 directs.
+
+frameworks:
+  - framework: CDAO AI T&E Framework
+    framework_version: reference
+    url: https://www.ai.mil/
+    requirements:
+      - ref: CDAO-TEVV-PERF
+        title: "Model T&E: task performance"
+        text: Topic label. Does the model accomplish the intended task?
+      - ref: CDAO-TEVV-REL
+        title: "Model T&E: reliability and consistency"
+        text: Topic label. Does performance hold across repeated and varied execution?
+      - ref: CDAO-TEVV-ROB
+        title: "Model T&E: robustness"
+        text: Topic label. Does the model hold up when inputs or conditions change?
+      - ref: CDAO-TEVV-OOD
+        title: "Model T&E: out-of-distribution behaviour"
+        text: Topic label. How does the model behave on inputs outside its training environment?
+      - ref: CDAO-TEVV-ADV
+        title: "Model T&E: adversarial attack resistance"
+        text: Topic label. Can an adversary manipulate the model's behaviour?
+      - ref: CDAO-TEVV-POISON
+        title: "Model T&E: data poisoning"
+        text: Topic label. Does planted data change model behaviour?
+      - ref: CDAO-TEVV-DRIFT
+        title: "Model T&E: drift and degradation detection"
+        text: Topic label. Is degradation over time detected after deployment?
+      - ref: CDAO-TEVV-TRACE
+        title: "Model T&E: traceability of output"
+        text: Topic label. Can an output be traced to the evidence behind it?
+      - ref: CDAO-TEVV-HSI
+        title: "Human Systems Integration T&E"
+        text: Topic label. How do operators and the AI perform together?
+      - ref: CDAO-TEVV-SI-FUNC
+        title: "Systems Integration T&E: functionality"
+        text: Topic label. Does the integrated capability function correctly?
+      - ref: CDAO-TEVV-SI-REL
+        title: "Systems Integration T&E: reliability"
+        text: Topic label. Is the integrated capability reliable in operation?
+      - ref: CDAO-TEVV-SI-SEC
+        title: "Systems Integration T&E: security"
+        text: Topic label. Are the capability's security controls effective?
+      - ref: CDAO-TEVV-SI-PERF
+        title: "Systems Integration T&E: performance under load"
+        text: Topic label. Does the capability meet latency and throughput needs?
+      - ref: CDAO-TEVV-OT
+        title: "Operational T&E"
+        text: Topic label. Does the capability accomplish the mission in realistic conditions?
+
+  - framework: DoD Responsible AI Strategy and Implementation Pathway
+    framework_version: reference
+    url: https://www.ai.mil/
+    requirements:
+      - ref: DOD-RAI-TEVV-ECOSYSTEM
+        title: Robust TEVV ecosystem
+        text: Topic label. Lifecycle test, evaluation, verification and validation capacity.
+      - ref: DOD-RAI-CONTINUOUS
+        title: Continuous testing across the lifecycle
+        text: Topic label. Testing continues after fielding, not only before it.
+      - ref: DOD-RAI-DOC
+        title: Documentation and reporting standards
+        text: Topic label. Standardised documentation of AI evaluation and its results.
+      - ref: DOD-RAI-TEMPLATES
+        title: Reusable T&E templates and metric libraries
+        text: Topic label. Reusable test plans, metrics and scenarios.
+
+  - framework: DoD Ethical Principles for Artificial Intelligence
+    framework_version: reference
+    url: https://www.ai.mil/
+    requirements:
+      - ref: DOD-AI-ETHICS-RESPONSIBLE
+        title: Responsible
+        text: Topic label. Personnel exercise appropriate judgement and care.
+      - ref: DOD-AI-ETHICS-EQUITABLE
+        title: Equitable
+        text: Topic label. Deliberate steps to minimise unintended bias.
+      - ref: DOD-AI-ETHICS-TRACEABLE
+        title: Traceable
+        text: Topic label. Methodologies, data and design are transparent and auditable.
+      - ref: DOD-AI-ETHICS-RELIABLE
+        title: Reliable
+        text: Topic label. Explicit, well-defined uses with safety and effectiveness tested across the lifecycle.
+      - ref: DOD-AI-ETHICS-GOVERNABLE
+        title: Governable
+        text: Topic label. Ability to detect unintended behaviour and to disengage or deactivate.
+
+  - framework: NIST AI Risk Management Framework
+    framework_version: "1.0"
+    url: https://www.nist.gov/itl/ai-risk-management-framework
+    requirements:
+      - ref: NIST-AI-RMF-GOVERN-3.2
+        title: "GOVERN 3.2: human-AI configuration oversight"
+        text: Topic label. Policies for oversight of human-AI configurations.
+      - ref: NIST-AI-RMF-MEASURE-2.3
+        title: "MEASURE 2.3: performance demonstrated in deployment conditions"
+        text: Topic label. Performance measured in conditions similar to deployment.
+      - ref: NIST-AI-RMF-MEASURE-2.4
+        title: "MEASURE 2.4: deployment monitoring"
+        text: Topic label. Mechanisms to monitor the system in production.
+      - ref: NIST-AI-RMF-MEASURE-2.5
+        title: "MEASURE 2.5: validity and reliability"
+        text: Topic label. Validity and reliability demonstrated and documented.
+      - ref: NIST-AI-RMF-MEASURE-2.6
+        title: "MEASURE 2.6: safety"
+        text: Topic label. Safety risks evaluated and managed.
+      - ref: NIST-AI-RMF-MEASURE-2.7
+        title: "MEASURE 2.7: security and resilience"
+        text: Topic label. Security and resilience evaluated and documented.
+      - ref: NIST-AI-RMF-MEASURE-2.9
+        title: "MEASURE 2.9: explainability and interpretability"
+        text: Topic label. Model output explained and the explanation validated.
+      - ref: NIST-AI-RMF-MEASURE-2.11
+        title: "MEASURE 2.11: fairness and bias"
+        text: Topic label. Fairness and bias evaluated and results documented.
+
+  - framework: NIST AI 600-1 Generative AI Profile
+    framework_version: "1.0"
+    url: https://www.nist.gov/itl/ai-risk-management-framework
+    requirements:
+      - ref: NIST-GAI-2.2
+        title: Confabulation
+        text: Topic label. Confidently stated content that is erroneous or fabricated.
+      - ref: NIST-GAI-2.4
+        title: Data privacy
+        text: Topic label. Leakage or exposure of sensitive data through the system.
+      - ref: NIST-GAI-2.7
+        title: Human-AI configuration
+        text: Topic label. Misuse, over-reliance and the human's role in the loop.
+      - ref: NIST-GAI-2.9
+        title: Information security
+        text: Topic label. Prompt injection, poisoning, model extraction and related attacks.
