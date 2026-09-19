@@ -10,6 +10,7 @@ from . import (
     evaluations,
     experts,
     findings,
+    onboarding,
     redteam,
     reports,
     scenarios,
@@ -32,4 +33,5 @@ ROUTERS = [
     assurance.router,
     reports.router,
     dashboard.router,
+    onboarding.router,
 ]
