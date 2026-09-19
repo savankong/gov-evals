@@ -42,7 +42,11 @@ export function setToken(token: string | null): void {
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(init.headers);
-  if (!headers.has("Content-Type") && init.body) headers.set("Content-Type", "application/json");
+  // FormData sets its own Content-Type, including the multipart boundary. Naming
+  // it here would produce a body the server cannot parse.
+  if (!headers.has("Content-Type") && init.body && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const response = await fetch(`${API}${path}`, { ...init, headers, cache: "no-store" });
@@ -76,6 +80,17 @@ export const api = {
     request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+
+  /** Multipart upload. `query` carries the scalar fields the endpoint reads
+   *  from the query string rather than the form body. */
+  upload: <T>(path: string, file: File, query: Record<string, string> = {}) => {
+    const form = new FormData();
+    form.append("file", file);
+    const search = new URLSearchParams(
+      Object.entries(query).filter(([, value]) => value !== ""),
+    ).toString();
+    return request<T>(search ? `${path}?${search}` : path, { method: "POST", body: form });
+  },
 
   async login(email: string, password: string) {
     const body = await request<{ access_token: string }>("/auth/login", {

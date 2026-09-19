@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 
 import { useDeclaredClassification, useResource } from "@/components/shell";
 import {
@@ -200,6 +200,158 @@ function ExpertiseEditor({
   );
 }
 
+const ACCEPTED = ".jsonl,.ndjson,.json,.csv,.tsv,.txt";
+const MAX_BYTES = 64 * 1024 * 1024;
+
+/**
+ * Upload a new version.
+ *
+ * Every upload is a version: nothing is ever replaced in place, because a
+ * result names the version it ran against and that reference has to keep
+ * meaning what it meant. The quality report lands immediately after, which is
+ * the point of computing it at upload rather than at run time.
+ */
+function UploadVersion({
+  datasetId,
+  nextVersion,
+  onUploaded,
+}: {
+  datasetId: string;
+  nextVersion: string;
+  onUploaded: (version: DatasetVersion) => void;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+  const [label, setLabel] = useState("");
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const accept = (candidate: File | null | undefined) => {
+    setError(null);
+    if (!candidate) return;
+    if (candidate.size > MAX_BYTES) {
+      setError(
+        `${candidate.name} is ${(candidate.size / 1024 / 1024).toFixed(1)} MB. The limit is 64 MB.`,
+      );
+      return;
+    }
+    if (candidate.size === 0) {
+      setError(`${candidate.name} is empty.`);
+      return;
+    }
+    setFile(candidate);
+  };
+
+  const upload = async () => {
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const created = await api.upload<DatasetVersion>(
+        `/datasets/${datasetId}/versions`,
+        file,
+        { version: label.trim() },
+      );
+      setFile(null);
+      setLabel("");
+      if (inputRef.current) inputRef.current.value = "";
+      onUploaded(created);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not upload this file.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="border-t border-line px-4 py-3">
+      <div
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          accept(event.dataTransfer.files?.[0]);
+        }}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Choose a file to upload"
+        className={`flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed px-4 py-6 text-center transition-colors duration-150 ease-out ${
+          dragging ? "border-accent bg-sunken" : "border-line-strong hover:bg-sunken"
+        }`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED}
+          className="hidden"
+          onChange={(event) => accept(event.target.files?.[0])}
+        />
+        {file ? (
+          <>
+            <p className="text-sm text-ink">{file.name}</p>
+            <p className="text-xs text-muted">
+              {(file.size / 1024).toFixed(0)} KB — click to choose a different file
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-ink">Drop a file here, or click to choose one</p>
+            <p className="text-xs text-muted">
+              JSONL, JSON, CSV, TSV or plain text, up to 64 MB. Unlabelled text is read as one
+              case per line.
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        <input
+          value={label}
+          onChange={(event) => setLabel(event.target.value)}
+          placeholder={nextVersion}
+          aria-label="Version label"
+          className="h-7 w-32 border border-line bg-panel px-2.5 text-sm text-ink outline-none placeholder:text-faint focus:border-line-strong"
+        />
+        <Button variant="primary" onClick={upload} disabled={!file || uploading}>
+          {uploading ? "Uploading…" : "Upload version"}
+        </Button>
+        {file ? (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setFile(null);
+              if (inputRef.current) inputRef.current.value = "";
+            }}
+          >
+            Clear
+          </Button>
+        ) : null}
+        <span className="text-xs text-faint">
+          Named {label.trim() || nextVersion}. Nothing is replaced — the current version moves.
+        </span>
+      </div>
+
+      {error ? (
+        <div className="mt-2">
+          <ErrorNote message={error} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function DatasetDetailPage({
   params,
 }: {
@@ -274,10 +426,20 @@ export default function DatasetDetailPage({
           title="Versions"
           subtitle="Every upload is kept. A result always names the version it ran against."
         />
+        <UploadVersion
+          datasetId={dataset.id}
+          nextVersion={`v${versions.length + 1}`}
+          onUploaded={(created) => {
+            // Show the version that was just uploaded, so its quality report is
+            // what the reader sees next.
+            setVersionId(created.id);
+            detail.reload();
+          }}
+        />
         {versions.length === 0 ? (
           <Empty
             title="No data uploaded yet"
-            detail="Upload a JSONL, JSON, CSV or plain-text file against this dataset. The platform reports what it found in the file before anything runs against it."
+            detail="The platform reports what it found in the file — empty inputs, duplicates, and whether any row carries an expected answer — before anything runs against it."
           />
         ) : (
           <Table minWidth={620}>
