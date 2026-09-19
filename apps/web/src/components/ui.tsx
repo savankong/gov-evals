@@ -430,10 +430,47 @@ export function Spinner({ label = "Loading" }: { label?: string }) {
   );
 }
 
-export function ErrorNote({ message }: { message: string }) {
+/** Something the interface could not do.
+ *
+ *  Deliberately not red. In this product a saturated colour is a verdict about
+ *  the system under evaluation -- a failed case, a prohibited behaviour, an
+ *  unsupported citation -- and those verdicts are read off small squares in
+ *  dense tables. An interface that also paints its own transport failures red
+ *  spends that colour on something that is not a judgement about anything, and
+ *  the squares stop meaning one thing. Emphasis here comes from the rule and
+ *  the surface, which is what the rest of the system uses. */
+export function ErrorNote({
+  message,
+  status,
+  onRetry,
+}: {
+  message: string;
+  status?: number | null;
+  onRetry?: () => void;
+}) {
   return (
-    <div className="animate-rise border-l-2 border-fail bg-fail/[0.04] px-3 py-2 text-sm text-fail">
-      {message}
+    <div
+      role="alert"
+      className="animate-rise border-l-2 border-ink bg-sunken px-3 py-2.5 text-sm"
+    >
+      {/* The message keeps a sensible measure, so on a narrow screen the retry
+          drops to its own line instead of splitting the sentence around it and
+          wrapping the words one to a row. */}
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1.5">
+        {status ? (
+          <span className="tnum shrink-0 font-mono text-2xs text-faint">{status}</span>
+        ) : null}
+        <p className="min-w-[14rem] flex-1 text-ink-soft">{message}</p>
+        {onRetry ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="shrink-0 text-xs text-muted underline underline-offset-2 transition-colors duration-150 hover:text-ink"
+          >
+            Try again
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

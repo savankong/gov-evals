@@ -88,7 +88,8 @@ export default function PlanPage({ params }: { params: Promise<{ projectId: stri
   }
 
   if (plans.loading) return <Spinner label="Loading plans" />;
-  if (plans.error) return <ErrorNote message={plans.error} />;
+  if (plans.error)
+    return <ErrorNote message={plans.error} status={plans.status} onRetry={plans.reload} />;
 
   const coverage = detail.data?.coverage;
 
@@ -125,7 +126,7 @@ export default function PlanPage({ params }: { params: Promise<{ projectId: stri
       ) : detail.loading ? (
         <Spinner label="Loading plan" />
       ) : detail.error ? (
-        <ErrorNote message={detail.error} />
+        <ErrorNote message={detail.error} status={detail.status} onRetry={detail.reload} />
       ) : detail.data && coverage ? (
         <>
           <div className="grid gap-4 lg:grid-cols-2">

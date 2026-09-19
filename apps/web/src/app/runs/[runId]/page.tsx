@@ -66,7 +66,8 @@ export default function RunPage({ params }: { params: Promise<{ runId: string }>
       </Card>
     );
   }
-  if (run.error) return <ErrorNote message={run.error} />;
+  if (run.error)
+    return <ErrorNote message={run.error} status={run.status} onRetry={run.reload} />;
   if (!run.data) return null;
 
   const metrics = run.data.metrics as Record<string, unknown>;

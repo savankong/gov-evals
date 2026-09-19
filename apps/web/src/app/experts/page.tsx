@@ -365,6 +365,14 @@ export default function ExpertsPage() {
         />
         {everyone.loading ? (
           <Spinner label="Loading reviewers" />
+        ) : everyone.error ? (
+          <div className="p-3">
+            <ErrorNote
+              message={everyone.error}
+              status={everyone.status}
+              onRetry={everyone.reload}
+            />
+          </div>
         ) : (everyone.data ?? []).length === 0 ? (
           <Empty
             title="No expert profiles yet"

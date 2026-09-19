@@ -205,7 +205,8 @@ export default function AssurancePage({ params }: { params: Promise<{ projectId:
   }
 
   if (cases.loading) return <Spinner label="Loading assurance cases" />;
-  if (cases.error) return <ErrorNote message={cases.error} />;
+  if (cases.error)
+    return <ErrorNote message={cases.error} status={cases.status} onRetry={cases.reload} />;
 
   return (
     <div className="space-y-4">
@@ -240,7 +241,7 @@ export default function AssurancePage({ params }: { params: Promise<{ projectId:
       ) : detail.loading ? (
         <Spinner label="Loading case" />
       ) : detail.error ? (
-        <ErrorNote message={detail.error} />
+        <ErrorNote message={detail.error} status={detail.status} onRetry={detail.reload} />
       ) : detail.data ? (
         <Card>
           <CardHead

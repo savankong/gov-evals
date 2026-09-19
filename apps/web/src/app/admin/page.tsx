@@ -329,7 +329,13 @@ export default function AdminPage() {
       ) : (
         <>
           {error ? <ErrorNote message={error} /> : null}
-          {users.error ? <ErrorNote message={users.error} /> : null}
+          {users.error ? (
+            <ErrorNote
+              message={users.error}
+              status={users.status}
+              onRetry={users.reload}
+            />
+          ) : null}
 
           <Card>
             <CardHead

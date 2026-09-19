@@ -89,7 +89,8 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
   }
 
   if (scenarios.loading) return <Spinner label="Loading scenarios" />;
-  if (scenarios.error) return <ErrorNote message={scenarios.error} />;
+  if (scenarios.error)
+    return <ErrorNote message={scenarios.error} status={scenarios.status} onRetry={scenarios.reload} />;
 
   const all = scenarios.data ?? [];
   const drafts = all.filter((s) => !s.approved);

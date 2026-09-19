@@ -49,7 +49,8 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
   );
 
   if (campaigns.loading) return <Spinner label="Loading campaigns" />;
-  if (campaigns.error) return <ErrorNote message={campaigns.error} />;
+  if (campaigns.error)
+    return <ErrorNote message={campaigns.error} status={campaigns.status} onRetry={campaigns.reload} />;
   if (!campaigns.data?.length) {
     return (
       <Card>
@@ -79,7 +80,13 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
         }))}
       />
 
-      {comparison.error ? <ErrorNote message={comparison.error} /> : null}
+      {comparison.error ? (
+        <ErrorNote
+          message={comparison.error}
+          status={comparison.status}
+          onRetry={comparison.reload}
+        />
+      ) : null}
 
       {comparison.loading ? (
         <Card>

@@ -349,7 +349,13 @@ export default function SystemsPage({ params }: { params: Promise<{ projectId: s
         }
       />
 
-      {systems.error ? <ErrorNote message={systems.error} /> : null}
+      {systems.error ? (
+        <ErrorNote
+          message={systems.error}
+          status={systems.status}
+          onRetry={systems.reload}
+        />
+      ) : null}
 
       {systems.loading ? (
         <Spinner label="Loading systems" />

@@ -386,7 +386,8 @@ export default function DatasetDetailPage({
   }, [items.data]);
 
   if (detail.loading) return <Spinner label="Loading dataset" />;
-  if (detail.error) return <ErrorNote message={detail.error} />;
+  if (detail.error)
+    return <ErrorNote message={detail.error} status={detail.status} onRetry={detail.reload} />;
   if (!detail.data) return null;
 
   const { dataset, project, versions } = detail.data;

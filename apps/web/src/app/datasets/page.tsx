@@ -321,13 +321,19 @@ export default function DatasetsPage() {
         }
       />
 
-      {datasets.error ? <ErrorNote message={datasets.error} /> : null}
+      {datasets.error ? (
+        <ErrorNote
+          message={datasets.error}
+          status={datasets.status}
+          onRetry={datasets.reload}
+        />
+      ) : null}
 
       {datasets.loading ? (
         <Card>
           <TableSkeleton rows={5} cols={6} />
         </Card>
-      ) : (datasets.data ?? []).length === 0 ? (
+      ) : datasets.error ? null : (datasets.data ?? []).length === 0 ? (
         <Card>
           <Empty
             title="No datasets yet"

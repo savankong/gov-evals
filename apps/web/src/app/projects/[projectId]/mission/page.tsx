@@ -106,7 +106,13 @@ export default function MissionProfilePage({
         subtitle="What the system is for. Every result is judged against this — it is what separates “how good is this model” from “good enough for this mission”."
       />
 
-      {existing.error ? <ErrorNote message={existing.error} /> : null}
+      {existing.error ? (
+        <ErrorNote
+          message={existing.error}
+          status={existing.status}
+          onRetry={existing.reload}
+        />
+      ) : null}
 
       <Card>
         <CardHead title="The mission" />

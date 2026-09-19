@@ -9,6 +9,28 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 const API = `${BASE}/api/v1`;
 const TOKEN_KEY = "aegis.token";
 
+/** What to say when the server refuses and says nothing useful about why.
+ *
+ *  A bare "500 Internal Server Error" is the status line, not an explanation:
+ *  it puts a protocol detail in front of someone who wants to know whether
+ *  their work is safe and what to do next. The server's own `detail` always
+ *  wins over this -- these are only for the responses that carry none, which
+ *  is exactly the 500 case.
+ *
+ *  None of these claim anything about what the request did or did not change.
+ *  A 500 on a write can leave a partial commit behind, and an interface that
+ *  says otherwise is guessing. */
+function describeStatus(status: number, statusText: string): string {
+  if (status === 502 || status === 503 || status === 504)
+    return "The server is not reachable right now.";
+  if (status >= 500) return "The server could not complete this request.";
+  if (status === 404) return "That is not here.";
+  if (status === 403) return "You do not have permission to do this.";
+  if (status === 409) return "That conflicts with something already saved.";
+  if (status === 413) return "That is larger than this endpoint accepts.";
+  return statusText || "The request was refused.";
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -57,7 +79,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (!response.ok) {
     let detail: unknown;
-    let message = `${response.status} ${response.statusText}`;
+    let message = describeStatus(response.status, response.statusText);
     try {
       detail = await response.json();
       const d = (detail as { detail?: unknown }).detail;

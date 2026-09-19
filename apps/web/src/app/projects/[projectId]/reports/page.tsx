@@ -79,7 +79,8 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
   }
 
   if (reports.loading) return <Spinner label="Loading reports" />;
-  if (reports.error) return <ErrorNote message={reports.error} />;
+  if (reports.error)
+    return <ErrorNote message={reports.error} status={reports.status} onRetry={reports.reload} />;
 
   const rows = reports.data ?? [];
 

@@ -58,7 +58,8 @@ export default function FindingsPage({ params }: { params: Promise<{ projectId: 
     [projectId],
   );
 
-  if (findings.error) return <ErrorNote message={findings.error} />;
+  if (findings.error)
+    return <ErrorNote message={findings.error} status={findings.status} onRetry={findings.reload} />;
 
   const all = findings.data ?? [];
   const rows = all.filter(

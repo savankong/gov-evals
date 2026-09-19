@@ -386,7 +386,13 @@ export default function ReviewQueuePage() {
         subtitle="Results held open until a qualified person judges them. Nothing here has passed or failed yet."
       />
 
-      {summary.error ? <ErrorNote message={summary.error} /> : null}
+      {summary.error ? (
+        <ErrorNote
+          message={summary.error}
+          status={summary.status}
+          onRetry={summary.reload}
+        />
+      ) : null}
 
       {s && !s.has_profile ? (
         <Card>
@@ -440,12 +446,18 @@ export default function ReviewQueuePage() {
         onChange={setScope}
       />
 
-      {queue.error ? <ErrorNote message={queue.error} /> : null}
+      {queue.error ? (
+        <ErrorNote
+          message={queue.error}
+          status={queue.status}
+          onRetry={queue.reload}
+        />
+      ) : null}
 
       <Card>
         {queue.loading ? (
           <Spinner label="Loading queue" />
-        ) : (queue.data ?? []).length === 0 ? (
+        ) : queue.error ? null : (queue.data ?? []).length === 0 ? (
           <Empty
             title={scope === "mine" ? "Nothing waiting on you" : "Nothing in this queue"}
             detail={

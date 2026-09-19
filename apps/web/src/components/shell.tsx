@@ -564,14 +564,27 @@ function NavLink({ item, expanded }: { item: NavItem; expanded: boolean }) {
   );
 }
 
-function Sidebar({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
+function Sidebar({
+  expanded,
+  onToggle,
+  overlay = false,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+  overlay?: boolean;
+}) {
   return (
     <motion.nav
       aria-label="Primary"
       initial={false}
-      animate={{ width: expanded ? 224 : 44 }}
+      // As a drawer the nav is always at its full width -- the collapsed
+      // 44px rail is a desktop affordance, and on a phone it would be a
+      // column of unlabelled icons over the content.
+      animate={overlay ? { width: 224 } : { width: expanded ? 224 : 44 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="flex shrink-0 flex-col overflow-hidden border-r border-line bg-panel py-3"
+      className={`flex shrink-0 flex-col overflow-hidden border-r border-line bg-panel py-3 ${
+        overlay ? "h-full" : ""
+      }`}
     >
       <div
         className={`mb-4 flex h-8 items-center ${
@@ -727,6 +740,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { dark, toggle } = useTheme();
   const [navExpanded, toggleNav] = useNavExpanded();
+  const [navOpen, setNavOpen] = useState(false);
   const [classification, setClassification] = useState("UNCLASSIFIED");
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -741,6 +755,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setClassification("UNCLASSIFIED");
+    // A drawer left open over the page someone just navigated to is a
+    // second tap they did not ask for.
+    setNavOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -783,11 +800,54 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex h-screen flex-col overflow-hidden">
         <ClassificationBanner classification={classification} />
 
-        <div className="flex min-h-0 flex-1">
-          <Sidebar expanded={navExpanded} onToggle={toggleNav} />
+        {/* `relative` so the drawer below can be positioned against this row
+            rather than the viewport, which keeps it under the classification
+            banner. A marking that a navigation drawer can cover is not a
+            marking. */}
+        <div className="relative flex min-h-0 flex-1">
+          {/* Below md the nav is a drawer. Rendered inline it took 224px of a
+              390px viewport, which left the topbar and the table clipped off
+              the right edge with no way to scroll to them. */}
+          <div className="hidden md:flex">
+            <Sidebar expanded={navExpanded} onToggle={toggleNav} />
+          </div>
+
+          <AnimatePresence>
+            {navOpen ? (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setNavOpen(false)}
+                  className="absolute inset-0 z-40 bg-ink/20 md:hidden"
+                  aria-hidden
+                />
+                <motion.div
+                  initial={{ x: -224 }}
+                  animate={{ x: 0 }}
+                  exit={{ x: -224 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute inset-y-0 left-0 z-50 md:hidden"
+                  onClick={() => setNavOpen(false)}
+                >
+                  <Sidebar expanded overlay onToggle={() => setNavOpen(false)} />
+                </motion.div>
+              </>
+            ) : null}
+          </AnimatePresence>
 
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="flex h-topbar shrink-0 items-center gap-3 border-b border-line bg-panel px-3">
+              <button
+                type="button"
+                onClick={() => setNavOpen(true)}
+                aria-label="Open navigation"
+                className="-ml-1 shrink-0 p-1 text-muted transition-colors duration-150 hover:text-ink md:hidden"
+              >
+                <IconExpand />
+              </button>
               <button
                 onClick={() => setPaletteOpen(true)}
                 className="group flex flex-1 items-center gap-2 text-left text-sm text-faint transition-colors duration-150 hover:text-muted"
@@ -845,9 +905,19 @@ export function AppShell({ children }: { children: ReactNode }) {
 export function useResource<T>(
   fetcher: () => Promise<T>,
   deps: unknown[] = [],
-): { data: T | null; error: string | null; loading: boolean; reload: () => void } {
+): {
+  data: T | null;
+  error: string | null;
+  // The status is kept beside the message so a view can show what the server
+  // actually said. A reader who reports "it says 500" is telling an operator
+  // something a sentence alone does not.
+  status: number | null;
+  loading: boolean;
+  reload: () => void;
+} {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [nonce, setNonce] = useState(0);
 
@@ -855,6 +925,7 @@ export function useResource<T>(
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setStatus(null);
     fetcher()
       .then((value) => {
         if (!cancelled) setData(value);
@@ -862,6 +933,7 @@ export function useResource<T>(
       .catch((err: unknown) => {
         if (cancelled) return;
         setError(err instanceof ApiError ? err.message : "Could not load this view.");
+        setStatus(err instanceof ApiError ? err.status : null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -872,5 +944,5 @@ export function useResource<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce]);
 
-  return { data, error, loading, reload: () => setNonce((n) => n + 1) };
+  return { data, error, status, loading, reload: () => setNonce((n) => n + 1) };
 }
