@@ -184,30 +184,70 @@ def compare_runs(db: Session, baseline_run: Run, candidate_run: Run) -> dict:
     }
 
 
+def _baseline_for(
+    run: Run, by_pair: dict[tuple[str, str], Run], by_evaluation: dict[str, list[Run]]
+) -> tuple[Run | None, str | None]:
+    """Find the baseline run a candidate run should be compared against.
+
+    A campaign often evaluates several system versions, so matching on the
+    evaluation alone would compare one system's run against another's and
+    report the difference between two systems as a regression. The same system
+    version is preferred; falling back to the evaluation is only safe when the
+    baseline ran it exactly once.
+    """
+    exact = by_pair.get((run.evaluation_id, run.system_version_id))
+    if exact is not None:
+        return exact, None
+
+    candidates = by_evaluation.get(run.evaluation_id, [])
+    if len(candidates) == 1:
+        # The baseline evaluated a single system version; comparing across the
+        # version boundary is the intended behaviour when a new version is
+        # being measured against the old one.
+        return candidates[0], "matched_by_evaluation_across_system_versions"
+    if not candidates:
+        return None, "This evaluation has no counterpart in the baseline campaign."
+    return None, (
+        "The baseline campaign ran this evaluation against several system versions and none "
+        "matches this run's system, so no unambiguous comparison exists."
+    )
+
+
 def compare_campaigns(db: Session, baseline: Campaign, candidate: Campaign) -> dict:
-    """Regression view across two campaigns, matched by evaluation."""
-    baseline_runs = {
-        r.evaluation_id: r
-        for r in db.execute(select(Run).where(Run.campaign_id == baseline.id)).scalars()
-    }
+    """Regression view across two campaigns.
+
+    Runs are matched on (evaluation, system version) so a campaign covering
+    several systems does not produce spurious regressions.
+    """
+    baseline_runs = list(db.execute(select(Run).where(Run.campaign_id == baseline.id)).scalars())
+    by_pair = {(r.evaluation_id, r.system_version_id): r for r in baseline_runs}
+    by_evaluation: dict[str, list[Run]] = {}
+    for run in baseline_runs:
+        by_evaluation.setdefault(run.evaluation_id, []).append(run)
+
     candidate_runs = list(
         db.execute(select(Run).where(Run.campaign_id == candidate.id)).scalars()
     )
 
     comparisons, totals = [], {"new_failures": 0, "resolved": 0, "degraded": 0, "improved": 0}
     for run in candidate_runs:
-        baseline_run = baseline_runs.get(run.evaluation_id)
+        baseline_run, note = _baseline_for(run, by_pair, by_evaluation)
         if baseline_run is None:
+            evaluation = db.get(Evaluation, run.evaluation_id)
             comparisons.append(
                 {
                     "evaluation_id": run.evaluation_id,
+                    "evaluation_key": evaluation.key if evaluation else None,
+                    "candidate_run_id": run.id,
                     "status": "no_baseline",
-                    "note": "This evaluation has no counterpart in the baseline campaign.",
+                    "note": note,
                 }
             )
             continue
         evaluation = db.get(Evaluation, run.evaluation_id)
         diff = compare_runs(db, baseline_run, run)
+        if note:
+            diff["match_note"] = note
         totals["new_failures"] += len(diff["new_failures"])
         totals["resolved"] += len(diff["resolved_failures"])
         totals["degraded"] += len(diff["degraded"])
@@ -220,6 +260,7 @@ def compare_campaigns(db: Session, baseline: Campaign, candidate: Campaign) -> d
                 "domain": evaluation.domain if evaluation else None,
                 "baseline_verdict": baseline_run.verdict,
                 "candidate_verdict": run.verdict,
+                "system_version_id": run.system_version_id,
                 **diff,
             }
         )

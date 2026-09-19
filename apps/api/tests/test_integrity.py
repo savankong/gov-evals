@@ -225,3 +225,51 @@ class TestConfigurationGuards:
         from aegis.config import _validate
 
         _validate(self._settings(env="development"))
+
+
+class TestReportLegibility:
+    """A report a program executive reads must be unambiguous."""
+
+    def test_results_table_names_the_system_when_several_were_evaluated(self, db, project):
+        from aegis.models import Campaign, Evaluation, Run, System, SystemVersion
+        from aegis.reports import executive_report
+
+        system = System(project_id=project.id, name="Copilot", slug="copilot")
+        db.add(system)
+        db.flush()
+        versions = []
+        for label in ("v1", "v2"):
+            version = SystemVersion(
+                system_id=system.id, version=label, connector_type="echo", config_hash=f"h-{label}"
+            )
+            db.add(version)
+            versions.append(version)
+        evaluation = Evaluation(key="shared", name="Shared evaluation")
+        campaign = Campaign(project_id=project.id, name="Dual")
+        db.add_all([evaluation, campaign])
+        db.flush()
+
+        for version, failed in zip(versions, (0, 4)):
+            db.add(
+                Run(
+                    campaign_id=campaign.id,
+                    evaluation_id=evaluation.id,
+                    system_version_id=version.id,
+                    verdict="fail" if failed else "pass",
+                    scenario_count=4,
+                    passed=4 - failed,
+                    failed=failed,
+                )
+            )
+        db.flush()
+
+        body = executive_report(db, project, campaign)
+        assert "| System |" in body
+        assert "Copilot v1" in body and "Copilot v2" in body
+
+    def test_report_states_it_is_not_an_authorisation(self, db, project):
+        from aegis.reports import executive_report
+
+        body = executive_report(db, project, None)
+        assert "not an authorisation to operate" in body
+        assert "NOT EVALUATED" in body

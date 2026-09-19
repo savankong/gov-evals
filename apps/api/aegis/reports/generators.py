@@ -167,11 +167,29 @@ def executive_report(db: Session, project: Project, campaign: Campaign | None = 
             f"{totals['passed']} passed, {totals['warning']} warning, {totals['failed']} failed, "
             f"{totals['errors']} errored, {totals['pending']} awaiting human review."
         )
-        lines += ["", "| Evaluation | Verdict | Passed | Failed | Executions |", "| --- | --- | --- | --- | --- |"]
-        for run in sorted(runs, key=lambda r: r.verdict):
+        # A campaign often covers several system versions, so each row names
+        # the system it describes. Without it the table reads as duplicated
+        # rows with contradictory numbers.
+        multiple_systems = len({r.system_version_id for r in runs}) > 1
+        header = "| Evaluation |" + (" System |" if multiple_systems else "")
+        header += " Verdict | Passed | Failed | Executions |"
+        divider = "| --- |" + (" --- |" if multiple_systems else "") + " --- | --- | --- | --- |"
+        lines += ["", header, divider]
+
+        for run in sorted(runs, key=lambda r: (r.verdict, r.system_version_id)):
             evaluation = db.get(Evaluation, run.evaluation_id)
+            version = db.get(SystemVersion, run.system_version_id)
+            system_cell = ""
+            if multiple_systems:
+                label = (
+                    f"{version.system.name} {version.version}"
+                    if version and version.system
+                    else "unknown"
+                )
+                system_cell = f" {label} |"
             lines.append(
-                f"| {evaluation.name if evaluation else run.evaluation_id} | "
+                f"| {evaluation.name if evaluation else run.evaluation_id} |"
+                f"{system_cell} "
                 f"{STATUS_LABEL.get(run.verdict, run.verdict)} | {run.passed} | {run.failed} | "
                 f"{run.scenario_count} |"
             )

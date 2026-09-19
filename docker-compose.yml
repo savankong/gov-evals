@@ -1,0 +1,115 @@
+# Aegis Eval — single-node deployment.
+#
+#   docker compose up --build
+#   UI  http://localhost:3000
+#   API http://localhost:8000/docs
+#
+# This file runs the platform with no external dependency: SQLite, on-disk
+# evidence and the in-process queue. Nothing leaves the host.
+#
+# For a scaled deployment use the `scale` profile, which adds Postgres, Redis
+# and dedicated evaluation workers:
+#
+#   docker compose --profile scale up --build
+
+name: aegis-eval
+
+services:
+  api:
+    build:
+      context: ./apps/api
+    ports:
+      - "8000:8000"
+    environment:
+      AEGIS_ENV: ${AEGIS_ENV:-development}
+      AEGIS_SECRET_KEY: ${AEGIS_SECRET_KEY:-change-me-in-every-deployment}
+      AEGIS_DATABASE_URL: ${AEGIS_DATABASE_URL:-sqlite:////data/aegis.db}
+      AEGIS_EVIDENCE_PATH: /data/evidence
+      AEGIS_QUEUE_BACKEND: ${AEGIS_QUEUE_BACKEND:-inline}
+      AEGIS_SEED_DEMO: ${AEGIS_SEED_DEMO:-true}
+      AEGIS_BOOTSTRAP_EMAIL: ${AEGIS_BOOTSTRAP_EMAIL:-admin@aegis.local}
+      AEGIS_BOOTSTRAP_PASSWORD: ${AEGIS_BOOTSTRAP_PASSWORD:-aegis-dev-password}
+      AEGIS_CORS_ORIGINS: ${AEGIS_CORS_ORIGINS:-http://localhost:3000}
+      # Set to "deny" with an allowlist for a disconnected deployment.
+      AEGIS_EGRESS_POLICY: ${AEGIS_EGRESS_POLICY:-allow}
+      AEGIS_EGRESS_ALLOWLIST: ${AEGIS_EGRESS_ALLOWLIST:-}
+      AEGIS_PACK_DIR: /packs
+    volumes:
+      - aegis-data:/data
+      - ./packs:/packs:ro
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        # Next.js inlines this at build time, so it is a build argument.
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------
+  # Scaled deployment. Enable with --profile scale.
+  # ---------------------------------------------------------------------
+
+  postgres:
+    profiles: ["scale"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis}
+      POSTGRES_DB: aegis
+    volumes:
+      - aegis-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    profiles: ["scale"]
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    volumes:
+      - aegis-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    profiles: ["scale"]
+    build:
+      context: ./apps/api
+    command: ["python", "worker.py"]
+    environment:
+      AEGIS_SECRET_KEY: ${AEGIS_SECRET_KEY:-change-me-in-every-deployment}
+      AEGIS_DATABASE_URL: postgresql+psycopg://aegis:${POSTGRES_PASSWORD:-aegis}@postgres:5432/aegis
+      AEGIS_EVIDENCE_PATH: /data/evidence
+      AEGIS_QUEUE_BACKEND: redis
+      AEGIS_REDIS_URL: redis://redis:6379/0
+      AEGIS_SEED_DEMO: "false"
+      AEGIS_PACK_DIR: /packs
+    volumes:
+      - aegis-data:/data
+      - ./packs:/packs:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+    restart: unless-stopped
+
+volumes:
+  aegis-data:
+  aegis-postgres:
+  aegis-redis:

@@ -225,3 +225,120 @@ class TestDeterminism:
         first = build_adapter(config).invoke(TargetRequest(prompt="same prompt"))
         second = build_adapter(config).invoke(TargetRequest(prompt="same prompt"))
         assert first.text == second.text
+
+
+class TestRegressionMatching:
+    """A campaign covering several systems must not produce phantom regressions."""
+
+    def _campaign_with_runs(self, db, project, name, versions, evaluation, statuses):
+        from aegis.models import Campaign, Result, Run
+
+        campaign = Campaign(project_id=project.id, name=name)
+        db.add(campaign)
+        db.flush()
+        runs = []
+        for version, status in zip(versions, statuses):
+            run = Run(
+                campaign_id=campaign.id,
+                evaluation_id=evaluation.id,
+                system_version_id=version.id,
+                verdict=status,
+            )
+            db.add(run)
+            db.flush()
+            scenario = make_scenario(db, project, f"{name}-{version.id[:6]}", ["t"])
+            db.add(
+                Result(
+                    run_id=run.id,
+                    scenario_id=scenario.id,
+                    status=status,
+                    response={"text": f"output from {version.version}"},
+                )
+            )
+            runs.append(run)
+        db.flush()
+        return campaign, runs
+
+    def test_runs_match_on_system_version_not_evaluation_alone(self, db, project):
+        """Comparing a campaign against itself must find zero differences.
+
+        Before this was fixed, a campaign covering two system versions compared
+        one system's run against the other's and reported the difference
+        between two systems as a regression.
+        """
+        from aegis.runner.comparison import compare_campaigns
+
+        good = make_system(db, project, "cooperative")
+        bad = SystemVersion(
+            system_id=good.system_id, version="v2", connector_type="echo",
+            parameters={"profile": "fabricating"}, config_hash="hash-v2",
+        )
+        db.add(bad)
+        db.flush()
+
+        evaluation = make_evaluation(db, "eval-regress", [], {"tags": ["t"]})
+        campaign, _ = self._campaign_with_runs(
+            db, project, "dual", [good, bad], evaluation,
+            [ResultStatus.PASS, ResultStatus.FAIL],
+        )
+
+        diff = compare_campaigns(db, campaign, campaign)
+        assert diff["regression_detected"] is False
+        assert diff["totals"] == {"new_failures": 0, "resolved": 0, "degraded": 0, "improved": 0}
+
+    def test_missing_baseline_for_a_system_is_reported_not_guessed(self, db, project):
+        from aegis.runner.comparison import compare_campaigns
+
+        first = make_system(db, project, "cooperative")
+        second = SystemVersion(
+            system_id=first.system_id, version="v2", connector_type="echo",
+            parameters={"profile": "cooperative"}, config_hash="hash-v2",
+        )
+        third = SystemVersion(
+            system_id=first.system_id, version="v3", connector_type="echo",
+            parameters={"profile": "cooperative"}, config_hash="hash-v3",
+        )
+        db.add_all([second, third])
+        db.flush()
+
+        evaluation = make_evaluation(db, "eval-missing", [], {"tags": ["t"]})
+        baseline, _ = self._campaign_with_runs(
+            db, project, "base", [first, second], evaluation,
+            [ResultStatus.PASS, ResultStatus.PASS],
+        )
+        candidate, _ = self._campaign_with_runs(
+            db, project, "cand", [third], evaluation, [ResultStatus.FAIL]
+        )
+
+        diff = compare_campaigns(db, baseline, candidate)
+        # The baseline ran this evaluation against two versions and neither is
+        # the candidate's, so no unambiguous comparison exists.
+        assert diff["comparisons"][0]["status"] == "no_baseline"
+        assert "unambiguous" in diff["comparisons"][0]["note"]
+
+    def test_single_baseline_version_compares_across_the_version_boundary(self, db, project):
+        """The ordinary case: v2 measured against v1."""
+        from aegis.runner.comparison import compare_campaigns
+
+        v1 = make_system(db, project, "cooperative")
+        v2 = SystemVersion(
+            system_id=v1.system_id, version="v2", connector_type="echo",
+            parameters={"profile": "cooperative"}, config_hash="hash-v2",
+        )
+        db.add(v2)
+        db.flush()
+
+        evaluation = make_evaluation(db, "eval-upgrade", [], {"tags": ["t"]})
+        baseline, _ = self._campaign_with_runs(
+            db, project, "v1run", [v1], evaluation, [ResultStatus.PASS]
+        )
+        candidate, _ = self._campaign_with_runs(
+            db, project, "v2run", [v2], evaluation, [ResultStatus.PASS]
+        )
+
+        diff = compare_campaigns(db, baseline, candidate)
+        assert diff["comparisons"][0].get("status") != "no_baseline"
+        assert (
+            diff["comparisons"][0]["match_note"]
+            == "matched_by_evaluation_across_system_versions"
+        )
