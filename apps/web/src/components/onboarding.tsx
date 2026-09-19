@@ -16,6 +16,7 @@ export interface OnboardingStep {
   evidence: string;
   href: string | null;
   command: string | null;
+  blocked: string | null;
 }
 
 export interface Onboarding {
@@ -235,6 +236,11 @@ function StepRow({ step, index }: { step: OnboardingStep; index: number }) {
               <Link href={step.href}>
                 <Button>Go</Button>
               </Link>
+            ) : step.blocked ? (
+              // The screen exists; it is just not reachable yet. Saying "there
+              // is no screen for this" here would send someone hunting for a
+              // gap that is not there.
+              <p className="text-xs text-faint">{step.blocked}</p>
             ) : step.command ? (
               <>
                 <Button variant="ghost" onClick={() => setShowCommand((v) => !v)}>

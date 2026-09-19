@@ -87,7 +87,23 @@ class TestEmptyAccount:
         nowhere.
         """
         for step in _get(client, auth)["steps"]:
-            assert step["href"] or step["command"], f"{step['key']} offers no way to do it"
+            assert step["href"] or step["command"] or step["blocked"], (
+                f"{step['key']} offers no way to do it and no reason why not"
+            )
+
+    def test_a_screen_that_exists_is_not_described_as_missing(self, client, auth):
+        """`command` means there is no screen. `blocked` means there is one.
+
+        Conflating them told a new user "there is no screen for this yet" about
+        the plan and campaign pages, which do exist -- they are just unreachable
+        until a project does. That sends someone looking for a gap that is not
+        there.
+        """
+        for step in _get(client, auth)["steps"]:
+            if step["blocked"]:
+                assert not step["command"], (
+                    f"{step['key']} is blocked on a prerequisite but also claims no screen exists"
+                )
 
     def test_each_step_reports_what_was_counted(self, client, auth):
         """"3 projects" is checkable; "completed" is not."""
@@ -149,6 +165,40 @@ class TestDerivedFromRealState:
         assert (
             next(s for s in _get(client, auth)["steps"] if s["key"] == "experts")["done"] is True
         )
+
+
+class TestShippedContentDoesNotCount:
+    """Found by running it, not by reading it.
+
+    The evaluation packs install roughly nineteen approved library scenarios at
+    startup. Counting every approved scenario marked "load the cases to test
+    against" as done on an account where nobody had loaded anything -- a step
+    reading as complete because of content that came in the box, which is the
+    one thing this checklist must never do.
+    """
+
+    def test_library_scenarios_do_not_complete_the_cases_step(self, client, auth):
+        from aegis.db import SessionLocal
+        from aegis.models import Scenario
+
+        session = SessionLocal()
+        session.add(
+            Scenario(
+                key="library-case",
+                title="A scenario that shipped in a pack",
+                project_id=None,  # library scenarios carry no project
+                approved=True,
+            )
+        )
+        session.commit()
+        session.close()
+
+        cases = next(s for s in _get(client, auth)["steps"] if s["key"] == "cases")
+        assert cases["done"] is True, "this account already has a dataset from an earlier test"
+        # The evidence must name the library scenarios as uncounted rather than
+        # folding them into the total.
+        assert "not counted" in cases["evidence"]
+        assert "library scenario" in cases["evidence"]
 
 
 class TestCannotBeFaked:
