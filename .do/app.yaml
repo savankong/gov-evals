@@ -47,13 +47,12 @@ services:
     github:
       repo: savankong/gov-evals
       # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
-      # and packs/. `main` holds only a README until PR #1 merges, and applying
-      # a spec that names it builds a container with no application in it --
-      # which exits immediately and logs nothing, reported only as
-      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
-      # scripts/validate_packs.py fails CI if it ever names a branch without
-      # the build inputs.
-      branch: claude/aegis-eval-platform-yoxzrk
+      # and packs/. A spec naming a branch without them builds a container with
+      # no application in it, which exits immediately and logs nothing --
+      # surfacing only as DeployContainerExitNonZero, which points at the
+      # container rather than at the source it was built from.
+      # scripts/validate_packs.py fails CI if this ever names such a branch.
+      branch: main
       deploy_on_push: true
 
     health_check:
@@ -145,13 +144,12 @@ services:
     github:
       repo: savankong/gov-evals
       # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
-      # and packs/. `main` holds only a README until PR #1 merges, and applying
-      # a spec that names it builds a container with no application in it --
-      # which exits immediately and logs nothing, reported only as
-      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
-      # scripts/validate_packs.py fails CI if it ever names a branch without
-      # the build inputs.
-      branch: claude/aegis-eval-platform-yoxzrk
+      # and packs/. A spec naming a branch without them builds a container with
+      # no application in it, which exits immediately and logs nothing --
+      # surfacing only as DeployContainerExitNonZero, which points at the
+      # container rather than at the source it was built from.
+      # scripts/validate_packs.py fails CI if this ever names such a branch.
+      branch: main
       deploy_on_push: true
 
     health_check:
@@ -181,13 +179,12 @@ workers:
     github:
       repo: savankong/gov-evals
       # Must be a branch that contains apps/api/Dockerfile, apps/web/Dockerfile
-      # and packs/. `main` holds only a README until PR #1 merges, and applying
-      # a spec that names it builds a container with no application in it --
-      # which exits immediately and logs nothing, reported only as
-      # DeployContainerExitNonZero. Move this to `main` once PR #1 is merged;
-      # scripts/validate_packs.py fails CI if it ever names a branch without
-      # the build inputs.
-      branch: claude/aegis-eval-platform-yoxzrk
+      # and packs/. A spec naming a branch without them builds a container with
+      # no application in it, which exits immediately and logs nothing --
+      # surfacing only as DeployContainerExitNonZero, which points at the
+      # container rather than at the source it was built from.
+      # scripts/validate_packs.py fails CI if this ever names such a branch.
+      branch: main
       deploy_on_push: true
 
     envs:
