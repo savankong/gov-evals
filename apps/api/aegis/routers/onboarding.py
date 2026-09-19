@@ -6,10 +6,11 @@ to assert completion -- which is the same rule the rest of the product runs on.
 A step reports what was found, so the walkthrough can be checked rather than
 believed.
 
-Steps also say honestly where they can be done. Datasets, plans, campaigns and
-expert profiles have interfaces; projects, mission profiles and system versions
-are API-only today, so those steps carry the request instead of a button that
-would go nowhere.
+Steps also say honestly where they can be done. Every step now has a screen, so
+`command` -- which meant "there is no interface for this" -- is currently unused
+and kept for the next capability that lands API-first. `blocked` says the screen
+exists but is not reachable yet, which is a different sentence and must not be
+confused with the other one.
 """
 
 from __future__ import annotations
@@ -120,7 +121,7 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "Everything else hangs off that pairing.",
             projects > 0,
             f"{projects} project(s)",
-            command="POST /api/v1/projects  {\"program_id\": \"…\", \"name\": \"…\"}",
+            href="/projects/new",
         ),
         step(
             "mission",
@@ -130,7 +131,8 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "separates \"how good is this model\" from \"good enough for this mission\".",
             missions > 0,
             f"{missions} mission profile(s)",
-            command=f"POST /api/v1/projects/{pid or '{project_id}'}/mission-profile",
+            href=f"/projects/{pid}/mission" if pid else None,
+            blocked=None if pid else "This screen opens once a project exists — step 1.",
         ),
         step(
             "system",
@@ -140,7 +142,8 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "that produced it.",
             versions > 0,
             f"{versions} system version(s)",
-            command=f"POST /api/v1/projects/{pid or '{project_id}'}/systems",
+            href=f"/projects/{pid}/systems" if pid else None,
+            blocked=None if pid else "This screen opens once a project exists — step 1.",
         ),
         step(
             "cases",

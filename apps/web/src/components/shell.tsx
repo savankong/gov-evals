@@ -17,6 +17,7 @@ import type { ComponentType, ReactNode } from "react";
 import {
   IconBell,
   IconCollapse,
+  IconAdmin,
   IconCompass,
   IconDataset,
   IconExpand,
@@ -484,6 +485,10 @@ const NAV: NavGroup[] = [
       { href: "/review", label: "Review queue", Icon: IconReview },
       { href: "/experts", label: "Experts", Icon: IconExpert },
     ],
+  },
+  {
+    label: "Manage",
+    items: [{ href: "/admin", label: "Administration", Icon: IconAdmin }],
   },
 ];
 

@@ -1,7 +1,27 @@
 # DigitalOcean App Platform specification for Aegis Eval.
 #
-#   doctl apps create --spec .do/app.yaml
-#   doctl apps update <APP_ID> --spec .do/app.yaml
+#   doctl apps create --spec .do/app.yaml      # bootstrap a new deployment
+#
+# THIS IS THE BOOTSTRAP SPEC, AND IT DIVERGES FROM THE LIVE ONE BY DESIGN.
+#
+# Its components build from GitHub source, because a fresh deployment has no
+# signed image to point at yet. After the first successful deploy the workflow
+# rewrites the LIVE spec to run each component from the exact image digest it
+# signed and verified, so what serves traffic is the artifact that was checked
+# rather than App Platform's own rebuild of the same commit.
+#
+# Two things follow, and both have bitten this project before:
+#
+#   * Do NOT run `doctl apps update <APP_ID> --spec .do/app.yaml` against a
+#     running app. The seven `type: SECRET` entries below hold placeholders
+#     like ${SPACES_KEY}; applying them would overwrite the live encrypted
+#     values and take out the object store, the signing key and the bootstrap
+#     password at once. scripts/validate_packs.py fails CI if the deploy
+#     workflow is ever edited to do this.
+#   * The live spec having `image:` where this file has `github:` is expected.
+#     It is not the drift that caused DeployContainerExitNonZero -- that was a
+#     spec naming a branch with no application in it. To read what is actually
+#     running, use `doctl apps spec get <APP_ID>`.
 #
 # App Platform gives each container an ephemeral filesystem, so this spec
 # configures managed Postgres for the database and Spaces for the evidence

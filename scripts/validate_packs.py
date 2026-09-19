@@ -488,12 +488,53 @@ def validate_supply_chain() -> None:
         return None
 
     verify_at = first_index(lambda b: "cosign verify" in b)
-    rollout_at = first_index(lambda b: "create-deployment" in b)
+
+    # The rollout is whichever command actually starts a deployment. Both
+    # spellings count: keying on one of them is how this check silently stopped
+    # applying when the rollout switched from `create-deployment` to
+    # `apps update --spec`, which is the failure mode this whole function is
+    # about.
+    def is_rollout(body: str) -> bool:
+        return "create-deployment" in body or ("apps update" in body and "--spec" in body)
+
+    rollout_at = first_index(is_rollout)
+    if rollout_at is None:
+        errors.append(
+            "deploy-digitalocean.yml: no rollout step found. Expected either "
+            "`doctl apps create-deployment` or `doctl apps update --spec`."
+        )
     if verify_at is not None and rollout_at is not None and verify_at > rollout_at:
         errors.append(
             "deploy-digitalocean.yml: signatures are verified after the rollout step. "
             "A failed verification must stop the deployment, not report on it."
         )
+
+    # Pinning the live spec to the verified digests is what makes the running
+    # container the artifact that was signed. Doing it before verification would
+    # point production at something unchecked.
+    pin_at = first_index(lambda b: "pin_app_images.py" in b)
+    if pin_at is not None:
+        if verify_at is not None and pin_at < verify_at:
+            errors.append(
+                "deploy-digitalocean.yml: the app spec is pinned to image digests before "
+                "those images are verified. Production would be pointed at an unchecked "
+                "artifact."
+            )
+        if rollout_at is not None and pin_at > rollout_at:
+            errors.append(
+                "deploy-digitalocean.yml: the spec is pinned after the rollout, so the "
+                "rollout would deploy the previous spec."
+            )
+
+    # Applying the committed spec to a running app overwrites its encrypted
+    # secrets with the placeholders that file carries.
+    for body in bodies:
+        if is_rollout(body) and ".do/app.yaml" in body:
+            errors.append(
+                "deploy-digitalocean.yml: the rollout applies .do/app.yaml to the running "
+                "app. That spec holds placeholders for its SECRET values, so this would "
+                "overwrite the live credentials. Patch the spec from `doctl apps spec get`."
+            )
 
     # Signing a tag is signing a mutable pointer.
     if "cosign sign" in joined and "@" not in joined.split("cosign sign")[1][:400]:

@@ -154,13 +154,37 @@ resolved at build time. The SBOMs have reported an identical 2,986 components
 across every run so far, which is consistent with stable resolution but does not
 guarantee it.
 
-One thing it still does not cover, which matters:
+### The running container
 
-- **The running container is not what was signed.** `.do/app.yaml` builds from
-  GitHub source, so App Platform runs its own build output. The signed images are
-  an attested artifact of record for the commit, not the artifact serving
-  traffic. Pointing the spec at `image:` with the verified digest closes this.
-  The registry that was the prerequisite now exists; the spec change does not.
+After verification, the deploy job rewrites the **live** app spec so each
+component runs the exact digest it just verified. What serves traffic is now the
+artifact that was signed, rather than App Platform's own rebuild of the same
+commit.
+
+It patches the live spec rather than applying `.do/app.yaml`. That file holds
+placeholders for its seven `type: SECRET` values, so applying it to a running
+app would overwrite the real credentials — object store, signing key and
+bootstrap password together. `doctl apps spec get` returns secrets as encrypted
+`EV[1:…]` blobs that round-trip, so the pipeline edits what is actually running
+and changes only the image references. `scripts/validate_packs.py` fails CI if
+the rollout is ever pointed at the committed spec, if the pin happens before
+verification, or if the rollout step disappears — each confirmed against
+deliberate breakage.
+
+The committed spec keeps `github:` on purpose: it bootstraps a new deployment,
+which has no signed image to point at yet. The live spec carrying `image:` where
+that file carries `github:` is expected, not drift.
+
+**One consequence, stated because it changes how the system fails.** The rewrite
+drops each component's `github` block, so `deploy_on_push` no longer applies and
+this workflow is the only path to production. That is deliberate — an
+auto-deploy from a push would put an unsigned build back in front of traffic —
+but it means a broken deploy workflow now means no deploys, where previously App
+Platform would still rebuild from source.
+
+**Not yet demonstrated.** This had not run when it was written. The first real
+execution is somebody's first signed rollout, and a failure there leaves the
+previous deployment serving rather than taking the app down.
 
 ## Not yet implemented
 

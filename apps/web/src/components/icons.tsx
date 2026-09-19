@@ -190,3 +190,11 @@ export const IconCompass = (p: Props) => (
     <path d="M10.5 5.5 9.2 9.2 5.5 10.5 6.8 6.8z" />
   </svg>
 );
+
+export const IconAdmin = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="6" cy="5.5" r="2.25" />
+    <path d="M1.75 13a4.25 4.25 0 0 1 8.5 0" />
+    <path d="M11 8.5h3.5M11 11h3.5M11 5.5h3.5" />
+  </svg>
+);

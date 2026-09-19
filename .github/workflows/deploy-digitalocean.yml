@@ -16,11 +16,18 @@
 # against this workflow's own OIDC identity. That makes the pushed images an
 # attested artifact of record for the commit.
 #
-# It is not yet a statement about the running container. `.do/app.yaml` sources
-# its components from GitHub, so App Platform rebuilds from the repository and
-# runs its own build output rather than the image signed here. Closing that gap
-# means pointing the spec's components at `image:` with the digest this job
-# verified, which needs a paid container registry -- see docs/security.md.
+# It is now also a statement about the running container. After verification
+# this job rewrites the LIVE app spec to run each component from the exact
+# digest it verified, so what serves traffic is the artifact that was signed
+# rather than App Platform's own rebuild of the same commit.
+#
+# Two consequences worth knowing before editing this file. The rewrite drops
+# each component's `github` block, so `deploy_on_push` stops applying and this
+# workflow becomes the only path to production -- deliberate, since an
+# auto-deploy from a push would put an unsigned build back in front of traffic.
+# And `.do/app.yaml` stays a GitHub-source spec on purpose: it is the bootstrap
+# used by `doctl apps create` for a fresh deployment, which has no signed image
+# to point at yet.
 name: Deploy to DigitalOcean
 
 on:
@@ -181,8 +188,31 @@ jobs:
           path: sbom/
           if-no-files-found: error
 
+      # Only reached once both images verified above. This is what closes the
+      # gap between "signed" and "serving": until now App Platform rebuilt from
+      # GitHub source and ran its own output, so the signature described an
+      # artifact of record rather than the artifact handling traffic.
+      #
+      # It patches the LIVE spec rather than applying .do/app.yaml. That file
+      # holds placeholders like ${SPACES_KEY} for its seven secrets, and
+      # applying it would overwrite the real encrypted values -- object store,
+      # signing key and bootstrap password at once. `doctl apps spec get`
+      # returns secrets as encrypted EV[1:...] blobs that round-trip safely.
+      - name: Point the running app at the images that were just verified
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          doctl apps spec get "${{ secrets.DO_APP_ID }}" --format yaml > /tmp/live-spec.yaml
+          python3 scripts/pin_app_images.py /tmp/live-spec.yaml \
+            --api "${{ steps.images.outputs.api }}" \
+            --web "${{ steps.images.outputs.web }}" \
+            --out /tmp/pinned-spec.yaml
+          echo "::group::What this rollout changes in the spec"
+          diff -u /tmp/live-spec.yaml /tmp/pinned-spec.yaml || true
+          echo "::endgroup::"
+
       - name: Roll out to App Platform
-        run: doctl apps create-deployment "${{ secrets.DO_APP_ID }}" --wait
+        run: doctl apps update "${{ secrets.DO_APP_ID }}" --spec /tmp/pinned-spec.yaml --wait
 
       - name: Verify the deployment is serving
         run: |
