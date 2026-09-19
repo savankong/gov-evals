@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import audit
+from .. import audit, expertise
 from ..db import get_db
 from ..enums import ResultStatus, RunStatus
 from ..models import (
@@ -14,6 +14,7 @@ from ..models import (
     Evaluation,
     EvaluationPlan,
     Evidence,
+    ExpertProfile,
     HumanReview,
     Project,
     Result,
@@ -377,11 +378,29 @@ def submit_review(
     if payload.status not in ResultStatus.ALL:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Unknown status '{payload.status}'")
 
+    # Whose authority is behind this judgement. An explicitly named profile must
+    # belong to the caller -- one reviewer cannot file under another's credential.
+    profile = None
+    if payload.expert_profile_id:
+        profile = fetch(db, ExpertProfile, payload.expert_profile_id, "Expert profile")
+        if profile.user_id and profile.user_id != user.id:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "An expert profile belongs to one reviewer and cannot be used by another.",
+            )
+    else:
+        profile = expertise.profile_for_user(db, user.id)
+
+    required = expertise.required_for_result(db, result)
+    qualified, note = expertise.qualify(required, profile, payload.expertise)
+
     review = HumanReview(
         result_id=result_id,
         reviewer_id=user.id,
         reviewer_label=user.full_name or user.email,
-        **payload.model_dump(),
+        qualified=qualified,
+        qualification_note=note,
+        **{**payload.model_dump(), "expert_profile_id": profile.id if profile else None},
     )
     db.add(review)
     db.flush()
@@ -395,7 +414,15 @@ def submit_review(
         object_id=result_id,
         actor_id=user.id,
         actor_label=user.email,
-        detail={"status": payload.status, "score": payload.score, "rubric": payload.rubric_key},
+        detail={
+            "status": payload.status,
+            "score": payload.score,
+            "rubric": payload.rubric_key,
+            "expertise": payload.expertise,
+            "required_expertise": required,
+            "qualified": qualified,
+            "qualification_note": note,
+        },
     )
     db.commit()
     db.refresh(review)
@@ -429,6 +456,9 @@ def _reresolve(db: Session, result: Result) -> None:
             "status": r.status,
             "comments": r.comments,
             "confidence": r.confidence,
+            "expertise": r.expertise,
+            "qualified": r.qualified,
+            "qualification_note": r.qualification_note,
         }
         for r in reviews
     ]

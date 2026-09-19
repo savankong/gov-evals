@@ -21,25 +21,51 @@ class HumanReviewEvaluator(Evaluator):
 
     def evaluate(self, ctx: EvaluationContext) -> Judgement:
         rubric_key = self.config.get("rubric_key")
-        reviews = [
+        submitted = [
             r
             for r in ctx.human_reviews
             if not rubric_key or r.get("rubric_key") == rubric_key
         ]
         required = int(self.config.get("required_reviews", 1))
 
+        # When the evaluation asks for subject-matter expertise, a review from
+        # someone outside the discipline is recorded but does not count towards
+        # the requirement. Section 71 applied to people: a judgement nobody
+        # qualified made is not a judgement, and must not resolve as a pass.
+        require_expertise = bool(self.config.get("require_expertise", False))
+        reviews = [r for r in submitted if r.get("qualified")] if require_expertise else submitted
+        unqualified = len(submitted) - len(reviews)
+
+        metadata = {
+            "rubric_key": rubric_key,
+            "rubric": self.config.get("rubric"),
+            "required_reviews": required,
+            "submitted_reviews": len(submitted),
+            "counted_reviews": len(reviews),
+            "require_expertise": require_expertise,
+            "uncounted_reviews": unqualified,
+        }
+        if require_expertise:
+            metadata["expertise_of_counted_reviews"] = [r.get("expertise") for r in reviews]
+            metadata["reasons_not_counted"] = [
+                r.get("qualification_note") for r in submitted if not r.get("qualified")
+            ]
+
         if len(reviews) < required:
+            note = f"Awaiting expert review ({len(reviews)} of {required} counted)."
+            if unqualified:
+                note += (
+                    f" {unqualified} review(s) were submitted by reviewers without the "
+                    "expertise this evaluation requires, and do not count towards it."
+                )
             return self._judgement(
                 status=ResultStatus.PENDING_HUMAN,
                 rationale=(
-                    f"Awaiting human review ({len(reviews)} of {required} submitted)."
+                    note
+                    if require_expertise
+                    else f"Awaiting human review ({len(reviews)} of {required} submitted)."
                 ),
-                evaluator_metadata={
-                    "rubric_key": rubric_key,
-                    "rubric": self.config.get("rubric"),
-                    "required_reviews": required,
-                    "submitted_reviews": len(reviews),
-                },
+                evaluator_metadata=metadata,
             )
 
         statuses = [r.get("status", ResultStatus.PASS) for r in reviews]
@@ -66,7 +92,7 @@ class HumanReviewEvaluator(Evaluator):
             score=mean_score,
             rationale="; ".join(filter(None, (r.get("comments") for r in reviews)))[:500] or None,
             evaluator_metadata={
-                "rubric_key": rubric_key,
+                **metadata,
                 "reviewers": [r.get("reviewer_label") for r in reviews],
                 "inter_rater_agreement": agreement,
                 "review_count": len(reviews),

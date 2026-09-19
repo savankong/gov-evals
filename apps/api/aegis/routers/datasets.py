@@ -7,21 +7,79 @@ import io
 import json
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .. import audit
 from ..classification import enforce as enforce_classification
 from ..db import get_db
 from ..hashing import content_hash
-from ..models import Dataset, DatasetItem, DatasetVersion, User
-from ..schemas import DatasetIn, DatasetOut, DatasetVersionOut
+from ..models import Dataset, DatasetItem, DatasetVersion, Run, User
+from ..schemas import DatasetIn, DatasetOut, DatasetUpdate, DatasetVersionOut
 from ..security import Permission, get_current_user, require
 from .deps import audit_context, fetch, get_project
 
 router = APIRouter(tags=["datasets"])
 
 MAX_UPLOAD_BYTES = 64 * 1024 * 1024
+
+
+@router.get("/datasets")
+def index_datasets(
+    q: str | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Every dataset the caller can see, with the counts the index column shows.
+
+    Separate from the per-project list because a reviewer works across programs
+    and needs one place that answers "what test cases exist, and who is
+    qualified to judge them".
+    """
+    datasets = list(db.execute(select(Dataset).order_by(Dataset.name)).scalars())
+    if q:
+        needle = q.strip().lower()
+        datasets = [d for d in datasets if needle in d.name.lower()]
+
+    rows = []
+    for dataset in datasets:
+        current = next((v for v in dataset.versions if v.is_current), None)
+        latest = max(
+            (v.created_at for v in dataset.versions if v.created_at),
+            default=dataset.updated_at or dataset.created_at,
+        )
+        version_ids = [v.id for v in dataset.versions]
+        run_count = (
+            db.execute(
+                select(func.count())
+                .select_from(Run)
+                .where(Run.dataset_version_id.in_(version_ids))
+            ).scalar_one()
+            if version_ids
+            else 0
+        )
+        rows.append(
+            {
+                "id": dataset.id,
+                "name": dataset.name,
+                "description": dataset.description,
+                "project_id": dataset.project_id,
+                "project_name": dataset.project.name if dataset.project else None,
+                "modality": dataset.modality,
+                "split": dataset.split,
+                "classification": dataset.classification,
+                "contains_pii": dataset.contains_pii,
+                "tags": dataset.tags or [],
+                "required_expertise": dataset.required_expertise or [],
+                "owner": dataset.owner,
+                "example_count": current.item_count if current else 0,
+                "version_count": len(dataset.versions),
+                "current_version": current.version if current else None,
+                "run_count": run_count,
+                "updated_at": latest,
+            }
+        )
+    return rows
 
 
 @router.get("/projects/{project_id}/datasets", response_model=list[DatasetOut])
@@ -122,6 +180,66 @@ def _quality_report(rows: list[dict]) -> dict:
         "rows_with_expected_answer": with_expected,
         "issues": issues,
     }
+
+
+@router.get("/datasets/{dataset_id}")
+def read_dataset(
+    dataset_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+):
+    """One dataset with its versions and the expertise it asks reviewers for."""
+    dataset = fetch(db, Dataset, dataset_id, "Dataset")
+    versions = sorted(dataset.versions, key=lambda v: v.created_at, reverse=True)
+    return {
+        "dataset": DatasetOut.model_validate(dataset).model_dump(),
+        "project": (
+            {"id": dataset.project.id, "name": dataset.project.name}
+            if dataset.project
+            else None
+        ),
+        "versions": [DatasetVersionOut.model_validate(v).model_dump() for v in versions],
+        "current_version_id": next((v.id for v in versions if v.is_current), None),
+    }
+
+
+@router.patch("/datasets/{dataset_id}", response_model=DatasetOut)
+def update_dataset(
+    dataset_id: str,
+    payload: DatasetUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require(Permission.DATASET_WRITE)),
+):
+    """Amend a dataset, including which expertise its cases need to be judged.
+
+    Changing `required_expertise` does not retroactively re-qualify reviews
+    already submitted. Each review stores the decision made when it was filed,
+    with the reason, so the record says what was true at the time rather than
+    what the rule happens to be now.
+    """
+    dataset = fetch(db, Dataset, dataset_id, "Dataset")
+    fields = payload.model_dump(exclude_unset=True)
+    if "classification" in fields:
+        enforce_classification(fields["classification"])
+
+    before = list(dataset.required_expertise or [])
+    for field, value in fields.items():
+        setattr(dataset, field, value)
+
+    audit.record(
+        db,
+        action="dataset.updated",
+        object_type="dataset",
+        object_id=dataset.id,
+        detail={
+            "fields": sorted(fields),
+            "required_expertise_before": before,
+            "required_expertise_after": list(dataset.required_expertise or []),
+        },
+        **audit_context(db, dataset.project, user, request),
+    )
+    db.commit()
+    db.refresh(dataset)
+    return dataset
 
 
 @router.post("/datasets/{dataset_id}/versions", response_model=DatasetVersionOut, status_code=201)

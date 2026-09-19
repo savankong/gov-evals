@@ -234,7 +234,21 @@ class DatasetIn(BaseModel):
     split: str = "test"
     contains_pii: bool = False
     tags: list[str] = Field(default_factory=list)
+    required_expertise: list[str] = Field(default_factory=list)
     classification: str = Classification.UNCLASSIFIED
+
+
+class DatasetUpdate(BaseModel):
+    """Partial update. Unset fields are left alone rather than blanked."""
+
+    name: str | None = None
+    description: str | None = None
+    modality: str | None = None
+    split: str | None = None
+    contains_pii: bool | None = None
+    tags: list[str] | None = None
+    required_expertise: list[str] | None = None
+    classification: str | None = None
 
 
 class DatasetOut(ORMModel):
@@ -246,6 +260,7 @@ class DatasetOut(ORMModel):
     split: str
     contains_pii: bool
     tags: list
+    required_expertise: list
     classification: str
     created_at: datetime
 
@@ -471,12 +486,70 @@ class HumanReviewIn(BaseModel):
     comments: str | None = None
     confidence: float | None = None
     time_spent_seconds: int | None = None
+    # The discipline the reviewer is judging under. Optional, because a review
+    # submitted without one is still recorded -- it simply does not count as
+    # expert evidence, and the response says so.
+    expertise: str | None = None
+    expert_profile_id: str | None = None
+    familiarity: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
 class HumanReviewOut(HumanReviewIn, ORMModel):
     id: str
     result_id: str
     reviewer_label: str | None = None
+    qualified: bool = False
+    qualification_note: str | None = None
+    created_at: datetime
+
+
+# -- expert reviewers -------------------------------------------------------
+
+
+class ExpertProfileIn(BaseModel):
+    display_name: str
+    disciplines: list[str] = Field(default_factory=list)
+    title: str | None = None
+    organization: str | None = None
+    credentials: str | None = None
+    years_experience: int | None = Field(default=None, ge=0, le=80)
+    notes: str | None = None
+
+
+class ExpertProfileOut(ExpertProfileIn, ORMModel):
+    id: str
+    user_id: str | None = None
+    verified: bool
+    verified_by: str | None = None
+    verified_at: datetime | None = None
+    active: bool
+    created_at: datetime
+
+
+class ReviewQueueItem(BaseModel):
+    """One result awaiting a human judgement, with the expertise it needs."""
+
+    result_id: str
+    run_id: str
+    campaign_id: str
+    project_id: str
+    project_name: str
+    evaluation: str
+    domain: str | None = None
+    system_version: str | None = None
+    scenario_title: str | None = None
+    prompt: str | None = None
+    response: str | None = None
+    rubric: str | None = None
+    expected_behavior: list = Field(default_factory=list)
+    prohibited_behavior: list = Field(default_factory=list)
+    required_expertise: list[str] = Field(default_factory=list)
+    # Whether the *caller* holds the expertise this item asks for.
+    viewer_is_qualified: bool = False
+    # Reviews already submitted, and how many of them counted.
+    review_count: int = 0
+    qualified_review_count: int = 0
+    required_reviews: int = 1
     created_at: datetime
 
 

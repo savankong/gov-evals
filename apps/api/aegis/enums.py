@@ -69,6 +69,61 @@ class Domain:
     }
 
 
+class Discipline:
+    """Subject-matter expertise a reviewer judges under (section 20).
+
+    Distinct from `Domain`, which says *what property* an evaluation measures.
+    This says *who is qualified to judge it*. A contracting officer and a
+    security engineer can both review the same output; only one of them is
+    evidence about whether the contract analysis is correct.
+
+    Deliberately a suggestion, not a closed set: expertise is program-specific
+    and a customer must be able to add "targeteering" or "flight surgeon"
+    without a schema migration. Anything stored here is a free-form slug.
+    """
+
+    ACQUISITION = "acquisition"
+    INTELLIGENCE_ANALYSIS = "intelligence_analysis"
+    LEGAL = "legal"
+    CYBER = "cyber"
+    LOGISTICS = "logistics"
+    MEDICAL = "medical"
+    LINGUISTICS = "linguistics"
+    OPERATIONS = "operations"
+    ENGINEERING = "engineering"
+    POLICY = "policy"
+
+    SUGGESTED = [
+        ACQUISITION,
+        INTELLIGENCE_ANALYSIS,
+        LEGAL,
+        CYBER,
+        LOGISTICS,
+        MEDICAL,
+        LINGUISTICS,
+        OPERATIONS,
+        ENGINEERING,
+        POLICY,
+    ]
+    LABELS = {
+        ACQUISITION: "Acquisition & contracting",
+        INTELLIGENCE_ANALYSIS: "Intelligence analysis",
+        LEGAL: "Legal & compliance",
+        CYBER: "Cybersecurity",
+        LOGISTICS: "Logistics & sustainment",
+        MEDICAL: "Medical",
+        LINGUISTICS: "Language & translation",
+        OPERATIONS: "Operations",
+        ENGINEERING: "Systems engineering",
+        POLICY: "Policy & governance",
+    }
+
+    @staticmethod
+    def label(slug: str) -> str:
+        """Label a slug, including one this vocabulary has never seen."""
+        return Discipline.LABELS.get(slug, slug.replace("_", " ").strip().capitalize())
+
+
 class ResultStatus:
     """Outcome of a single evaluated scenario.
 

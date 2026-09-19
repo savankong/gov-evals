@@ -51,6 +51,7 @@ const config: Config = {
       },
       spacing: {
         rail: "44px",
+        sidebar: "224px",
         topbar: "44px",
       },
       transitionTimingFunction: {

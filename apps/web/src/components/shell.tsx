@@ -12,13 +12,18 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 import {
   IconBell,
+  IconCollapse,
+  IconDataset,
+  IconExpand,
+  IconExpert,
   IconLibrary,
   IconMoon,
   IconPortfolio,
+  IconReview,
   IconSearch,
   IconSun,
 } from "@/components/icons";
@@ -438,62 +443,196 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
 }
 
 /* ------------------------------------------------------------------ *
- * Rail
+ * Sidebar
  * ------------------------------------------------------------------ */
 
-const RAIL = [
-  { href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true },
-  { href: "/library", label: "Library", Icon: IconLibrary, exact: false },
+interface NavItem {
+  href: string;
+  label: string;
+  Icon: ComponentType<{ className?: string }>;
+  exact?: boolean;
+  /** Shown beside the label when expanded. Suppressed when collapsed, because
+   *  a count with no label attached to it is a number floating in a rail. */
+  badge?: number;
+}
+
+interface NavGroup {
+  /** Null for the first group, which needs no heading above the first item. */
+  label: string | null;
+  items: NavItem[];
+}
+
+const NAV: NavGroup[] = [
+  {
+    label: null,
+    items: [{ href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true }],
+  },
+  {
+    label: "Evaluate",
+    items: [
+      { href: "/datasets", label: "Datasets", Icon: IconDataset },
+      { href: "/library", label: "Library", Icon: IconLibrary },
+    ],
+  },
+  {
+    label: "Expert review",
+    items: [
+      { href: "/review", label: "Review queue", Icon: IconReview },
+      { href: "/experts", label: "Experts", Icon: IconExpert },
+    ],
+  },
 ];
 
-function Rail() {
-  const pathname = usePathname();
-  return (
-    <nav
-      aria-label="Primary"
-      className="flex w-rail shrink-0 flex-col items-center border-r border-line bg-panel py-3"
-    >
-      <Link href="/" aria-label="Aegis Eval" className="mb-5">
-        {/* The mark: a shield reduced to a single hairline stroke. */}
-        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
-          <path
-            d="M9 1.5 15.5 4v5.5c0 3.8-2.8 6.2-6.5 7-3.7-.8-6.5-3.2-6.5-7V4L9 1.5Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            className="text-ink"
-          />
-          <path d="M9 5.5v7" stroke="currentColor" strokeWidth="1.2" className="text-ink" />
-        </svg>
-      </Link>
+const NAV_STORAGE_KEY = "aegis.nav.expanded";
 
-      <div className="flex flex-col items-center gap-1">
-        {RAIL.map(({ href, label, Icon, exact }) => {
-          const active = exact ? pathname === href : pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={label}
-              aria-label={label}
-              aria-current={active ? "page" : undefined}
-              className={`relative grid h-8 w-8 place-items-center transition-colors duration-150 ease-out ${
-                active ? "text-ink" : "text-faint hover:text-ink-soft"
-              }`}
-            >
-              {active ? (
-                <motion.span
-                  layoutId="rail-active"
-                  className="absolute inset-0 bg-sunken"
-                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                />
-              ) : null}
-              <Icon className="relative" />
-            </Link>
-          );
-        })}
+/**
+ * Sidebar open/closed state.
+ *
+ * Persisted per viewer, because which one you want depends on the screen you
+ * are at rather than on the work: the same person wants labels on a desktop
+ * and a rail on a laptop beside a spreadsheet. Defaults to expanded -- a new
+ * reviewer should see what the sections are called before learning the glyphs.
+ */
+function useNavExpanded(): [boolean, () => void] {
+  const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(NAV_STORAGE_KEY);
+      if (stored !== null) setExpanded(stored === "true");
+    } catch {
+      /* per-viewer convenience only; the default stands */
+    }
+  }, []);
+
+  const toggle = useCallback(() => {
+    setExpanded((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem(NAV_STORAGE_KEY, String(next));
+      } catch {
+        /* per-viewer convenience only */
+      }
+      return next;
+    });
+  }, []);
+
+  return [expanded, toggle];
+}
+
+function NavLink({ item, expanded }: { item: NavItem; expanded: boolean }) {
+  const pathname = usePathname();
+  const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+  const { Icon } = item;
+
+  return (
+    <Link
+      href={item.href}
+      // The tooltip is the only thing naming the destination when collapsed, so
+      // it is not optional there.
+      title={expanded ? undefined : item.label}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+      className={`relative flex h-8 items-center transition-colors duration-150 ease-out ${
+        expanded ? "gap-2.5 px-2.5" : "justify-center px-0"
+      } ${active ? "text-ink" : "text-faint hover:text-ink-soft"}`}
+    >
+      {active ? (
+        <motion.span
+          layoutId="nav-active"
+          className="absolute inset-0 border-l-2 border-accent bg-sunken"
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        />
+      ) : null}
+      <Icon className="relative shrink-0" />
+      {expanded ? (
+        <span className="relative min-w-0 flex-1 truncate text-sm">{item.label}</span>
+      ) : null}
+      {expanded && item.badge ? (
+        <span className="tnum relative shrink-0 text-2xs text-faint">{item.badge}</span>
+      ) : null}
+    </Link>
+  );
+}
+
+function Sidebar({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
+  return (
+    <motion.nav
+      aria-label="Primary"
+      initial={false}
+      animate={{ width: expanded ? 224 : 44 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="flex shrink-0 flex-col overflow-hidden border-r border-line bg-panel py-3"
+    >
+      <div
+        className={`mb-4 flex h-8 items-center ${
+          expanded ? "justify-between px-2.5" : "justify-center"
+        }`}
+      >
+        <Link href="/" aria-label="Aegis Eval" className="flex items-center gap-2 text-ink">
+          {/* The mark: a shield reduced to a single hairline stroke. */}
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden className="shrink-0">
+            <path
+              d="M9 1.5 15.5 4v5.5c0 3.8-2.8 6.2-6.5 7-3.7-.8-6.5-3.2-6.5-7V4L9 1.5Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+            />
+            <path d="M9 5.5v7" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+          {expanded ? (
+            <span className="whitespace-nowrap text-sm text-ink">Aegis Eval</span>
+          ) : null}
+        </Link>
+        {expanded ? (
+          <button
+            onClick={onToggle}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+            aria-expanded
+            className="grid h-6 w-6 shrink-0 place-items-center text-faint transition-colors duration-150 hover:text-ink"
+          >
+            <IconCollapse />
+          </button>
+        ) : null}
       </div>
-    </nav>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+        {NAV.map((group, index) => (
+          <div key={group.label ?? "root"}>
+            {group.label ? (
+              expanded ? (
+                <div className="px-2.5 pb-1 text-2xs uppercase tracking-wider text-faint">
+                  {group.label}
+                </div>
+              ) : (
+                // Collapsed, a group heading has nowhere to go. A rule keeps the
+                // grouping legible without inventing an abbreviation for it.
+                <div className="mx-auto mb-1.5 h-px w-4 bg-line" aria-hidden />
+              )
+            ) : null}
+            <div className="flex flex-col">
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} expanded={expanded} />
+              ))}
+            </div>
+            {index === NAV.length - 1 ? null : null}
+          </div>
+        ))}
+      </div>
+
+      {!expanded ? (
+        <button
+          onClick={onToggle}
+          title="Expand sidebar"
+          aria-label="Expand sidebar"
+          aria-expanded={false}
+          className="mx-auto grid h-8 w-8 shrink-0 place-items-center text-faint transition-colors duration-150 hover:text-ink"
+        >
+          <IconExpand />
+        </button>
+      ) : null}
+    </motion.nav>
   );
 }
 
@@ -578,6 +717,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { dark, toggle } = useTheme();
+  const [navExpanded, toggleNav] = useNavExpanded();
   const [classification, setClassification] = useState("UNCLASSIFIED");
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -604,10 +744,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         event.preventDefault();
         setPaletteOpen((open) => !open);
       }
+      // Bare "[" toggles the sidebar, but not while someone is typing it into
+      // a field.
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable;
+      if (event.key === "[" && !typing && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        toggleNav();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [toggleNav]);
 
   if (pathname === "/login") return <>{children}</>;
 
@@ -624,7 +775,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ClassificationBanner classification={classification} />
 
         <div className="flex min-h-0 flex-1">
-          <Rail />
+          <Sidebar expanded={navExpanded} onToggle={toggleNav} />
 
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="flex h-topbar shrink-0 items-center gap-3 border-b border-line bg-panel px-3">
