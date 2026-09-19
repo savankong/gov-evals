@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
-from .db import init_db, session_scope
+from .db import session_scope
 from .routers import ROUTERS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -93,7 +93,9 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def startup() -> None:
-        init_db()
+        from .migrate import upgrade_to_head
+
+        upgrade_to_head()
 
         # Confirm the evidence store before accepting work. A campaign that
         # runs and then cannot store what it produced is worse than one that

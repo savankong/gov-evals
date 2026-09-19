@@ -140,6 +140,7 @@ def main() -> int:
     validate_pinned_base_images()
     validate_deterministic_installs()
     validate_supply_chain()
+    validate_schema_migrations()
 
     print(
         f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
@@ -554,6 +555,101 @@ def report() -> int:
         return 1
     print("All packs and deployment specs valid.")
     return 0
+
+
+def validate_schema_migrations() -> None:
+    """A long-lived database must be brought up by migrations, not by create_all.
+
+    `Base.metadata.create_all` creates tables that are missing and does nothing
+    to tables that are present. It cannot add a column. Both long-lived
+    processes -- the API and the worker -- called it at startup, so the deployed
+    schema froze at the models of the day the database was created. Seven
+    columns added later were never applied, and every endpoint that selected one
+    of those rows returned 500 while the tables all looked present and correct.
+
+    Three things are checked, because each of them alone was once true while the
+    schema was still wrong: the services call the migration runner; the
+    revisions form one unbroken chain; and alembic is actually a dependency of
+    the image that has to run them.
+    """
+    migrations = ROOT / "apps" / "api" / "aegis" / "migrations" / "versions"
+    if not migrations.exists():
+        errors.append(
+            "apps/api/aegis/migrations/versions does not exist. Without migrations a deployed "
+            "database freezes at the models of the day it was created."
+        )
+        return
+
+    for relative in ("apps/api/aegis/main.py", "apps/api/worker.py"):
+        path = ROOT / relative
+        if not path.exists():
+            continue
+        body = path.read_text()
+        # Startup code only -- a docstring naming init_db is not a call to it.
+        calls = [
+            line.strip()
+            for line in body.splitlines()
+            if not line.strip().startswith("#") and "init_db()" in line
+        ]
+        if calls:
+            errors.append(
+                f"{relative} calls init_db() at startup. create_all never adds a column to a "
+                "table that already exists, so a deployed database stops receiving model "
+                "changes silently. Call aegis.migrate.upgrade_to_head instead."
+            )
+        if "upgrade_to_head" not in body:
+            errors.append(
+                f"{relative} never brings the schema up. It has to call "
+                "aegis.migrate.upgrade_to_head before serving, or it will run against "
+                "whatever schema happens to be there."
+            )
+
+    revisions: dict[str, str | None] = {}
+    for script in sorted(migrations.glob("[0-9]*.py")):
+        text = script.read_text()
+        revision = down = None
+        for line in text.splitlines():
+            if line.startswith("revision = "):
+                revision = line.split("=", 1)[1].strip().strip("\"'")
+            elif line.startswith("down_revision = "):
+                raw = line.split("=", 1)[1].strip()
+                down = None if raw == "None" else raw.strip("\"'")
+        if revision is None:
+            errors.append(f"{script.name}: no revision identifier")
+            continue
+        revisions[revision] = down
+
+    if not revisions:
+        errors.append("apps/api/aegis/migrations/versions holds no revisions.")
+        return
+
+    roots = [rev for rev, down in revisions.items() if down is None]
+    if len(roots) != 1:
+        errors.append(
+            f"The revision history has {len(roots)} starting points ({sorted(roots)}). "
+            "It must have exactly one, or `upgrade head` is ambiguous."
+        )
+
+    parents = {down for down in revisions.values() if down is not None}
+    heads = sorted(set(revisions) - parents)
+    if len(heads) != 1:
+        errors.append(
+            f"The revision history has {len(heads)} heads ({heads}). Alembic refuses to "
+            "upgrade a branched history, so startup would fail."
+        )
+
+    for revision, down in sorted(revisions.items()):
+        if down is not None and down not in revisions:
+            errors.append(
+                f"Revision {revision!r} follows {down!r}, which does not exist."
+            )
+
+    pyproject = (ROOT / "apps" / "api" / "pyproject.toml").read_text()
+    if "alembic" not in pyproject:
+        errors.append(
+            "apps/api/pyproject.toml does not depend on alembic, so the image that has to run "
+            "the migrations at startup will not have it installed."
+        )
 
 
 if __name__ == "__main__":
