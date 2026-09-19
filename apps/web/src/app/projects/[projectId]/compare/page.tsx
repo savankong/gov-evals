@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 
-import { StatusChip } from "@/components/status";
+import { Status } from "@/components/status";
 import { useResource } from "@/components/shell";
 import {
   Card,
-  CardHeader,
+  CardHead,
   Caveat,
   Empty,
   ErrorNote,
   Hash,
+  Select,
   Spinner,
+  TableSkeleton,
   formatPercent,
 } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -67,45 +69,49 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <label htmlFor="campaign" className="text-xs text-muted">
-          Campaign
-        </label>
-        <select
-          id="campaign"
-          value={campaignId ?? ""}
-          onChange={(e) => setCampaignId(e.target.value)}
-          className="rounded-md border border-line bg-raised px-2 py-1 text-sm outline-none focus:border-[rgb(var(--accent))]"
-        >
-          {campaigns.data.map((campaign) => (
-            <option key={campaign.id} value={campaign.id}>
-              {campaign.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        label="Campaign"
+        value={campaignId ?? ""}
+        onChange={setCampaignId}
+        options={(campaigns.data ?? []).map((campaign) => ({
+          value: campaign.id,
+          label: campaign.name,
+        }))}
+      />
 
-      {comparison.loading ? <Spinner label="Loading comparison" /> : null}
       {comparison.error ? <ErrorNote message={comparison.error} /> : null}
 
-      {data && data.systems.length > 0 ? (
+      {comparison.loading ? (
         <Card>
-          <CardHeader
+          <CardHead title="Model comparison" />
+          <div className="border-t border-line">
+            <TableSkeleton rows={8} cols={4} />
+          </div>
+        </Card>
+      ) : data && data.systems.length > 0 ? (
+        <Card>
+          <CardHead
             title="Model comparison"
-            subtitle="Every column ran the same scenarios under the same conditions"
+            meta="Every column ran the same scenarios under the same conditions"
           />
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+          <div className="overflow-x-auto border-t border-line">
+            <table className="w-full border-collapse text-sm" style={{ minWidth: 720 }}>
               <thead>
-                <tr className="border-b border-line text-left">
-                  <th className="sticky left-0 bg-raised px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted">
+                <tr>
+                  {/* The evaluation column stays put while the systems scroll:
+                      a verdict three columns right is meaningless once its row
+                      label has slid off the screen. */}
+                  <th className="sticky left-0 z-10 w-[280px] border-b border-line bg-panel px-3 py-2.5 text-left text-2xs font-normal uppercase tracking-wider text-faint">
                     Evaluation
                   </th>
                   {data.systems.map((system) => (
-                    <th key={system.id} className="px-4 py-2.5 align-bottom">
-                      <div className="text-sm font-semibold">{system.label}</div>
-                      <div className="mt-0.5 text-[11px] font-normal text-muted">
+                    <th
+                      key={system.id}
+                      className="border-b border-l border-line px-3 py-2.5 text-left align-bottom font-normal"
+                    >
+                      <div className="text-sm text-ink">{system.label}</div>
+                      <div className="mt-0.5 text-xs text-muted">
                         {system.model ?? "model not recorded"}
                       </div>
                       <div className="mt-0.5">
@@ -119,26 +125,33 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
               <tbody>
                 {Object.entries(grouped).map(([domain, rows]) => (
                   <>
-                    <tr key={`group-${domain}`} className="bg-[rgb(var(--unknown-bg))]">
+                    <tr key={`group-${domain}`}>
                       <td
                         colSpan={data.systems.length + 1}
-                        className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted"
+                        className="sticky left-0 border-b border-line bg-sunken px-3 py-1.5 text-2xs uppercase tracking-wider text-faint"
                       >
                         {domain}
                       </td>
                     </tr>
-                    {rows.map((row) => (
-                      <tr key={row.evaluation_id} className="border-b border-line last:border-0">
-                        <td className="sticky left-0 bg-raised px-4 py-2.5">
-                          <div className="text-sm">{row.evaluation_name}</div>
+                    {rows.map((row, index) => (
+                      <tr
+                        key={row.evaluation_id}
+                        style={{ ["--stagger-delay" as string]: `${Math.min(index, 10) * 16}ms` }}
+                        className="stagger group"
+                      >
+                        <td className="sticky left-0 z-10 border-b border-line bg-panel px-3 py-2.5 align-top transition-colors duration-150 group-hover:bg-sunken">
+                          <div className="text-sm text-ink">{row.evaluation_name}</div>
                           {row.metric ? (
-                            <div className="text-[11px] text-muted">{row.metric}</div>
+                            <div className="font-mono text-2xs text-faint">{row.metric}</div>
                           ) : null}
                         </td>
                         {row.cells.map((cell, i) => (
-                          <td key={i} className="px-4 py-2.5 align-top">
+                          <td
+                            key={i}
+                            className="border-b border-l border-line px-3 py-2.5 align-top transition-colors duration-150 group-hover:bg-sunken"
+                          >
                             <div className="flex flex-col items-start gap-1">
-                              <StatusChip status={cell.status} />
+                              <Status status={cell.status} />
                               {cell.status !== "not_evaluated" ? (
                                 <span className="tnum text-xs text-muted">
                                   {formatPercent(cell.pass_rate)}
@@ -149,7 +162,7 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
                                 // reasons, and conflating them misleads: the
                                 // evaluation never ran for this system, or it
                                 // ran and no evaluator reached a judgement.
-                                <span className="text-[11px] text-muted">
+                                <span className="text-xs text-muted">
                                   {cell.note ??
                                     (cell.executions
                                       ? `${cell.executions} executed, no judgement`
@@ -157,16 +170,16 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
                                 </span>
                               )}
                               {cell.latency_ms ? (
-                                <span className="tnum text-[11px] text-muted">
+                                <span className="tnum text-xs text-faint">
                                   {cell.latency_ms} ms median
                                 </span>
                               ) : null}
                               {cell.run_id ? (
                                 <Link
                                   href={`/runs/${cell.run_id}`}
-                                  className="text-[11px] text-muted hover:text-ink hover:underline"
+                                  className="link-underline text-xs text-muted hover:text-ink"
                                 >
-                                  evidence →
+                                  evidence
                                 </Link>
                               ) : null}
                             </div>

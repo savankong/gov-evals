@@ -3,25 +3,26 @@
 import Link from "next/link";
 import { use } from "react";
 
-import { StatusChip, SeverityChip } from "@/components/status";
+import { SeverityTag, Status, StatusSquare } from "@/components/status";
 import { useResource } from "@/components/shell";
 import {
   Card,
-  CardHeader,
+  CardHead,
   Caveat,
   Empty,
   ErrorNote,
+  Figure,
   Hash,
-  Spinner,
+  TableSkeleton,
   formatDate,
   formatPercent,
 } from "@/components/ui";
 import { api } from "@/lib/api";
-import type { ProjectDashboard, Severity } from "@/lib/types";
+import type { ProjectDashboard, ReadinessDimension, Severity } from "@/lib/types";
 
 const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
 
-export default function ProjectReadinessPage({
+export default function ReadinessPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
@@ -32,91 +33,43 @@ export default function ProjectReadinessPage({
     [projectId],
   );
 
-  if (loading) return <Spinner label="Loading readiness" />;
+  if (loading) {
+    return (
+      <Card>
+        <TableSkeleton rows={8} cols={4} />
+      </Card>
+    );
+  }
   if (error) return <ErrorNote message={error} />;
   if (!data) return null;
 
   const evaluated = data.readiness.filter((d) => d.status !== "not_evaluated").length;
+  const live = data.latest_campaign?.status === "running";
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Mission readiness by dimension. Every domain appears, including the
-            untested ones -- that is the point of the view. */}
         <Card className="lg:col-span-2">
-          <CardHeader
+          <CardHead
             title="Mission readiness"
-            subtitle={`${evaluated} of ${data.readiness.length} dimensions evaluated`}
+            meta={`${evaluated} of ${data.readiness.length} dimensions evaluated`}
             action={
               data.latest_campaign ? (
                 <Link
                   href={`/campaigns/${data.latest_campaign.id}`}
-                  className="text-xs text-muted hover:text-ink hover:underline"
+                  className="link-underline inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink"
                 >
-                  {data.latest_campaign.name} →
+                  {live ? <StatusSquare status="pending_human" live /> : null}
+                  {data.latest_campaign.name}
                 </Link>
               ) : null
             }
           />
 
-          <div className="divide-y divide-line">
-            {data.readiness.map((dimension) => {
-              const scoreable = dimension.passed + dimension.failed + dimension.warning;
-              return (
-                <div
-                  key={dimension.domain}
-                  className="flex flex-wrap items-center gap-3 px-4 py-2.5"
-                >
-                  <div className="w-44 shrink-0 text-sm font-medium">{dimension.label}</div>
-                  <StatusChip status={dimension.status} />
-
-                  {/* Proportion bar. Only drawn when something was judged, so an
-                      untested dimension never shows an empty bar that reads as zero. */}
-                  {scoreable > 0 ? (
-                    <div className="flex h-1.5 min-w-[80px] flex-1 overflow-hidden rounded-full bg-[rgb(var(--unknown-bg))]">
-                      <div
-                        className="h-full bg-[rgb(var(--pass))]"
-                        style={{ width: `${(dimension.passed / scoreable) * 100}%` }}
-                        title={`${dimension.passed} passed`}
-                      />
-                      <div
-                        className="h-full bg-[rgb(var(--warn))]"
-                        style={{ width: `${(dimension.warning / scoreable) * 100}%` }}
-                        title={`${dimension.warning} warning`}
-                      />
-                      <div
-                        className="h-full bg-[rgb(var(--fail))]"
-                        style={{ width: `${(dimension.failed / scoreable) * 100}%` }}
-                        title={`${dimension.failed} failed`}
-                      />
-                    </div>
-                  ) : (
-                    <div className="min-w-[80px] flex-1 text-xs text-muted">
-                      {dimension.pending_human > 0
-                        ? `${dimension.pending_human} awaiting human review`
-                        : dimension.executions > 0
-                          ? `${dimension.executions} executed, none reached a judgement`
-                          : "No evaluation covers this dimension"}
-                    </div>
-                  )}
-
-                  <div className="tnum w-16 shrink-0 text-right text-sm">
-                    {formatPercent(dimension.pass_rate)}
-                  </div>
-
-                  {dimension.run_ids.length > 0 ? (
-                    <Link
-                      href={`/runs/${dimension.run_ids[0]}`}
-                      className="shrink-0 text-xs text-muted hover:text-ink hover:underline"
-                    >
-                      evidence →
-                    </Link>
-                  ) : (
-                    <span className="w-[62px] shrink-0" />
-                  )}
-                </div>
-              );
-            })}
+          <div className="border-t border-line">
+            {data.readiness.map((dimension, index) => (
+              <DimensionRow key={dimension.domain} dimension={dimension} index={index} />
+            ))}
           </div>
 
           <div className="border-t border-line px-4 py-3">
@@ -126,74 +79,80 @@ export default function ProjectReadinessPage({
 
         <div className="space-y-4">
           <Card>
-            <CardHeader title="Findings" subtitle={`${data.findings_total} recorded`} />
-            <div className="divide-y divide-line">
-              {SEVERITIES.map((severity) => (
-                <div key={severity} className="flex items-center justify-between px-4 py-2">
-                  <SeverityChip severity={severity} />
-                  <span className="tnum text-sm">{data.findings[severity] ?? 0}</span>
+            <CardHead title="Findings" meta={`${data.findings_total} recorded`} />
+            <div className="border-t border-line">
+              {SEVERITIES.map((severity, index) => (
+                <div
+                  key={severity}
+                  className="stagger flex items-center justify-between border-b border-line px-4 py-2 last:border-0"
+                  style={{ ["--stagger-delay" as string]: `${index * 30}ms` }}
+                >
+                  <SeverityTag severity={severity} />
+                  <span className="tnum text-base">{data.findings[severity] ?? 0}</span>
                 </div>
               ))}
             </div>
-            <div className="border-t border-line px-4 py-2">
-              <Link
-                href={`/projects/${projectId}/findings`}
-                className="text-xs text-muted hover:text-ink hover:underline"
-              >
-                All findings →
-              </Link>
-            </div>
+            <Link
+              href={`/projects/${projectId}/findings`}
+              className="link-underline block border-t border-line px-4 py-2 text-xs text-muted hover:text-ink"
+            >
+              All findings
+            </Link>
           </Card>
 
           {data.regression ? (
             <Card>
-              <CardHeader
+              <CardHead
                 title="Most recent change"
-                subtitle={`vs ${data.regression.baseline_campaign.name}`}
+                meta={`vs ${data.regression.baseline_campaign.name}`}
               />
-              <div className="space-y-1.5 px-4 py-3 text-sm">
-                {data.regression.regression_detected ? (
-                  <p className="font-medium text-[rgb(var(--fail))]">Regression detected</p>
-                ) : (
-                  <p className="font-medium text-[rgb(var(--pass))]">No regression detected</p>
-                )}
-                <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                  <dt className="text-muted">New failures</dt>
-                  <dd className="tnum text-right">{data.regression.totals.new_failures}</dd>
-                  <dt className="text-muted">Degraded</dt>
-                  <dd className="tnum text-right">{data.regression.totals.degraded}</dd>
-                  <dt className="text-muted">Resolved</dt>
-                  <dd className="tnum text-right">{data.regression.totals.resolved}</dd>
-                  <dt className="text-muted">Improved</dt>
-                  <dd className="tnum text-right">{data.regression.totals.improved}</dd>
+              <div className="border-t border-line px-4 py-3">
+                <p
+                  className={`text-sm ${
+                    data.regression.regression_detected ? "text-fail" : "text-pass"
+                  }`}
+                >
+                  {data.regression.regression_detected
+                    ? "Regression detected"
+                    : "No regression detected"}
+                </p>
+                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  {[
+                    ["New failures", data.regression.totals.new_failures],
+                    ["Degraded", data.regression.totals.degraded],
+                    ["Resolved", data.regression.totals.resolved],
+                    ["Improved", data.regression.totals.improved],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} className="flex justify-between">
+                      <dt className="text-muted">{label}</dt>
+                      <dd className="tnum">{value}</dd>
+                    </div>
+                  ))}
                 </dl>
               </div>
             </Card>
           ) : null}
 
           <Card>
-            <CardHeader title="Inventory" />
-            <dl className="space-y-1 px-4 py-3 text-xs">
-              <div className="flex justify-between">
-                <dt className="text-muted">Scenarios</dt>
-                <dd className="tnum">{data.inventory.scenarios}</dd>
-              </div>
-              {data.inventory.scenarios_awaiting_approval > 0 ? (
-                <div className="flex justify-between">
-                  <dt className="text-[rgb(var(--warn))]">Drafts awaiting approval</dt>
-                  <dd className="tnum text-[rgb(var(--warn))]">
-                    {data.inventory.scenarios_awaiting_approval}
-                  </dd>
-                </div>
-              ) : null}
-              <div className="flex justify-between">
-                <dt className="text-muted">Datasets</dt>
-                <dd className="tnum">{data.inventory.datasets}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted">Campaigns</dt>
-                <dd className="tnum">{data.inventory.campaigns}</dd>
-              </div>
+            <CardHead title="Inventory" />
+            <dl className="border-t border-line px-4 py-3 text-xs">
+              {[
+                ["Scenarios", data.inventory.scenarios, false],
+                [
+                  "Drafts awaiting approval",
+                  data.inventory.scenarios_awaiting_approval,
+                  data.inventory.scenarios_awaiting_approval > 0,
+                ],
+                ["Datasets", data.inventory.datasets, false],
+                ["Campaigns", data.inventory.campaigns, false],
+              ].map(([label, value, warn]) =>
+                label === "Drafts awaiting approval" && !value ? null : (
+                  <div key={String(label)} className="flex justify-between py-0.5">
+                    <dt className={warn ? "text-warn" : "text-muted"}>{label}</dt>
+                    <dd className={`tnum ${warn ? "text-warn" : ""}`}>{String(value)}</dd>
+                  </div>
+                ),
+              )}
             </dl>
           </Card>
         </div>
@@ -201,35 +160,33 @@ export default function ProjectReadinessPage({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Systems under evaluation" />
+          <CardHead title="Systems under evaluation" />
           {data.systems.length === 0 ? (
             <Empty title="No system registered" detail="Register the system and its configuration." />
           ) : (
-            <div className="divide-y divide-line">
-              {data.systems.map((system) => (
-                <div key={system.version_id} className="px-4 py-3">
+            <div className="border-t border-line">
+              {data.systems.map((system, index) => (
+                <div
+                  key={system.version_id}
+                  className="stagger border-b border-line px-4 py-3 last:border-0"
+                  style={{ ["--stagger-delay" as string]: `${index * 40}ms` }}
+                >
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-sm font-medium">{system.system}</span>
+                    <span className="text-base text-ink">{system.system}</span>
                     <span className="text-sm text-muted">{system.version}</span>
-                    <span className="rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted">
+                    <span className="border border-line px-1 py-px text-2xs uppercase tracking-wider text-faint">
                       {system.kind}
                     </span>
                   </div>
-                  <dl className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-muted">
-                    <div className="flex gap-1.5">
-                      <dt>Model</dt>
-                      <dd className="text-ink">{system.model_name ?? "not recorded"}</dd>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <dt>Connector</dt>
-                      <dd className="text-ink">{system.connector}</dd>
-                    </div>
-                    <div className="col-span-2 flex items-center gap-1.5">
-                      <dt>Configuration</dt>
-                      <dd>
-                        <Hash value={system.config_hash} length={16} />
-                      </dd>
-                    </div>
+                  <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs text-muted">
+                    <dt>Model</dt>
+                    <dd className="text-ink-soft">{system.model_name ?? "not recorded"}</dd>
+                    <dt>Connector</dt>
+                    <dd className="text-ink-soft">{system.connector}</dd>
+                    <dt>Configuration</dt>
+                    <dd>
+                      <Hash value={system.config_hash} length={16} />
+                    </dd>
                   </dl>
                 </div>
               ))}
@@ -239,19 +196,14 @@ export default function ProjectReadinessPage({
 
         {data.mission ? (
           <Card>
-            <CardHeader
-              title="Mission profile"
-              subtitle="What the evaluation is judged against"
-            />
-            <div className="space-y-3 px-4 py-3 text-sm">
+            <CardHead title="Mission profile" meta="What the evaluation is judged against" />
+            <div className="space-y-3 border-t border-line px-4 py-3">
               {data.mission.tasks.length > 0 ? (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted">Tasks</div>
-                  <ul className="mt-1 space-y-0.5">
+                  <div className="text-2xs uppercase tracking-wider text-faint">Tasks</div>
+                  <ul className="mt-1 space-y-0.5 text-sm">
                     {data.mission.tasks.map((task) => (
-                      <li key={task} className="text-sm">
-                        {task}
-                      </li>
+                      <li key={task}>{task}</li>
                     ))}
                   </ul>
                 </div>
@@ -259,13 +211,13 @@ export default function ProjectReadinessPage({
 
               {data.mission.unacceptable_failures.length > 0 ? (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted">
+                  <div className="text-2xs uppercase tracking-wider text-faint">
                     Declared unacceptable
                   </div>
-                  <ul className="mt-1 space-y-0.5">
+                  <ul className="mt-1 space-y-1">
                     {data.mission.unacceptable_failures.map((failure) => (
                       <li key={failure} className="flex gap-2 text-sm">
-                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[rgb(var(--fail))]" />
+                        <span className="mt-[7px] h-[5px] w-[5px] shrink-0 bg-fail" />
                         {failure}
                       </li>
                     ))}
@@ -274,10 +226,10 @@ export default function ProjectReadinessPage({
               ) : null}
 
               {data.mission.latency_requirement_ms ? (
-                <div className="text-xs text-muted">
-                  Latency requirement:{" "}
+                <p className="text-xs text-muted">
+                  Latency requirement{" "}
                   <span className="tnum text-ink">{data.mission.latency_requirement_ms} ms</span>
-                </div>
+                </p>
               ) : null}
             </div>
           </Card>
@@ -292,11 +244,79 @@ export default function ProjectReadinessPage({
       </div>
 
       {data.latest_campaign ? (
-        <p className="text-xs text-muted">
+        <p className="text-xs text-faint">
           Latest campaign {data.latest_campaign.name} · {data.latest_campaign.status} ·{" "}
           {formatDate(data.latest_campaign.completed_at)}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * One dimension of readiness.
+ *
+ * The proportion bar is drawn only when something was judged. An empty bar
+ * beside an untested dimension would read as a score of zero, which is a
+ * different claim from "not tested" — so the row says which it is in words.
+ */
+function DimensionRow({
+  dimension,
+  index,
+}: {
+  dimension: ReadinessDimension;
+  index: number;
+}) {
+  const scoreable = dimension.passed + dimension.failed + dimension.warning;
+
+  return (
+    <div
+      className="stagger group flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 transition-colors duration-150 last:border-0 hover:bg-sunken"
+      style={{ ["--stagger-delay" as string]: `${index * 24}ms` }}
+    >
+      <div className="w-40 shrink-0 text-base text-ink">{dimension.label}</div>
+      <div className="w-[104px] shrink-0">
+        <Status status={dimension.status} />
+      </div>
+
+      {scoreable > 0 ? (
+        <div className="flex h-[3px] min-w-[70px] flex-1 overflow-hidden bg-line">
+          {[
+            { n: dimension.passed, cls: "bg-pass" },
+            { n: dimension.warning, cls: "bg-warn" },
+            { n: dimension.failed, cls: "bg-fail" },
+          ].map((part, i) => (
+            <div
+              key={i}
+              className={`h-full ${part.cls} transition-[width] duration-700 ease-out`}
+              style={{ width: `${(part.n / scoreable) * 100}%` }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="min-w-[70px] flex-1 text-xs text-faint">
+          {dimension.pending_human > 0
+            ? `${dimension.pending_human} awaiting human review`
+            : dimension.executions > 0
+              ? `${dimension.executions} executed, none reached a judgement`
+              : "No evaluation covers this dimension"}
+        </div>
+      )}
+
+      <div className="tnum w-14 shrink-0 text-right text-base">
+        {formatPercent(dimension.pass_rate)}
+      </div>
+
+      <div className="w-16 shrink-0 text-right">
+        {dimension.run_ids.length > 0 ? (
+          <Link
+            href={`/runs/${dimension.run_ids[0]}`}
+            className="link-underline text-xs text-faint opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-ink"
+          >
+            evidence
+          </Link>
+        ) : null}
+      </div>
     </div>
   );
 }

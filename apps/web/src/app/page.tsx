@@ -2,175 +2,235 @@
 
 import Link from "next/link";
 
-import { Card, CardHeader, Empty, ErrorNote, Spinner, Stat, formatPercent } from "@/components/ui";
-import { SeverityChip } from "@/components/status";
-import { useResource } from "@/components/shell";
+import { SeverityTag } from "@/components/status";
+import { useAuth, useResource } from "@/components/shell";
+import {
+  Card,
+  CardHead,
+  Caveat,
+  Empty,
+  ErrorNote,
+  Figure,
+  Table,
+  TableSkeleton,
+  Td,
+  Th,
+  Tr,
+  formatPercent,
+  greeting,
+} from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Overview, Severity } from "@/lib/types";
 
-const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
+const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
 
 export default function PortfolioPage() {
+  const { session } = useAuth();
   const { data, error, loading } = useResource<Overview>(() => api.get<Overview>("/dashboard"));
 
-  if (loading) return <Spinner label="Loading portfolio" />;
-  if (error) return <ErrorNote message={error} />;
-  if (!data) return null;
-
-  const { counts, findings, risks, evidence_coverage: coverage } = data;
+  const firstName = (session?.fullName ?? session?.email ?? "").split(/[\s@]/)[0];
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">Portfolio</h1>
-        <p className="mt-0.5 text-sm text-muted">
-          Every AI capability under evaluation, and the evidence behind it.
+      {/* The one line of serif in the product. It makes the portfolio read as
+          a place you arrive, not a report you were handed. */}
+      <div className="animate-rise py-3 text-center">
+        <h1 className="font-serif text-4xl text-ink">
+          {greeting()}
+          {firstName ? (
+            <>
+              , <span className="text-faint">{firstName}</span>
+            </>
+          ) : null}
+        </h1>
+        <p className="mt-1.5 text-sm text-muted">
+          {loading
+            ? "Loading the portfolio…"
+            : data
+              ? summarise(data)
+              : "Nothing to report."}
         </p>
       </div>
 
-      {/* North star: not a score, a coverage ratio with its definition attached. */}
-      <Card>
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-muted">
-              Complete evidence chain
-            </div>
-            <div className="tnum mt-1 text-3xl font-semibold">
-              {coverage.projects_with_complete_chain}
-              <span className="text-lg font-normal text-muted"> / {coverage.projects}</span>
-              {coverage.ratio !== null ? (
-                <span className="ml-2 text-base font-normal text-muted">
-                  ({formatPercent(coverage.ratio)})
-                </span>
-              ) : null}
-            </div>
-          </div>
-          <p className="max-w-2xl border-l-2 border-line pl-3 text-xs leading-relaxed text-muted sm:ml-4">
-            {coverage.definition}
-          </p>
-        </div>
-      </Card>
+      {error ? <ErrorNote message={error} /> : null}
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 lg:grid-cols-6">
-        {[
-          { label: "Projects", value: counts.projects },
-          { label: "Systems", value: counts.systems },
-          { label: "Campaigns", value: counts.campaigns },
-          { label: "Executions", value: counts.executions?.toLocaleString() },
-          {
-            label: "Failures",
-            value: counts.failures,
-            tone: counts.failures > 0 ? ("fail" as const) : undefined,
-          },
-          {
-            label: "Awaiting review",
-            value: counts.awaiting_human_review,
-            tone: counts.awaiting_human_review > 0 ? ("warn" as const) : undefined,
-          },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-raised">
-            <Stat label={stat.label} value={stat.value ?? "—"} tone={stat.tone} />
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader
-            title="Projects"
-            subtitle={`${data.projects.length} under evaluation`}
-          />
-          {data.projects.length === 0 ? (
-            <Empty
-              title="No projects yet"
-              detail="A project pairs an AI capability with the mission it is intended for."
-            />
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted">
-                  <th className="px-4 py-2 font-medium">Project</th>
-                  <th className="px-4 py-2 font-medium">Marking</th>
-                  <th className="px-4 py-2 font-medium">Impact</th>
-                  <th className="px-4 py-2 text-right font-medium">Open findings</th>
-                  <th className="px-4 py-2 text-right font-medium">Critical</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.projects.map((project) => (
-                  <tr
-                    key={project.id}
-                    className="border-b border-line last:border-0 hover:bg-[rgb(var(--unknown-bg))]"
-                  >
-                    <td className="px-4 py-2.5">
-                      <Link
-                        href={`/projects/${project.id}`}
-                        className="font-medium hover:underline"
-                      >
-                        {project.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-muted">{project.classification}</td>
-                    <td className="px-4 py-2.5 text-xs text-muted">
-                      {project.impact_level ?? "—"}
-                    </td>
-                    <td className="tnum px-4 py-2.5 text-right">{project.open_findings}</td>
-                    <td className="tnum px-4 py-2.5 text-right">
-                      {project.critical_findings > 0 ? (
-                        <span className="font-semibold text-[rgb(var(--fail))]">
-                          {project.critical_findings}
-                        </span>
-                      ) : (
-                        <span className="text-muted">0</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+      {loading ? (
+        <Card>
+          <TableSkeleton rows={5} cols={5} />
         </Card>
+      ) : data ? (
+        <>
+          <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-3 lg:grid-cols-6">
+            {[
+              { label: "Projects", value: data.counts.projects },
+              { label: "Systems", value: data.counts.systems },
+              { label: "Campaigns", value: data.counts.campaigns },
+              { label: "Executions", value: data.counts.executions },
+              {
+                label: "Failures",
+                value: data.counts.failures,
+                tone: data.counts.failures > 0 ? ("fail" as const) : undefined,
+              },
+              {
+                label: "Awaiting review",
+                value: data.counts.awaiting_human_review,
+                tone:
+                  data.counts.awaiting_human_review > 0 ? ("warn" as const) : undefined,
+              },
+            ].map((stat, index) => (
+              <div
+                key={stat.label}
+                className="stagger bg-panel px-4 py-3.5"
+                style={{ ["--stagger-delay" as string]: `${index * 30}ms` }}
+              >
+                <Figure
+                  label={stat.label}
+                  countTo={stat.value ?? 0}
+                  tone={stat.tone}
+                  size="sm"
+                />
+              </div>
+            ))}
+          </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader title="Open findings" subtitle="Unresolved, across the portfolio" />
-            <div className="divide-y divide-line">
-              {SEVERITIES.map((severity) => {
-                const count = findings[severity] ?? 0;
-                const total = SEVERITIES.reduce((sum, s) => sum + (findings[s] ?? 0), 0);
-                const width = total > 0 ? (count / total) * 100 : 0;
-                return (
-                  <div key={severity} className="flex items-center gap-3 px-4 py-2">
-                    <SeverityChip severity={severity} />
-                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-[rgb(var(--unknown-bg))]">
-                      <div
-                        className={`h-full rounded-full ${
-                          severity === "critical"
-                            ? "bg-[rgb(var(--fail))]"
-                            : severity === "high"
-                              ? "bg-[rgb(var(--warn))]"
-                              : "bg-[rgb(var(--accent))]"
-                        }`}
-                        style={{ width: `${width}%` }}
-                      />
-                    </div>
-                    <span className="tnum w-8 text-right text-sm">{count}</span>
+          <div className="grid items-start gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHead title="Projects" meta={`${data.projects.length} under evaluation`} />
+              {data.projects.length === 0 ? (
+                <Empty
+                  title="No projects yet"
+                  detail="A project pairs an AI capability with the mission it is intended for."
+                />
+              ) : (
+                <Table minWidth={560}>
+                  <thead>
+                    <tr>
+                      <Th>Project</Th>
+                      <Th>Marking</Th>
+                      <Th>Impact</Th>
+                      <Th align="right">Open</Th>
+                      <Th align="right">Critical</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.projects.map((project, index) => (
+                      <Tr key={project.id} index={index}>
+                        <Td>
+                          <Link
+                            href={`/projects/${project.id}`}
+                            className="link-underline text-ink"
+                          >
+                            {project.name}
+                          </Link>
+                        </Td>
+                        <Td className="text-xs text-muted">{project.classification}</Td>
+                        <Td className="text-xs text-muted">{project.impact_level ?? "—"}</Td>
+                        <Td align="right" className="tnum">
+                          {project.open_findings}
+                        </Td>
+                        <Td align="right" className="tnum">
+                          {project.critical_findings > 0 ? (
+                            <span className="text-fail">{project.critical_findings}</span>
+                          ) : (
+                            <span className="text-faint">0</span>
+                          )}
+                        </Td>
+                      </Tr>
+                    ))}
+                  </tbody>
+                </Table>
+              )}
+            </Card>
+
+            <div className="space-y-4">
+              <Card>
+                <CardHead title="Evidence coverage" />
+                <div className="px-4 pb-4">
+                  <Figure
+                    label="Complete chain"
+                    value={
+                      <span>
+                        {data.evidence_coverage.projects_with_complete_chain}
+                        <span className="text-xl text-faint">
+                          {" / "}
+                          {data.evidence_coverage.projects}
+                        </span>
+                      </span>
+                    }
+                    note={
+                      data.evidence_coverage.ratio !== null
+                        ? formatPercent(data.evidence_coverage.ratio)
+                        : undefined
+                    }
+                  />
+                  <div className="mt-3">
+                    <Caveat>{data.evidence_coverage.definition}</Caveat>
                   </div>
-                );
-              })}
-            </div>
-          </Card>
+                </div>
+              </Card>
 
-          <Card>
-            <CardHeader title="Risks" />
-            <div className="grid grid-cols-3 divide-x divide-line">
-              <Stat label="Total" value={risks.total} />
-              <Stat label="Open" value={risks.open} tone={risks.open ? "warn" : "muted"} />
-              <Stat label="Accepted" value={risks.accepted} tone="muted" />
+              <Card>
+                <CardHead title="Open findings" meta="Unresolved, portfolio-wide" />
+                <div>
+                  {SEVERITIES.map((severity, index) => {
+                    const count = data.findings[severity] ?? 0;
+                    const total = SEVERITIES.reduce(
+                      (sum, s) => sum + (data.findings[s] ?? 0),
+                      0,
+                    );
+                    const width = total > 0 ? (count / total) * 100 : 0;
+                    return (
+                      <div
+                        key={severity}
+                        className="stagger flex items-center gap-3 border-t border-line px-4 py-2"
+                        style={{ ["--stagger-delay" as string]: `${index * 30}ms` }}
+                      >
+                        <span className="w-16">
+                          <SeverityTag severity={severity} />
+                        </span>
+                        <span className="h-px flex-1 bg-line">
+                          <span
+                            className="block h-px bg-ink transition-[width] duration-500 ease-out"
+                            style={{ width: `${width}%` }}
+                          />
+                        </span>
+                        <span className="tnum w-6 text-right text-sm">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              <Card>
+                <CardHead title="Risks" />
+                <div className="grid grid-cols-3 divide-x divide-line border-t border-line">
+                  {[
+                    { label: "Total", value: data.risks.total },
+                    { label: "Open", value: data.risks.open },
+                    { label: "Accepted", value: data.risks.accepted },
+                  ].map((item) => (
+                    <div key={item.label} className="px-4 py-3">
+                      <Figure label={item.label} countTo={item.value} size="sm" />
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </div>
-      </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
+}
+
+function summarise(data: Overview): string {
+  const critical = data.findings.critical ?? 0;
+  const awaiting = data.counts.awaiting_human_review ?? 0;
+  if (critical > 0) {
+    return `${critical} unresolved critical finding${critical === 1 ? "" : "s"} across ${data.counts.projects} project${data.counts.projects === 1 ? "" : "s"}.`;
+  }
+  if (awaiting > 0) {
+    return `${awaiting} result${awaiting === 1 ? "" : "s"} awaiting human review.`;
+  }
+  return "Nothing needs your attention right now.";
 }

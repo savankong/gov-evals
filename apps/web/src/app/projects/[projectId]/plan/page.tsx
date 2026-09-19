@@ -3,7 +3,23 @@
 import { use, useState } from "react";
 
 import { useAuth, useResource } from "@/components/shell";
-import { Button, Card, CardHeader, Caveat, Empty, ErrorNote, Spinner } from "@/components/ui";
+import {
+  Bar,
+  Button,
+  Card,
+  CardHead,
+  Caveat,
+  Empty,
+  ErrorNote,
+  Select,
+  Spec,
+  Spinner,
+  Table,
+  Tag,
+  Td,
+  Th,
+  Tr,
+} from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import type { EvaluationBrief } from "@/lib/types";
 
@@ -80,22 +96,20 @@ export default function PlanPage({ params }: { params: Promise<{ projectId: stri
     <div className="space-y-4">
       {actionError ? <ErrorNote message={actionError} /> : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {(plans.data ?? []).map((plan) => (
-          <button
-            key={plan.id}
-            onClick={() => setPlanId(plan.id)}
-            className={`rounded-full border px-3 py-1 text-xs ${
-              activeId === plan.id
-                ? "border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 text-ink"
-                : "border-line text-muted hover:text-ink"
-            }`}
-          >
-            {plan.name} · {plan.status}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        {(plans.data ?? []).length > 0 ? (
+          <Select
+            label="Plan"
+            value={activeId ?? ""}
+            onChange={setPlanId}
+            options={(plans.data ?? []).map((plan) => ({
+              value: plan.id,
+              label: `${plan.name} · ${plan.status}`,
+            }))}
+          />
+        ) : null}
         {can("evaluation:write") ? (
-          <Button onClick={generate} disabled={busy} size="sm">
+          <Button onClick={generate} disabled={busy}>
             {busy ? "Drafting…" : "Draft from mission profile"}
           </Button>
         ) : null}
@@ -114,124 +128,159 @@ export default function PlanPage({ params }: { params: Promise<{ projectId: stri
         <ErrorNote message={detail.error} />
       ) : detail.data && coverage ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader title="Coverage by T&E area" />
-              <div className="divide-y divide-line">
-                {Object.entries(coverage.layers).map(([key, info]) => (
-                  <div key={key} className="flex items-center justify-between px-4 py-2 text-sm">
-                    <span>{info.label}</span>
-                    {info.count > 0 ? (
-                      <span className="tnum text-muted">{info.count}</span>
-                    ) : (
-                      <span className="text-xs font-medium text-[rgb(var(--warn))]">
-                        not covered
-                      </span>
-                    )}
-                  </div>
-                ))}
+              <CardHead
+                title="Coverage by T&E area"
+                meta="The four layers a system is evaluated across"
+              />
+              <div className="border-t border-line">
+                {Object.entries(coverage.layers).map(([key, info]) => {
+                  const peak = Math.max(
+                    1,
+                    ...Object.values(coverage.layers).map((layer) => layer.count),
+                  );
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
+                    >
+                      <span className="w-52 shrink-0 truncate text-sm text-ink">{info.label}</span>
+                      <Bar
+                        value={info.count / peak}
+                        tone={info.count === 0 ? "muted" : "ink"}
+                        className="flex-1"
+                      />
+                      {info.count > 0 ? (
+                        <span className="numeral tnum w-8 shrink-0 text-right text-base text-ink">
+                          {info.count}
+                        </span>
+                      ) : (
+                        <span className="w-8 shrink-0 text-right text-2xs uppercase tracking-wider text-warn">
+                          none
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </Card>
 
             <Card>
-              <CardHeader title="Readiness to approve" />
-              <div className="space-y-2 px-4 py-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Evaluations in plan</span>
-                  <span className="tnum">{coverage.evaluations}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Thresholds unconfirmed</span>
-                  <span
-                    className={`tnum ${
-                      coverage.thresholds_unconfirmed ? "text-[rgb(var(--warn))]" : ""
-                    }`}
+              <CardHead
+                title="Readiness to approve"
+                meta="What stands between this draft and an approved plan"
+              />
+              <div className="border-t border-line">
+                {[
+                  {
+                    label: "Evaluations in plan",
+                    value: coverage.evaluations,
+                    warn: false,
+                  },
+                  {
+                    label: "Thresholds unconfirmed",
+                    value: coverage.thresholds_unconfirmed,
+                    warn: coverage.thresholds_unconfirmed > 0,
+                  },
+                  {
+                    label: "Evaluations without scenarios",
+                    value: coverage.evaluations_without_scenarios.length,
+                    warn: coverage.evaluations_without_scenarios.length > 0,
+                  },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-center justify-between border-b border-line px-4 py-2"
                   >
-                    {coverage.thresholds_unconfirmed}
-                  </span>
+                    <span className="text-sm text-muted">{row.label}</span>
+                    <span
+                      className={`numeral tnum text-base ${row.warn ? "text-warn" : "text-ink"}`}
+                    >
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+                <div className="space-y-2 px-4 py-3">
+                  {coverage.uncovered_domains.length > 0 ? (
+                    <p className="text-xs leading-relaxed text-muted">
+                      Not covered: {coverage.uncovered_domains.join(", ")}. Those domains will
+                      report NOT EVALUATED.
+                    </p>
+                  ) : null}
+                  <Caveat>
+                    {coverage.thresholds_unconfirmed > 0
+                      ? "A library default is a suggestion, not a passing bar. The program office confirms each threshold before this plan can be approved."
+                      : coverage.note}
+                  </Caveat>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Evaluations without scenarios</span>
-                  <span
-                    className={`tnum ${
-                      coverage.evaluations_without_scenarios.length
-                        ? "text-[rgb(var(--warn))]"
-                        : ""
-                    }`}
-                  >
-                    {coverage.evaluations_without_scenarios.length}
-                  </span>
-                </div>
-                {coverage.uncovered_domains.length > 0 ? (
-                  <p className="border-t border-line pt-2 text-xs text-muted">
-                    Not covered: {coverage.uncovered_domains.join(", ")}. Those domains will report
-                    NOT EVALUATED.
-                  </p>
-                ) : null}
-                <Caveat>
-                  {coverage.thresholds_unconfirmed > 0
-                    ? "A library default is a suggestion, not a passing bar. The program office confirms each threshold before this plan can be approved."
-                    : coverage.note}
-                </Caveat>
               </div>
             </Card>
           </div>
 
           <Card>
-            <CardHeader
+            <CardHead
               title={detail.data.plan.name}
-              subtitle={detail.data.plan.rationale ?? undefined}
+              meta={detail.data.plan.rationale ?? undefined}
+              action={<Tag tone="strong">{detail.data.plan.status}</Tag>}
             />
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] text-sm">
+            {detail.data.items.length === 0 ? (
+              <div className="border-t border-line">
+                <Empty title="This plan lists no evaluations" />
+              </div>
+            ) : (
+              <Table minWidth={880}>
                 <thead>
-                  <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted">
-                    <th className="px-4 py-2 font-medium">Evaluation</th>
-                    <th className="px-4 py-2 font-medium">Layer / domain</th>
-                    <th className="px-4 py-2 font-medium">Threshold</th>
-                    <th className="px-4 py-2 font-medium">Why it is in this plan</th>
+                  <tr>
+                    <Th className="w-[240px]">Evaluation</Th>
+                    <Th className="w-[150px]">Layer / domain</Th>
+                    <Th className="w-[230px]">Threshold</Th>
+                    <Th>Why it is in this plan</Th>
                   </tr>
                 </thead>
                 <tbody>
-                  {detail.data.items.map((item) => {
+                  {detail.data.items.map((item, index) => {
                     const threshold = { ...item.threshold };
-                    const unconfirmed =
-                      threshold.source === "library_default_unconfirmed";
+                    const unconfirmed = threshold.source === "library_default_unconfirmed";
                     delete threshold.source;
                     return (
-                      <tr key={item.id} className="border-b border-line last:border-0">
-                        <td className="px-4 py-2.5">
-                          <div className="font-medium">{item.evaluation?.name}</div>
-                          <code className="font-mono text-[11px] text-muted">
+                      <Tr key={item.id} index={index}>
+                        <Td>
+                          <div className="text-sm text-ink">{item.evaluation?.name}</div>
+                          <div className="font-mono text-2xs text-faint">
                             {item.evaluation?.key}
-                          </code>
-                        </td>
-                        <td className="px-4 py-2.5 text-xs text-muted">
-                          {item.evaluation?.layer?.replace(/_/g, " ")}
-                          <br />
-                          {item.evaluation?.domain?.replace(/_/g, " ")}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <code className="tnum rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 font-mono text-[11px]">
-                            {Object.keys(threshold).length
-                              ? JSON.stringify(threshold)
-                              : "not set"}
-                          </code>
+                          </div>
+                        </Td>
+                        <Td>
+                          <div className="text-xs text-muted">
+                            {item.evaluation?.layer?.replace(/_/g, " ")}
+                          </div>
+                          <div className="text-xs text-faint">
+                            {item.evaluation?.domain?.replace(/_/g, " ")}
+                          </div>
+                        </Td>
+                        <Td>
+                          {/* Rendered as pairs rather than as the JSON on the
+                              wire: this is the bar the program office agreed
+                              to, and it should read as one. */}
+                          <Spec value={threshold} />
                           {unconfirmed ? (
-                            <div className="mt-0.5 text-[10px] text-[rgb(var(--warn))]">
-                              library default, unconfirmed
+                            <div className="mt-1">
+                              <Tag tone="warn">library default, unconfirmed</Tag>
                             </div>
                           ) : null}
-                        </td>
-                        <td className="px-4 py-2.5 text-xs leading-relaxed text-muted">
-                          {item.rationale}
-                        </td>
-                      </tr>
+                        </Td>
+                        <Td>
+                          <span className="text-xs leading-relaxed text-muted">
+                            {item.rationale}
+                          </span>
+                        </Td>
+                      </Tr>
                     );
                   })}
                 </tbody>
-              </table>
-            </div>
+              </Table>
+            )}
           </Card>
         </>
       ) : null}

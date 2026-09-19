@@ -2,62 +2,226 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --surface: 250 250 249;
-  --raised: 255 255 255;
-  --line: 231 229 228;
-  --ink: 28 25 23;
-  --muted: 120 113 108;
-  --accent: 30 64 118;
+/*
+ * Aegis Eval design system.
+ *
+ * Monochrome by construction. The only saturated colour in the interface is
+ * the small square that carries a status, which is what makes those squares
+ * readable at a glance in a dense table. Borders are hairlines, corners are
+ * effectively square, and nothing casts a shadow: depth is expressed by
+ * borders and surface value, not by elevation.
+ */
 
-  /* Status colours. NOT EVALUATED is deliberately given its own treatment
-     rather than a neutral grey, because a grey chip reads as "fine". */
-  --pass: 21 128 61;
-  --pass-bg: 240 253 244;
-  --warn: 161 98 7;
-  --warn-bg: 254 252 232;
-  --fail: 185 28 28;
-  --fail-bg: 254 242 242;
-  --unknown: 87 83 78;
-  --unknown-bg: 245 245 244;
-  --pending: 29 78 216;
-  --pending-bg: 239 246 255;
+:root {
+  /* Surfaces, light to dark. `canvas` is the page, `panel` is a card. */
+  --canvas: 250 250 249;
+  --panel: 255 255 255;
+  --sunken: 246 246 245;
+  --line: 229 229 227;
+  --line-strong: 212 212 209;
+
+  --ink: 23 23 23;
+  --ink-soft: 82 82 82;
+  --muted: 115 115 115;
+  --faint: 163 163 163;
+
+  /* The accent is ink. Emphasis comes from weight and contrast, not hue. */
+  --accent: 23 23 23;
+  --accent-ink: 255 255 255;
+
+  /* Status. Used as small squares and as text only where a verdict is read. */
+  --pass: 22 128 61;
+  --warn: 180 105 8;
+  --fail: 190 30 30;
+  --pending: 37 99 195;
+  --unknown: 140 140 138;
+
+  --shimmer: 0 0 0;
+
+  color-scheme: light;
 }
 
 .dark {
-  --surface: 12 12 14;
-  --raised: 24 24 27;
-  --line: 45 45 50;
-  --ink: 237 235 233;
-  --muted: 150 145 140;
-  --accent: 125 170 255;
+  --canvas: 10 10 10;
+  --panel: 18 18 18;
+  --sunken: 24 24 24;
+  --line: 38 38 38;
+  --line-strong: 56 56 56;
 
-  --pass: 134 239 172;
-  --pass-bg: 20 44 30;
-  --warn: 252 211 77;
-  --warn-bg: 52 40 10;
-  --fail: 252 165 165;
-  --fail-bg: 60 22 22;
-  --unknown: 168 162 158;
-  --unknown-bg: 38 38 40;
-  --pending: 147 197 253;
-  --pending-bg: 22 36 62;
+  --ink: 237 237 235;
+  --ink-soft: 190 190 187;
+  --muted: 138 138 135;
+  --faint: 100 100 98;
+
+  --accent: 237 237 235;
+  --accent-ink: 10 10 10;
+
+  --pass: 110 200 140;
+  --warn: 224 176 78;
+  --fail: 235 130 130;
+  --pending: 130 172 245;
+  --unknown: 120 120 118;
+
+  --shimmer: 255 255 255;
+
+  color-scheme: dark;
 }
 
 html,
 body {
-  background: rgb(var(--surface));
+  background: rgb(var(--canvas));
   color: rgb(var(--ink));
 }
 
 body {
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Tabular figures keep metric columns aligned as values change. */
+/* Numerals must not reflow as values change during a running campaign. */
 .tnum {
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Display numerals: large, light, tight. The signature of this interface. */
+.numeral {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+}
+
+::selection {
+  background: rgb(var(--ink) / 0.14);
+}
+
+/* Focus is always visible, never a glow. A crisp offset ring on a square
+   corner reads as deliberate at this density. */
+:focus-visible {
+  outline: 1px solid rgb(var(--ink));
+  outline-offset: 2px;
+}
+
+/* Scrollbars, sized down to match the hairline language. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line-strong)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-strong));
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------------- *
+ * Motion
+ *
+ * Two durations and two curves, used everywhere. `--ease-out` for things
+ * entering, `--ease-spring` for the slide-over, which benefits from a little
+ * overshoot. Everything is fast: this is a tool, and motion should confirm an
+ * action rather than perform for the viewer.
+ * ---------------------------------------------------------------------- */
+:root {
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* A live campaign pulses its status square. Slow enough to read as "working",
+   not as an alarm. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-rise {
+  animation: rise var(--dur) var(--ease-out) both;
+}
+
+.animate-fade {
+  animation: fade var(--dur) var(--ease-out) both;
+}
+
+.animate-breathe {
+  animation: breathe 1.8s var(--ease-in-out) infinite;
+}
+
+/* Skeleton: a sweep across a sunken block, not a pulsing grey box. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgb(var(--sunken));
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--shimmer) / 0.045),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+/* Rows and cards stagger in. The delay is set inline per index and capped, so
+   a 300-row table never waits on the animation. */
+.stagger {
+  animation: rise var(--dur) var(--ease-out) both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+/* Underline that draws from the left on hover, used for inline navigation. */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size var(--dur) var(--ease-out);
+}
+.link-underline:hover {
+  background-size: 100% 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -65,10 +229,11 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-::selection {
-  background: rgb(var(--accent) / 0.22);
+  .skeleton::after {
+    display: none;
+  }
 }

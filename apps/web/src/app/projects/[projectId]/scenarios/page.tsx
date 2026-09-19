@@ -3,7 +3,22 @@
 import { use, useState } from "react";
 
 import { useAuth, useResource } from "@/components/shell";
-import { Button, Card, CardHeader, Caveat, Empty, ErrorNote, FilterChips, Hash, Spinner } from "@/components/ui";
+import {
+  Button,
+  Card,
+  CardHead,
+  Caveat,
+  Empty,
+  ErrorNote,
+  Select,
+  Hash,
+  Spinner,
+  Table,
+  Tag,
+  Td,
+  Th,
+  Tr,
+} from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 
 interface Scenario {
@@ -87,10 +102,10 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
 
       {can("evaluation:write") ? (
         <div className="flex flex-wrap gap-2">
-          <Button onClick={generate} disabled={busy} size="sm">
+          <Button onClick={generate} disabled={busy}>
             Generate from mission profile
           </Button>
-          <Button onClick={materialiseRedTeam} disabled={busy} size="sm">
+          <Button onClick={materialiseRedTeam} disabled={busy}>
             Build adversarial scenarios
           </Button>
         </div>
@@ -98,16 +113,19 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
 
       {drafts.length > 0 ? (
         <Card>
-          <CardHeader
+          <CardHead
             title={`${drafts.length} draft${drafts.length === 1 ? "" : "s"} awaiting approval`}
-            subtitle="Generated scenarios do not run until a person approves them"
+            meta="Generated scenarios do not run until a person approves them"
           />
-          <div className="divide-y divide-line">
+          <div className="border-t border-line">
             {drafts.slice(0, 12).map((scenario) => (
-              <div key={scenario.id} className="flex items-start gap-3 px-4 py-2.5">
+              <div
+                key={scenario.id}
+                className="flex items-start gap-3 border-b border-line px-4 py-2.5 transition-colors duration-150 ease-out last:border-b-0 hover:bg-sunken"
+              >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{scenario.title}</p>
-                  <code className="font-mono text-[11px] text-muted">{scenario.key}</code>
+                  <p className="text-sm text-ink">{scenario.title}</p>
+                  <code className="font-mono text-2xs text-faint">{scenario.key}</code>
                   {scenario.expected_behavior.length > 0 ? (
                     <p className="mt-1 text-xs text-muted">
                       Expects: {scenario.expected_behavior.join("; ")}
@@ -115,9 +133,7 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
                   ) : null}
                 </div>
                 {can("evaluation:write") ? (
-                  <Button size="sm" onClick={() => approve(scenario.id)}>
-                    Approve
-                  </Button>
+                  <Button onClick={() => approve(scenario.id)}>Approve</Button>
                 ) : null}
               </div>
             ))}
@@ -131,67 +147,81 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
         </Card>
       ) : null}
 
-      <FilterChips
-        options={tags.map((t) => ({
-          key: t,
-          label: t,
-          count: all.filter((s) => s.tags.includes(t)).length,
-        }))}
-        active={tag}
-        onChange={setTag}
-        allLabel={`All (${all.length})`}
+      {/* A library this size carries more tags than a segmented control can
+          hold, and a row of chips that runs off the edge is worse than a
+          list. The tags are ordered by how much of the library each one
+          actually narrows. */}
+      <Select
+        label="Tag"
+        value={tag ?? ""}
+        onChange={(value) => setTag(value === "" ? null : value)}
+        options={[
+          { value: "", label: `All tags (${all.length})` },
+          ...tags
+            .map((t) => ({ tag: t, count: all.filter((s) => s.tags.includes(t)).length }))
+            .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
+            .map(({ tag: t, count }) => ({ value: t, label: `${t} · ${count}` })),
+        ]}
       />
 
       <Card>
-        <CardHeader title="Scenario library" subtitle={`${rows.length} shown`} />
+        <CardHead
+          title="Scenario library"
+          meta={rows.length === all.length ? `${all.length} total` : `${rows.length} of ${all.length}`}
+        />
         {rows.length === 0 ? (
-          <Empty title="No scenarios match this filter" />
+          <div className="border-t border-line">
+            <Empty title="No scenarios match this filter" />
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead>
-                <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted">
-                  <th className="px-4 py-2 font-medium">Scenario</th>
-                  <th className="px-4 py-2 font-medium">Tags</th>
-                  <th className="px-4 py-2 font-medium">Difficulty</th>
-                  <th className="px-4 py-2 font-medium">Source</th>
-                  <th className="px-4 py-2 font-medium">Version hash</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((scenario) => (
-                  <tr key={scenario.id} className="border-b border-line last:border-0">
-                    <td className="px-4 py-2.5">
-                      <div className="text-sm">{scenario.title}</div>
-                      <code className="font-mono text-[11px] text-muted">{scenario.key}</code>
-                      {!scenario.approved ? (
-                        <span className="ml-2 rounded bg-[rgb(var(--warn-bg))] px-1.5 py-0.5 text-[10px] text-[rgb(var(--warn))]">
-                          draft
+          <Table minWidth={820}>
+            <thead>
+              <tr>
+                <Th>Scenario</Th>
+                <Th className="w-[220px]">Tags</Th>
+                <Th className="w-[110px]">Difficulty</Th>
+                <Th className="w-[130px]">Source</Th>
+                <Th className="w-[120px]">Version hash</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((scenario, index) => (
+                <Tr key={scenario.id} index={index}>
+                  <Td>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-ink">{scenario.title}</span>
+                      {/* A draft is marked everywhere it appears. A scenario
+                          nobody has accepted as fair is not part of the test
+                          set yet, however finished it looks. */}
+                      {!scenario.approved ? <Tag tone="warn">draft</Tag> : null}
+                    </div>
+                    <code className="font-mono text-2xs text-faint">{scenario.key}</code>
+                  </Td>
+                  <Td>
+                    <div className="flex flex-wrap gap-1">
+                      {scenario.tags.slice(0, 4).map((t) => (
+                        <Tag key={t}>{t}</Tag>
+                      ))}
+                      {scenario.tags.length > 4 ? (
+                        <span className="text-2xs text-faint">
+                          +{scenario.tags.length - 4}
                         </span>
                       ) : null}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex flex-wrap gap-1">
-                        {scenario.tags.slice(0, 4).map((t) => (
-                          <span
-                            key={t}
-                            className="rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 text-[10px] text-muted"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-muted">{scenario.difficulty}</td>
-                    <td className="px-4 py-2.5 text-xs text-muted">{scenario.source ?? "—"}</td>
-                    <td className="px-4 py-2.5">
-                      <Hash value={scenario.content_hash} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </Td>
+                  <Td>
+                    <span className="text-xs text-muted">{scenario.difficulty}</span>
+                  </Td>
+                  <Td>
+                    <span className="text-xs text-muted">{scenario.source ?? "—"}</span>
+                  </Td>
+                  <Td>
+                    <Hash value={scenario.content_hash} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
         )}
       </Card>
     </div>

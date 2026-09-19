@@ -2,9 +2,23 @@
 
 import { useState } from "react";
 
-import { EvaluatorKindBadge } from "@/components/status";
+import { EvaluatorKind, SeverityTag } from "@/components/status";
 import { useResource } from "@/components/shell";
-import { Card, CardHeader, Caveat, ErrorNote, Spinner, Tabs } from "@/components/ui";
+import {
+  Card,
+  CardHead,
+  Caveat,
+  ErrorNote,
+  Hash,
+  PageTitle,
+  Spinner,
+  Table,
+  Tabs,
+  Tag,
+  Td,
+  Th,
+  Tr,
+} from "@/components/ui";
 import { api } from "@/lib/api";
 
 interface Evaluator {
@@ -53,12 +67,10 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">Library</h1>
-        <p className="mt-0.5 text-sm text-muted">
-          What this deployment can evaluate with, and what it can evaluate against.
-        </p>
-      </div>
+      <PageTitle
+        title="Library"
+        subtitle="What this deployment can evaluate with, and what it can evaluate against."
+      />
 
       <Tabs
         tabs={[
@@ -72,78 +84,123 @@ export default function LibraryPage() {
       />
 
       {tab === "packs" ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {(packs.data?.packs ?? []).map((pack) => (
-            <Card key={pack.key} className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-semibold">{pack.name}</h3>
-                  <code className="font-mono text-[11px] text-muted">{pack.key}</code>
-                </div>
-                <span className="shrink-0 rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted">
-                  {pack.kind}
-                </span>
-              </div>
-              {pack.description ? (
-                <p className="mt-2 text-xs leading-relaxed text-muted">{pack.description}</p>
-              ) : null}
-              <div className="mt-2 flex items-center gap-3 text-[11px] text-muted">
-                <span>v{pack.version}</span>
-                {pack.publisher ? <span>{pack.publisher}</span> : null}
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardHead
+            title="Installed packs"
+            meta="Content is versioned and hashed, so a run can name exactly what it tested against"
+          />
+          <Table minWidth={760}>
+            <thead>
+              <tr>
+                <Th>Pack</Th>
+                <Th className="w-[110px]">Kind</Th>
+                <Th className="w-[80px]">Version</Th>
+                <Th className="w-[150px]">Publisher</Th>
+                <Th className="w-[120px]">Content hash</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {(packs.data?.packs ?? []).map((pack, index) => (
+                <Tr key={pack.key} index={index}>
+                  <Td>
+                    <div className="text-sm text-ink">{pack.name}</div>
+                    <div className="font-mono text-2xs text-faint">{pack.key}</div>
+                    {pack.description ? (
+                      <div className="mt-0.5 max-w-xl text-xs leading-relaxed text-muted">
+                        {pack.description}
+                      </div>
+                    ) : null}
+                  </Td>
+                  <Td>
+                    <Tag>{pack.kind}</Tag>
+                  </Td>
+                  <Td>
+                    <span className="tnum text-xs text-muted">v{pack.version}</span>
+                  </Td>
+                  <Td>
+                    <span className="text-xs text-muted">{pack.publisher ?? "—"}</span>
+                  </Td>
+                  <Td>
+                    <Hash value={pack.content_hash} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card>
       ) : null}
 
       {tab === "evaluators" ? (
         <Card>
-          <CardHeader
+          <CardHead
             title="Evaluators"
-            subtitle="Four kinds, so no single evaluator is treated as definitive"
+            meta="Four kinds, so no single evaluator is treated as definitive"
           />
-          <div className="divide-y divide-line">
-            {(evaluators.data?.evaluators ?? []).map((evaluator) => (
-              <div key={evaluator.key} className="px-4 py-2.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <code className="font-mono text-xs">{evaluator.key}</code>
-                  <EvaluatorKindBadge kind={evaluator.kind} />
-                  <span className="text-sm">{evaluator.label}</span>
-                </div>
-                {evaluator.description ? (
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted">
-                    {evaluator.description}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
+          <Table minWidth={720}>
+            <thead>
+              <tr>
+                <Th className="w-[200px]">Key</Th>
+                <Th className="w-[130px]">Kind</Th>
+                <Th>What it judges</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {(evaluators.data?.evaluators ?? []).map((evaluator, index) => (
+                <Tr key={evaluator.key} index={index}>
+                  <Td>
+                    <code className="font-mono text-xs text-ink">{evaluator.key}</code>
+                  </Td>
+                  <Td>
+                    <EvaluatorKind kind={evaluator.kind} />
+                  </Td>
+                  <Td>
+                    <div className="text-sm text-ink">{evaluator.label}</div>
+                    {evaluator.description ? (
+                      <div className="mt-0.5 text-xs leading-relaxed text-muted">
+                        {evaluator.description}
+                      </div>
+                    ) : null}
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
         </Card>
       ) : null}
 
       {tab === "connectors" ? (
         <Card>
-          <CardHeader
-            title="Connectors"
-            subtitle="Adapters speak wire protocols, not vendors"
-          />
-          <div className="divide-y divide-line">
-            {(connectors.data?.connectors ?? []).map((connector) => (
-              <div key={connector.key} className="flex items-center gap-3 px-4 py-2.5">
-                <code className="font-mono text-xs">{connector.key}</code>
-                <span className="flex-1 text-sm">{connector.label}</span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] ${
-                    connector.requires_egress
-                      ? "bg-[rgb(var(--warn-bg))] text-[rgb(var(--warn))]"
-                      : "bg-[rgb(var(--pass-bg))] text-[rgb(var(--pass))]"
-                  }`}
-                >
-                  {connector.requires_egress ? "needs egress" : "stays inside the boundary"}
-                </span>
-              </div>
-            ))}
-          </div>
+          <CardHead title="Connectors" meta="Adapters speak wire protocols, not vendors" />
+          <Table minWidth={680}>
+            <thead>
+              <tr>
+                <Th className="w-[180px]">Key</Th>
+                <Th>Adapter</Th>
+                <Th className="w-[230px]">Network</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {(connectors.data?.connectors ?? []).map((connector, index) => (
+                <Tr key={connector.key} index={index}>
+                  <Td>
+                    <code className="font-mono text-xs text-ink">{connector.key}</code>
+                  </Td>
+                  <Td>
+                    <span className="text-sm text-ink">{connector.label}</span>
+                  </Td>
+                  <Td>
+                    {/* Egress is the property a disconnected deployment cares
+                        about most, so it is a column rather than a footnote. */}
+                    {connector.requires_egress ? (
+                      <Tag tone="warn">needs egress</Tag>
+                    ) : (
+                      <Tag>stays inside the boundary</Tag>
+                    )}
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
           <div className="border-t border-line px-4 py-3">
             <Caveat>
               Under a deny egress policy, a connector whose host is not on the allowlist is
@@ -154,31 +211,48 @@ export default function LibraryPage() {
       ) : null}
 
       {tab === "attacks" ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {(attacks.data?.attacks ?? []).map((attack) => (
-            <Card key={attack.key} className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-semibold">{attack.name}</h3>
-                <span className="shrink-0 rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 text-[10px] text-muted">
-                  {attack.vector}
-                </span>
-              </div>
-              <div className="mt-1 flex flex-wrap gap-1.5 text-[10px]">
-                <span className="rounded bg-[rgb(var(--unknown-bg))] px-1.5 py-0.5 text-muted">
-                  {attack.category}
-                </span>
-                <span className="rounded bg-[rgb(var(--fail-bg))] px-1.5 py-0.5 text-[rgb(var(--fail))]">
-                  {attack.severity}
-                </span>
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted">{attack.description}</p>
-              <p className="mt-2 border-l-2 border-line pl-2 text-xs leading-relaxed">
-                <span className="text-muted">Mitigation. </span>
-                {attack.mitigation}
-              </p>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardHead
+            title="Attack library"
+            meta="Each technique carries the mitigation it is meant to test"
+          />
+          <Table minWidth={860}>
+            <thead>
+              <tr>
+                <Th className="w-[240px]">Technique</Th>
+                <Th className="w-[90px]">Severity</Th>
+                <Th>Description</Th>
+                <Th className="w-[280px]">Mitigation</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {(attacks.data?.attacks ?? []).map((attack, index) => (
+                <Tr key={attack.key} index={index}>
+                  <Td>
+                    <div className="text-sm text-ink">{attack.name}</div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <Tag>{attack.category}</Tag>
+                      <Tag>{attack.vector}</Tag>
+                    </div>
+                  </Td>
+                  <Td>
+                    <SeverityTag severity={attack.severity} />
+                  </Td>
+                  <Td>
+                    <span className="text-xs leading-relaxed text-muted">
+                      {attack.description}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="text-xs leading-relaxed text-ink-soft">
+                      {attack.mitigation}
+                    </span>
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card>
       ) : null}
     </div>
   );

@@ -2,8 +2,24 @@
 
 import { use, useState } from "react";
 
-import { useAuth, useResource } from "@/components/shell";
-import { Button, Card, CardHeader, Empty, ErrorNote, Hash, Spinner, formatDate } from "@/components/ui";
+import { SlideOver, useAuth, useResource } from "@/components/shell";
+import {
+  Button,
+  Card,
+  CardHead,
+  CodeBlock,
+  Empty,
+  ErrorNote,
+  Hash,
+  Key,
+  Spinner,
+  Table,
+  Tag,
+  Td,
+  Th,
+  Tr,
+  formatDate,
+} from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import type { Campaign } from "@/lib/types";
 
@@ -65,6 +81,8 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
   if (reports.loading) return <Spinner label="Loading reports" />;
   if (reports.error) return <ErrorNote message={reports.error} />;
 
+  const rows = reports.data ?? [];
+
   return (
     <div className="space-y-4">
       {actionError ? <ErrorNote message={actionError} /> : null}
@@ -74,7 +92,6 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
           {KINDS.map((kind) => (
             <Button
               key={kind.key}
-              size="sm"
               onClick={() => generate(kind.key, kind.needs)}
               disabled={busy !== null}
             >
@@ -85,50 +102,93 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
       ) : null}
 
       <Card>
-        <CardHeader title="Generated artifacts" subtitle={`${(reports.data ?? []).length} reports`} />
-        {(reports.data ?? []).length === 0 ? (
-          <Empty
-            title="No reports yet"
-            detail="Every report is assembled from stored records and carries a digest so it can be tied back to the evidence it came from."
-          />
-        ) : (
-          <div className="divide-y divide-line">
-            {(reports.data ?? []).map((report) => (
-              <button
-                key={report.id}
-                onClick={() => setPreview(report)}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[rgb(var(--unknown-bg))]"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{report.title}</div>
-                  <div className="mt-0.5 text-[11px] text-muted">
-                    {formatDate(report.created_at)} · {report.generated_by ?? "—"} ·{" "}
-                    {report.classification}
-                  </div>
-                </div>
-                <Hash value={report.sha256} />
-              </button>
-            ))}
+        <CardHead
+          title="Generated artifacts"
+          meta="Each report is assembled from stored records and carries its own digest"
+        />
+        {rows.length === 0 ? (
+          <div className="border-t border-line">
+            <Empty
+              title="No reports yet"
+              detail="Every report is assembled from stored records and carries a digest so it can be tied back to the evidence it came from."
+            />
           </div>
+        ) : (
+          <Table minWidth={720}>
+            <thead>
+              <tr>
+                <Th>Report</Th>
+                <Th className="w-[120px]">Marking</Th>
+                <Th className="w-[160px]">Generated</Th>
+                <Th className="w-[140px]">By</Th>
+                <Th className="w-[130px]">Digest</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((report, index) => (
+                <Tr key={report.id} index={index} onClick={() => setPreview(report)}>
+                  <Td>
+                    <div className="text-sm text-ink">{report.title}</div>
+                    <div className="mt-0.5 text-2xs uppercase tracking-wider text-faint">
+                      {report.kind.replace(/_/g, " ")} · {report.format}
+                    </div>
+                  </Td>
+                  <Td>
+                    <Tag>{report.classification}</Tag>
+                  </Td>
+                  <Td>
+                    <span className="tnum text-xs text-muted">
+                      {formatDate(report.created_at)}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="text-xs text-muted">{report.generated_by ?? "—"}</span>
+                  </Td>
+                  <Td>
+                    <Hash value={report.sha256} length={12} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
         )}
       </Card>
 
-      {preview ? (
-        <Card>
-          <CardHeader
-            title={preview.title}
-            subtitle={`SHA-256 ${preview.sha256.slice(0, 32)}…`}
-            action={
-              <Button size="sm" onClick={() => setPreview(null)}>
-                Close
-              </Button>
-            }
-          />
-          <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap px-4 py-3 text-xs leading-relaxed">
-            {preview.body}
-          </pre>
-        </Card>
-      ) : null}
+      <SlideOver
+        open={preview !== null}
+        onClose={() => setPreview(null)}
+        label={preview?.title ?? "Report"}
+        footer={
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-2xs text-faint">
+              <Key>Esc</Key> to close
+            </span>
+            {preview ? (
+              <span className="text-2xs text-faint">
+                {/* The digest is the point: a report that cannot be tied back
+                    to the records it was built from is a document, not
+                    evidence. */}
+                SHA-256 <Hash value={preview.sha256} length={24} />
+              </span>
+            ) : null}
+          </div>
+        }
+      >
+        {preview ? (
+          <div className="space-y-3 p-4">
+            <div>
+              <h2 className="text-lg text-ink">{preview.title}</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                {formatDate(preview.created_at)} · {preview.generated_by ?? "—"} ·{" "}
+                {preview.classification}
+              </p>
+            </div>
+            <CodeBlock className="max-h-[calc(100vh-220px)] overflow-auto">
+              {preview.body}
+            </CodeBlock>
+          </div>
+        ) : null}
+      </SlideOver>
     </div>
   );
 }

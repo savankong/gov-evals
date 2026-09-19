@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { use } from "react";
@@ -11,7 +12,7 @@ import type { ProjectDashboard } from "@/lib/types";
 
 const TABS = [
   { slug: "", label: "Readiness" },
-  { slug: "plan", label: "Evaluation plan" },
+  { slug: "plan", label: "Plan" },
   { slug: "campaigns", label: "Campaigns" },
   { slug: "findings", label: "Findings" },
   { slug: "compare", label: "Comparison" },
@@ -38,18 +39,17 @@ export default function ProjectLayout({
   const base = `/projects/${projectId}`;
   const project = data?.project;
 
-  // Every tab under a project carries that project's marking.
   useDeclaredClassification(project?.classification);
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="animate-rise flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link href="/" className="text-xs text-muted hover:text-ink hover:underline">
-            ← Portfolio
+          <Link href="/" className="link-underline text-xs text-muted hover:text-ink">
+            Portfolio
           </Link>
-          <h1 className="mt-1 truncate text-lg font-semibold tracking-tight">
-            {project?.name ?? "Project"}
+          <h1 className="mt-1 truncate text-xl font-normal text-ink">
+            {project?.name ?? <span className="skeleton inline-block h-5 w-40 align-middle" />}
           </h1>
           {data?.mission ? (
             <p className="mt-0.5 max-w-3xl text-sm text-muted">{data.mission.mission}</p>
@@ -57,25 +57,21 @@ export default function ProjectLayout({
         </div>
 
         {project ? (
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <span className="rounded border border-line px-2 py-1 text-muted">
-              {project.classification}
-            </span>
-            {project.impact_level ? (
-              <span className="rounded border border-line px-2 py-1 text-muted">
-                {project.impact_level}
-              </span>
-            ) : null}
-            {project.deployment_environment ? (
-              <span className="rounded border border-line px-2 py-1 text-muted">
-                {project.deployment_environment}
-              </span>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-1.5 text-2xs">
+            {[project.classification, project.impact_level, project.deployment_environment]
+              .filter(Boolean)
+              .map((chip) => (
+                <span key={String(chip)} className="border border-line px-1.5 py-0.5 text-muted">
+                  {chip}
+                </span>
+              ))}
           </div>
         ) : null}
       </div>
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-line">
+      {/* The active tab is marked by a sliding hairline, which makes the change
+          of section legible without a colour change. */}
+      <nav className="flex gap-4 overflow-x-auto border-b border-line">
         {TABS.map((tab) => {
           const href = tab.slug ? `${base}/${tab.slug}` : base;
           const active = tab.slug ? pathname.startsWith(href) : pathname === base;
@@ -83,13 +79,18 @@ export default function ProjectLayout({
             <Link
               key={tab.slug || "root"}
               href={href}
-              className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm transition-colors ${
-                active
-                  ? "border-[rgb(var(--accent))] font-medium text-ink"
-                  : "border-transparent text-muted hover:text-ink"
+              className={`relative shrink-0 pb-2 pt-1 text-sm transition-colors duration-150 ease-out ${
+                active ? "text-ink" : "text-muted hover:text-ink"
               }`}
             >
               {tab.label}
+              {active ? (
+                <motion.span
+                  layoutId="project-tab"
+                  className="absolute -bottom-px left-0 right-0 h-px bg-ink"
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                />
+              ) : null}
             </Link>
           );
         })}

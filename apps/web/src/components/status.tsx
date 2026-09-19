@@ -1,46 +1,56 @@
 import type { ResultStatus, Severity } from "@/lib/types";
 
-/** Status vocabulary shared by every surface.
+/**
+ * Status vocabulary.
  *
- * NOT EVALUATED is styled as an outlined, dashed chip rather than a filled
- * neutral one: an untested property should look unlike a tested one at a
- * glance, never like a quiet pass.
+ * Status is carried by a small solid square, the way a category is in a dense
+ * financial table: it survives at eleven pixels, in a column, at a glance.
+ * Everything else about the row stays monochrome so the squares are the only
+ * thing competing for attention.
+ *
+ * NOT EVALUATED is the exception that proves the rule -- it gets a hollow
+ * square with a dashed edge, because an untested property must not read like
+ * a quiet pass sitting next to real ones.
  */
 const STATUS: Record<
-  ResultStatus | string,
-  { label: string; className: string; dot: string }
+  string,
+  { label: string; short: string; square: string; text: string }
 > = {
   pass: {
-    label: "PASS",
-    className: "text-[rgb(var(--pass))] bg-[rgb(var(--pass-bg))] border-[rgb(var(--pass))]/25",
-    dot: "bg-[rgb(var(--pass))]",
+    label: "Pass",
+    short: "PASS",
+    square: "bg-pass",
+    text: "text-pass",
   },
   warning: {
-    label: "WARNING",
-    className: "text-[rgb(var(--warn))] bg-[rgb(var(--warn-bg))] border-[rgb(var(--warn))]/25",
-    dot: "bg-[rgb(var(--warn))]",
+    label: "Warning",
+    short: "WARN",
+    square: "bg-warn",
+    text: "text-warn",
   },
   fail: {
-    label: "FAIL",
-    className: "text-[rgb(var(--fail))] bg-[rgb(var(--fail-bg))] border-[rgb(var(--fail))]/25",
-    dot: "bg-[rgb(var(--fail))]",
+    label: "Fail",
+    short: "FAIL",
+    square: "bg-fail",
+    text: "text-fail",
   },
   error: {
-    label: "ERROR",
-    className: "text-[rgb(var(--fail))] bg-[rgb(var(--fail-bg))] border-[rgb(var(--fail))]/25",
-    dot: "bg-[rgb(var(--fail))]",
+    label: "Error",
+    short: "ERR",
+    square: "bg-fail",
+    text: "text-fail",
   },
   not_evaluated: {
-    label: "NOT EVALUATED",
-    className:
-      "text-[rgb(var(--unknown))] bg-transparent border-dashed border-[rgb(var(--unknown))]/50",
-    dot: "bg-transparent ring-1 ring-[rgb(var(--unknown))]/60",
+    label: "Not evaluated",
+    short: "NOT EVALUATED",
+    square: "bg-transparent border border-dashed border-unknown",
+    text: "text-muted",
   },
   pending_human: {
-    label: "AWAITING REVIEW",
-    className:
-      "text-[rgb(var(--pending))] bg-[rgb(var(--pending-bg))] border-[rgb(var(--pending))]/25",
-    dot: "bg-[rgb(var(--pending))]",
+    label: "Awaiting review",
+    short: "AWAITING",
+    square: "bg-pending",
+    text: "text-pending",
   },
 };
 
@@ -48,69 +58,116 @@ export function statusMeta(status: string) {
   return STATUS[status] ?? STATUS.not_evaluated;
 }
 
-export function StatusChip({
+/** The square alone, for table cells where the column header supplies meaning. */
+export function StatusSquare({
   status,
-  size = "sm",
-  title,
+  live = false,
+  className = "",
 }: {
-  status: ResultStatus | string;
-  size?: "xs" | "sm";
-  title?: string;
+  status: string;
+  live?: boolean;
+  className?: string;
 }) {
   const meta = statusMeta(status);
   return (
     <span
-      title={title ?? meta.label}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border font-medium tracking-wide ${
-        size === "xs" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"
-      } ${meta.className}`}
+      role="img"
+      aria-label={meta.label}
+      title={meta.label}
+      className={`inline-block h-[7px] w-[7px] shrink-0 ${meta.square} ${
+        live ? "animate-breathe" : ""
+      } ${className}`}
+    />
+  );
+}
+
+/** Square plus label. The default way a verdict appears outside a table. */
+export function Status({
+  status,
+  live = false,
+  className = "",
+}: {
+  status: ResultStatus | string;
+  live?: boolean;
+  className?: string;
+  /** Accepted for call-site readability. Status is one size in this system. */
+  size?: "xs" | "sm";
+}) {
+  const meta = statusMeta(status);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap text-2xs font-medium uppercase tracking-wider ${meta.text} ${className}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} aria-hidden />
-      {meta.label}
+      <StatusSquare status={status} live={live} />
+      {meta.short}
     </span>
   );
 }
 
-const SEVERITY: Record<Severity | string, string> = {
-  critical: "text-[rgb(var(--fail))] bg-[rgb(var(--fail-bg))] border-[rgb(var(--fail))]/30",
-  high: "text-[rgb(var(--warn))] bg-[rgb(var(--warn-bg))] border-[rgb(var(--warn))]/30",
-  medium: "text-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 border-[rgb(var(--accent))]/25",
-  low: "text-muted bg-[rgb(var(--unknown-bg))] border-line",
-  info: "text-muted bg-[rgb(var(--unknown-bg))] border-line",
+const SEVERITY: Record<string, { square: string; text: string }> = {
+  critical: { square: "bg-fail", text: "text-fail" },
+  high: { square: "bg-warn", text: "text-warn" },
+  medium: { square: "bg-pending", text: "text-pending" },
+  low: { square: "bg-unknown", text: "text-muted" },
+  info: { square: "bg-unknown", text: "text-muted" },
 };
 
-export function SeverityChip({ severity }: { severity: Severity | string }) {
+export function SeverityTag({
+  severity,
+  withSquare = true,
+}: {
+  severity: Severity | string;
+  withSquare?: boolean;
+}) {
+  const meta = SEVERITY[severity] ?? SEVERITY.info;
   return (
     <span
-      className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-        SEVERITY[severity] ?? SEVERITY.info
-      }`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap text-2xs font-medium uppercase tracking-wider ${meta.text}`}
     >
+      {withSquare ? <span className={`h-[7px] w-[7px] shrink-0 ${meta.square}`} /> : null}
       {severity}
     </span>
   );
 }
 
-/** Evaluator kind badge. Model-based judgements are labelled everywhere they
- *  appear so they are never read as ground truth. */
-export function EvaluatorKindBadge({ kind }: { kind: string }) {
-  const map: Record<string, { label: string; hint: string }> = {
-    deterministic: { label: "deterministic", hint: "Same input always produces the same judgement." },
+/**
+ * Evaluator kind.
+ *
+ * A model-based judgement is labelled wherever it appears. It is advisory
+ * evidence and must never be mistaken for the deterministic judgement beside
+ * it, so the label travels with the score rather than living in a legend.
+ */
+export function EvaluatorKind({ kind }: { kind: string }) {
+  const map: Record<string, { label: string; hint: string; emphasis: boolean }> = {
+    deterministic: {
+      label: "deterministic",
+      hint: "Same input always produces the same judgement.",
+      emphasis: false,
+    },
     model_based: {
       label: "model judge",
       hint: "Advisory evidence from another model. Not ground truth.",
+      emphasis: true,
     },
-    human: { label: "human", hint: "Judgement recorded by a person against a rubric." },
-    external_tool: { label: "external tool", hint: "Judgement from an external validator." },
+    human: {
+      label: "human",
+      hint: "Recorded by a person against a rubric.",
+      emphasis: false,
+    },
+    external_tool: {
+      label: "external tool",
+      hint: "Judgement from an external validator.",
+      emphasis: false,
+    },
   };
-  const meta = map[kind] ?? { label: kind, hint: "" };
+  const meta = map[kind] ?? { label: kind, hint: "", emphasis: false };
   return (
     <span
       title={meta.hint}
-      className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-        kind === "model_based"
-          ? "bg-[rgb(var(--warn-bg))] text-[rgb(var(--warn))]"
-          : "bg-[rgb(var(--unknown-bg))] text-muted"
+      className={`whitespace-nowrap border px-1 py-px text-2xs tracking-wide ${
+        meta.emphasis
+          ? "border-warn/40 text-warn"
+          : "border-line text-faint"
       }`}
     >
       {meta.label}
