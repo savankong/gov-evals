@@ -144,3 +144,42 @@ export const IconMoon = (p: Props) => (
     <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5Z" />
   </svg>
 );
+
+export const IconDataset = (p: Props) => (
+  <svg {...base} {...p}>
+    <ellipse cx="8" cy="3.75" rx="5.5" ry="2.25" />
+    <path d="M2.5 3.75v8.5c0 1.24 2.46 2.25 5.5 2.25s5.5-1.01 5.5-2.25v-8.5" />
+    <path d="M2.5 8c0 1.24 2.46 2.25 5.5 2.25s5.5-1.01 5.5-2.25" />
+  </svg>
+);
+
+export const IconReview = (p: Props) => (
+  <svg {...base} {...p}>
+    <path d="M2 3.5h12v7.5H8.5L5.5 14v-3H2z" />
+    <path d="M5.5 7.25l1.75 1.75 3.25-3.25" />
+  </svg>
+);
+
+export const IconExpert = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="5" r="2.75" />
+    <path d="M2.75 14a5.25 5.25 0 0 1 10.5 0" />
+    <path d="M11.5 1.5l.6 1.3 1.4.2-1 1 .24 1.4-1.24-.66-1.24.66.24-1.4-1-1 1.4-.2z" />
+  </svg>
+);
+
+export const IconCollapse = (p: Props) => (
+  <svg {...base} {...p}>
+    <rect x="2" y="2.5" width="12" height="11" />
+    <path d="M6.25 2.5v11" />
+    <path d="M11.5 6.5L9.5 8l2 1.5" />
+  </svg>
+);
+
+export const IconExpand = (p: Props) => (
+  <svg {...base} {...p}>
+    <rect x="2" y="2.5" width="12" height="11" />
+    <path d="M6.25 2.5v11" />
+    <path d="M9.5 6.5L11.5 8l-2 1.5" />
+  </svg>
+);

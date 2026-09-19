@@ -335,6 +335,10 @@ class Dataset(Base, TimestampMixin, GovernedArtifactMixin):
     split: Mapped[str] = mapped_column(String(32), default="test")
     contains_pii: Mapped[bool] = mapped_column(Boolean, default=False)
     tags: Mapped[list] = mapped_column(JSON, default=list)
+    # Which subject-matter expertise is needed to judge these cases. Empty means
+    # the program has not said -- which the review queue reports as unknown
+    # rather than treating as "anyone will do".
+    required_expertise: Mapped[list] = mapped_column(JSON, default=list)
 
     project: Mapped[Project] = relationship(back_populates="datasets")
     versions: Mapped[list[DatasetVersion]] = relationship(
@@ -406,6 +410,8 @@ class Scenario(Base, TimestampMixin, GovernedArtifactMixin):
     tags: Mapped[list] = mapped_column(JSON, default=list)
     source: Mapped[str | None] = mapped_column(String(255))
     version: Mapped[str] = mapped_column(String(32), default="1")
+    # Overrides the dataset's declaration when set on the scenario itself.
+    required_expertise: Mapped[list] = mapped_column(JSON, default=list)
     # Generated scenarios stay drafts until a human approves them (section 17).
     approved: Mapped[bool] = mapped_column(Boolean, default=True)
     approved_by: Mapped[str | None] = mapped_column(String(255))
@@ -660,6 +666,53 @@ class HumanReview(Base, TimestampMixin):
     comments: Mapped[str | None] = mapped_column(Text)
     confidence: Mapped[float | None] = mapped_column(Float)
     time_spent_seconds: Mapped[int | None] = mapped_column(Integer)
+
+    # The authority the judgement was made under. A review with no expertise
+    # behind it is still recorded -- it is an opinion, and suppressing it would
+    # be worse -- but `qualified` is what decides whether it counts as expert
+    # evidence. See ExpertProfile.
+    expert_profile_id: Mapped[str | None] = mapped_column(
+        ForeignKey("expert_profiles.id", ondelete="SET NULL")
+    )
+    expertise: Mapped[str | None] = mapped_column(String(128))
+    # The reviewer's own rating of how familiar they are with THIS item, which
+    # is not the same as holding the credential in general.
+    familiarity: Mapped[float | None] = mapped_column(Float)
+    qualified: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Why it was or was not counted, in words, so the evidence explains itself.
+    qualification_note: Mapped[str | None] = mapped_column(Text)
+
+    expert_profile: Mapped[ExpertProfile | None] = relationship()
+
+
+class ExpertProfile(Base, TimestampMixin):
+    """A reviewer's declared subject-matter expertise (section 20).
+
+    The product records who judged an output and on what authority, because a
+    human judgement is only evidence to the extent the judge was qualified to
+    make it. An unverified profile is usable and says so; verification is an
+    organisational act, recorded with who performed it.
+    """
+
+    __tablename__ = "expert_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Free-form discipline slugs; see enums.Discipline for the suggested set.
+    disciplines: Mapped[list] = mapped_column(JSON, default=list)
+    title: Mapped[str | None] = mapped_column(String(255))
+    organization: Mapped[str | None] = mapped_column(String(255))
+    credentials: Mapped[str | None] = mapped_column(Text)
+    years_experience: Mapped[int | None] = mapped_column(Integer)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    verified_by: Mapped[str | None] = mapped_column(String(255))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    user: Mapped[User | None] = relationship()
 
 
 class HumanStudySession(Base, TimestampMixin):
