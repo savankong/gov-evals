@@ -184,8 +184,10 @@ on one already serving.
 Two checks stop that decaying into ritual: an SBOM that resolved nothing is
 refused the same way a run that judged nothing is, and the pack validator fails
 CI if the signing, the identity pinning or the verify-before-rollout ordering is
-edited out. What it does not yet cover — the running container is App Platform's
-own build, not the signed image — is in [the security notes](docs/security.md).
+edited out. The pipeline has run: both images were signed and verified against a
+real registry on 19 September 2026 before the rollout that followed. What it
+still does not cover — the running container is App Platform's own build, not
+the signed image — is in [the security notes](docs/security.md).
 
 ## Repository layout
 

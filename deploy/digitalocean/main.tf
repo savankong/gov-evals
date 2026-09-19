@@ -1,7 +1,8 @@
 # Aegis Eval on DigitalOcean.
 #
 # Provisions the managed pieces the platform needs: Postgres for the control
-# plane, Valkey for the campaign queue, and a Space for the evidence store.
+# plane, Valkey for the campaign queue, a Space for the evidence store, and the
+# container registry the deploy workflow pushes signed images to.
 #
 # Run this BEFORE creating the App Platform app. The app spec does not create
 # its databases -- its `databases:` entries name an existing cluster through
@@ -72,6 +73,64 @@ variable "valkey_size" {
   type        = string
   default     = "db-s-1vcpu-1gb"
   description = "Managed Valkey node size."
+}
+
+variable "registry_name" {
+  type        = string
+  default     = "aegis-eval"
+  description = <<-EOT
+    Container registry name, and the value of the DO_REGISTRY repository secret
+    the deploy workflow reads -- the two must agree. Images land at
+    registry.digitalocean.com/<registry_name>/aegis-api and .../aegis-web.
+
+    A name, not a credential. It is read from `secrets` because that is where
+    the workflow looks, and GitHub redacts every registered secret value from
+    logs regardless of whether it is sensitive -- which is why it shows as
+    `***` beside the image digests rather than because it needs hiding.
+
+    The default matches the live reference deployment.
+
+    DigitalOcean registry names are GLOBALLY unique, like Spaces buckets, so
+    this can collide with another account's. Terraform reports that as a plain
+    409; change the name rather than retrying.
+  EOT
+}
+
+variable "registry_tier" {
+  type        = string
+  default     = "basic"
+  description = <<-EOT
+    Registry subscription tier.
+
+    `starter` is free but holds ONE repository, and this deployment pushes two
+    -- aegis-api and aegis-web -- so it cannot work here. The second push fails
+    with a quota error after the first has already succeeded, which reads like
+    a flake and is not one. `basic` is ~$5/month for 5 repositories and 5 GB,
+    and is the smallest tier that actually fits.
+  EOT
+
+  validation {
+    condition     = contains(["starter", "basic", "professional"], var.registry_tier)
+    error_message = "registry_tier must be starter, basic or professional."
+  }
+}
+
+variable "create_registry" {
+  type        = bool
+  default     = false
+  description = <<-EOT
+    Whether to create the registry, as opposed to attaching to one that exists.
+
+    Defaults to FALSE because the reference deployment's registry already
+    exists: `aegis-eval`, Basic tier, NYC3, created 19 Sep 2026. DigitalOcean
+    allows exactly one registry per account, so leaving this on would make
+    every apply fail against the one already there.
+
+    A NEW deployment on a fresh account must set this to `true`. Getting that
+    wrong is not silent: `doctl registry login` fails in the deploy workflow
+    before anything is built, and the workflow's preflight names what is
+    missing.
+  EOT
 }
 
 variable "trusted_sources" {
@@ -223,8 +282,8 @@ resource "digitalocean_spaces_bucket" "evidence" {
   }
 
   lifecycle_rule {
-    id      = "abort-incomplete-uploads"
-    enabled = true
+    id                                     = "abort-incomplete-uploads"
+    enabled                                = true
     abort_incomplete_multipart_upload_days = 7
   }
 }
@@ -250,6 +309,29 @@ resource "digitalocean_spaces_bucket_policy" "evidence_private" {
       }
     ]
   })
+}
+
+# ---------------------------------------------------------------------------
+# Container registry
+# ---------------------------------------------------------------------------
+
+# Holds the images the deploy workflow builds, signs by digest and verifies
+# before rolling out. Without it that workflow stops at its own preflight and
+# the signing pipeline never runs at all -- which is what happened on the first
+# real deployment.
+#
+# Note what this does and does not buy. The registry makes the signed images an
+# attested artifact of record for a commit. It does not yet make them the thing
+# that serves traffic: .do/app.yaml still builds from GitHub source, so App
+# Platform runs its own build output. Closing that gap means pointing the
+# spec's components at `image:` with the digest the workflow verified, and this
+# registry is the prerequisite for it, not the whole of it. See docs/security.md.
+resource "digitalocean_container_registry" "aegis" {
+  count = var.create_registry ? 1 : 0
+
+  name                   = var.registry_name
+  subscription_tier_slug = var.registry_tier
+  region                 = var.region
 }
 
 # ---------------------------------------------------------------------------
@@ -292,6 +374,28 @@ output "spaces_region" {
   description = "Set as AEGIS_S3_REGION. SigV4 signs with this; a mismatch fails opaquely."
 }
 
+output "registry_name" {
+  # Deliberately the variable rather than the resource attribute. The resource's
+  # name IS var.registry_name, so reading it back proves nothing -- and indexing
+  # [0] through a conditional is a trap when create_registry is false and the
+  # resource has count 0.
+  value       = var.registry_name
+  description = <<-EOT
+    Set as the DO_REGISTRY repository secret, under
+    Settings -> Secrets and variables -> Actions. It is a name rather than a
+    credential, but the workflow reads it from `secrets`, so that is where it
+    goes.
+  EOT
+}
+
+output "registry_endpoint" {
+  # Constructed, not read back, for the same reason -- and because this is
+  # exactly how the deploy workflow builds it from DO_REGISTRY, so the two
+  # cannot drift.
+  value       = "registry.digitalocean.com/${var.registry_name}"
+  description = "Where the deploy workflow pushes. Images are addressed by digest downstream, never by tag."
+}
+
 output "secret_key" {
   value       = random_password.secret_key.result
   sensitive   = true
@@ -299,7 +403,7 @@ output "secret_key" {
 }
 
 output "environment_block" {
-  sensitive = true
+  sensitive   = true
   description = "Ready to paste into a droplet .env file."
   value       = <<-EOT
     AEGIS_ENV=${var.environment}

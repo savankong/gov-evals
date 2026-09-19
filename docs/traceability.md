@@ -114,11 +114,17 @@ of record for the commit, not the artifact serving traffic. Closing that gap
 means pointing the spec at `image:` with the verified digest, which needs a
 paid container registry.
 
-**Nothing here has been exercised against a real registry.** The pipeline is
-written and its shape is asserted by `scripts/validate_packs.py`, which fails
-CI if signing, attestation, identity pinning or the verify-before-rollout
-ordering is edited out — confirmed against four deliberate breakages. But no
-image has been signed in anger.
+**This has now been exercised against a real registry.** On 19 September 2026,
+commit `f874391`, both images were pushed to DigitalOcean Container Registry,
+signed by digest, attested with a CycloneDX SBOM, and verified against the
+pinned workflow identity before the rollout step ran. `scripts/validate_packs.py`
+asserts the shape of that pipeline — it fails CI if signing, attestation,
+identity pinning or the verify-before-rollout ordering is edited out, confirmed
+against four deliberate breakages — and the pipeline has now also run.
+
+What remains partial is the paragraph above, not this one: the signed images
+are an artifact of record for the commit, and the container serving traffic is
+still App Platform's own build of the same source.
 
 ## Known limits of what is built
 
