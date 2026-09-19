@@ -172,6 +172,21 @@ evaluation data is never used to train anything.
 Outside `development`, the platform refuses to start on shipped-default
 credentials rather than running with a signing key everyone has.
 
+### Supply chain
+
+Every build records what went into it. CI generates a CycloneDX SBOM for the
+API, the SDK and the web app; the deploy job generates one per image, signs both
+images by digest with cosign keyless, and attaches the SBOM as an attestation.
+It then verifies signature and attestation against a pinned certificate identity
+**before** rolling out, so a failure stops the deployment rather than reporting
+on one already serving.
+
+Two checks stop that decaying into ritual: an SBOM that resolved nothing is
+refused the same way a run that judged nothing is, and the pack validator fails
+CI if the signing, the identity pinning or the verify-before-rollout ordering is
+edited out. What it does not yet cover — the running container is App Platform's
+own build, not the signed image — is in [the security notes](docs/security.md).
+
 ## Repository layout
 
 ```

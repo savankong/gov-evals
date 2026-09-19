@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+# setuptools leaves these behind when a component is pip-installed for scanning.
+build/
 .venv/
 venv/
 .pytest_cache/
@@ -38,6 +40,7 @@ crash.log
 
 # Generated supply-chain material
 sbom/
+.sbom-*/
 *.sbom.json
 *.cdx.json
 

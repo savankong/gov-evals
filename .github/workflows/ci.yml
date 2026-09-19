@@ -65,15 +65,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
+      # Scanning the Python source directories produced SBOMs with no components
+      # at all: there is no lockfile, and a PEP 621 pyproject alone gives a
+      # scanner declared ranges rather than resolved versions. An SBOM has to say
+      # which version shipped, so these are installed first and the resulting
+      # environment is what gets scanned -- transitive dependencies included,
+      # which is most of what the document is for. The web app needs no such
+      # step: package-lock.json already pins the whole tree.
+      - name: Install the Python components as they ship
+        run: |
+          set -euo pipefail
+          for component in api sdk; do
+            python -m venv ".sbom-$component"
+          done
+          .sbom-api/bin/pip install --quiet --upgrade pip
+          .sbom-api/bin/pip install --quiet "./apps/api[postgres,redis,s3]"
+          .sbom-sdk/bin/pip install --quiet --upgrade pip
+          .sbom-sdk/bin/pip install --quiet ./packages/sdk
+
       - name: Generate a CycloneDX SBOM per component
         run: |
+          set -euo pipefail
           mkdir -p sbom
-          syft scan dir:apps/api      -o cyclonedx-json=sbom/api.cdx.json
-          syft scan dir:packages/sdk  -o cyclonedx-json=sbom/sdk.cdx.json
-          syft scan dir:apps/web      -o cyclonedx-json=sbom/web.cdx.json
+          syft scan dir:.sbom-api -o cyclonedx-json=sbom/api.cdx.json
+          syft scan dir:.sbom-sdk -o cyclonedx-json=sbom/sdk.cdx.json
+          syft scan dir:apps/web  -o cyclonedx-json=sbom/web.cdx.json
 
       # An SBOM that resolved nothing is not a bill of materials, it is an empty
       # file that makes a pipeline look green. The same reason a run that judged
