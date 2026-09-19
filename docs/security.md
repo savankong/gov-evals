@@ -103,14 +103,29 @@ pinning, the `id-token: write` permission or the verify-before-rollout ordering 
 edited out. That was confirmed against four deliberate breakages rather than
 assumed.
 
-Two things it does not cover, which matter:
+**First executed against a real registry on 19 September 2026**, on commit
+`f874391`. Both images were built, pushed, signed by digest and attested, and
+the verify step passed before any rollout:
+
+```
+verified: registry.digitalocean.com/<registry>/aegis-api@sha256:671da582564cd4c4…
+verified: registry.digitalocean.com/<registry>/aegis-web@sha256:f9d8023d5aa4fd3a…
+signer identity: https://github.com/savankong/gov-evals/.github/workflows/deploy-digitalocean.yml@refs/heads/main
+```
+
+The bills of materials resolved 2,986 components for the API image and 762 for
+the web image, so `check_sbom.py` passed on content rather than on an empty
+document. The rollout, the health check and the evidence-store check all passed
+in the same run. Until then the pipeline's shape was asserted and its execution
+was not; that is no longer the case.
+
+One thing it still does not cover, which matters:
 
 - **The running container is not what was signed.** `.do/app.yaml` builds from
   GitHub source, so App Platform runs its own build output. The signed images are
-  an attested artifact of record for the commit. Pointing the spec at `image:`
-  with the verified digest closes this, and needs a paid container registry.
-- **No image has been signed against a real registry.** The pipeline's shape is
-  asserted; its execution is not yet demonstrated.
+  an attested artifact of record for the commit, not the artifact serving
+  traffic. Pointing the spec at `image:` with the verified digest closes this.
+  The registry that was the prerequisite now exists; the spec change does not.
 
 ## Not yet implemented
 
