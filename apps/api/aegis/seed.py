@@ -42,6 +42,12 @@ def bootstrap(db: Session) -> dict:
 
     result["packs"] = install_all(db)
 
+    if not settings.bootstrap_local_admin:
+        # A process that creates no local account must not create one here by
+        # accident either, or the switch would only be advisory.
+        result["admin"] = "not bootstrapped"
+        return result
+
     admin = db.execute(select(User).where(User.email == settings.bootstrap_email)).scalar_one_or_none()
     if admin is None:
         admin = User(

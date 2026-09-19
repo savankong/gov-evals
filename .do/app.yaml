@@ -206,6 +206,13 @@ workers:
       - key: AEGIS_PACK_DIR
         value: /packs
 
+      # The worker executes campaigns and authenticates nobody, so it is given
+      # no bootstrap password. Without this it inherited the shipped default,
+      # tripped the production guard and exited non-zero on every deploy while
+      # the API beside it was serving perfectly.
+      - key: AEGIS_BOOTSTRAP_LOCAL_ADMIN
+        value: "false"
+
 alerts:
   - rule: DEPLOYMENT_FAILED
   - rule: DOMAIN_FAILED

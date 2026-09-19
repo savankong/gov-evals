@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from aegis.config import adopt_platform_env
 from aegis.packs.loader import (
     CONTAINER_PACK_DIR,
@@ -133,3 +135,43 @@ class TestPlatformEnvironmentAdoption:
                     "The image must not set AEGIS_DATABASE_URL; it outranks the "
                     "DATABASE_URL a managed host injects."
                 )
+
+
+class TestBootstrapGuardScope:
+    """Who has to supply a bootstrap password.
+
+    The production guard demanded a non-default AEGIS_BOOTSTRAP_PASSWORD from
+    every process. The worker executes campaigns and authenticates nobody, so
+    it is deliberately given none -- handing a credential to a component with
+    no use for it is worse than not requiring one. It therefore inherited the
+    shipped default, tripped the guard and exited non-zero on every deploy,
+    while the API beside it served correctly. The failure surfaced only as
+    DeployContainerExitNonZero with no component named.
+    """
+
+    def _settings(self, **kw):
+        from aegis.config import Settings
+
+        base = dict(env="production", secret_key="x" * 40, seed_demo=False)
+        base.update(kw)
+        return Settings(**base)
+
+    def test_a_process_that_bootstraps_still_needs_a_real_password(self):
+        from aegis.config import InsecureConfiguration, _validate
+
+        settings = self._settings(bootstrap_local_admin=True)
+        with pytest.raises(InsecureConfiguration, match="AEGIS_BOOTSTRAP_PASSWORD"):
+            _validate(settings)
+
+    def test_a_process_that_bootstraps_nothing_does_not(self):
+        from aegis.config import _validate
+
+        _validate(self._settings(bootstrap_local_admin=False))  # must not raise
+
+    def test_the_opt_out_does_not_weaken_the_secret_key_guard(self):
+        """Switching off local accounts must not switch off everything else."""
+        from aegis.config import DEFAULT_SECRET, InsecureConfiguration, _validate
+
+        settings = self._settings(bootstrap_local_admin=False, secret_key=DEFAULT_SECRET)
+        with pytest.raises(InsecureConfiguration, match="AEGIS_SECRET_KEY"):
+            _validate(settings)

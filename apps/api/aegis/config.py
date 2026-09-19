@@ -65,6 +65,12 @@ class Settings(BaseSettings):
 
     bootstrap_email: str = "admin@aegis.local"
     bootstrap_password: str = "aegis-dev-password"
+    # Whether this process creates the local administrator at startup. The
+    # worker does not: it executes campaigns and authenticates nobody, so
+    # handing it a bootstrap password would spread a credential to a component
+    # with no use for it. The production guard below asks for a real password
+    # only where one is actually used.
+    bootstrap_local_admin: bool = True
     seed_demo: bool = True
 
     oidc_issuer: str = ""
@@ -156,6 +162,7 @@ def adopt_platform_env(env: dict | None = None) -> dict[str, str]:
 
 
 DEFAULT_SECRET = "change-me-in-every-deployment"
+DEFAULT_BOOTSTRAP_PASSWORD = "aegis-dev-password"
 MIN_SECRET_BYTES = 32
 
 
@@ -184,10 +191,11 @@ def _validate(settings: Settings) -> None:
             f"AEGIS_SECRET_KEY is shorter than {MIN_SECRET_BYTES} bytes, which is below the "
             "recommended length for HMAC-SHA256 token signing."
         )
-    if settings.bootstrap_password == "aegis-dev-password":
+    if settings.bootstrap_local_admin and settings.bootstrap_password == DEFAULT_BOOTSTRAP_PASSWORD:
         problems.append(
-            "AEGIS_BOOTSTRAP_PASSWORD is still the shipped default. Set one, or disable local "
-            "accounts and federate through OIDC."
+            "AEGIS_BOOTSTRAP_PASSWORD is still the shipped default. Set one, or set "
+            "AEGIS_BOOTSTRAP_LOCAL_ADMIN=false if this process creates no local account "
+            "and you federate through OIDC."
         )
     if settings.seed_demo:
         problems.append(

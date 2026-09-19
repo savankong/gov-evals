@@ -194,6 +194,21 @@ def validate_deployment_specs() -> None:
                         "will 404 on it."
                     )
 
+        # In production the API refuses to start on the shipped bootstrap
+        # password. A component that is given neither a real one nor the
+        # opt-out exits non-zero at startup, which is how the worker failed
+        # every deploy while the API beside it served fine.
+        if (
+            envs.get("AEGIS_ENV", {}).get("value") not in (None, "development")
+            and "AEGIS_BOOTSTRAP_PASSWORD" not in envs
+            and envs.get("AEGIS_BOOTSTRAP_LOCAL_ADMIN", {}).get("value") != "false"
+        ):
+            errors.append(
+                f".do/app.yaml: {component.get('name')} sets no AEGIS_BOOTSTRAP_PASSWORD and "
+                "does not set AEGIS_BOOTSTRAP_LOCAL_ADMIN=false, so it will refuse to start "
+                "on the shipped default."
+            )
+
         for key in ("AEGIS_SECRET_KEY", "AEGIS_S3_SECRET_KEY", "AEGIS_BOOTSTRAP_PASSWORD"):
             if key in envs and envs[key].get("type") != "SECRET":
                 errors.append(f".do/app.yaml: {component.get('name')} must mark {key} as SECRET")
