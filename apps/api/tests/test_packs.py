@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from aegis.config import adopt_platform_env
 from aegis.packs.loader import (
     CONTAINER_PACK_DIR,
     _discover_pack_dir,
@@ -83,3 +84,52 @@ class TestPackDirectory:
         monkeypatch.delenv("AEGIS_PACK_DIR", raising=False)
         monkeypatch.setattr("aegis.packs.loader.DEFAULT_PACK_DIR", None)
         assert pack_directory() == CONTAINER_PACK_DIR
+
+
+class TestPlatformEnvironmentAdoption:
+    """Where the database URL comes from when several sources offer one.
+
+    The container image set AEGIS_DATABASE_URL to a SQLite path so that
+    `docker run` works with no configuration. Adoption treats an AEGIS_* value
+    as the operator's explicit choice and lets it win, and an image ENV is
+    indistinguishable from one -- so on App Platform the injected DATABASE_URL
+    was ignored, the API fell back to SQLite, tripped its own
+    ephemeral-filesystem guard and refused to start. Every deploy failed with
+    DeployContainerExitNonZero.
+    """
+
+    def test_platform_url_beats_the_image_default(self):
+        env = {
+            "AEGIS_DEFAULT_DATABASE_URL": "sqlite:////data/aegis.db",
+            "DATABASE_URL": "postgresql://u:p@host:25060/db",
+        }
+        adopt_platform_env(env)
+        assert env["AEGIS_DATABASE_URL"] == "postgresql+psycopg://u:p@host:25060/db"
+
+    def test_operator_url_beats_both(self):
+        env = {
+            "AEGIS_DATABASE_URL": "postgresql+psycopg://chosen/db",
+            "AEGIS_DEFAULT_DATABASE_URL": "sqlite:////data/aegis.db",
+            "DATABASE_URL": "postgresql://platform/db",
+        }
+        adopt_platform_env(env)
+        assert env["AEGIS_DATABASE_URL"] == "postgresql+psycopg://chosen/db"
+
+    def test_image_default_applies_when_nothing_else_is_offered(self):
+        """`docker run` with no configuration still has to work."""
+        env = {"AEGIS_DEFAULT_DATABASE_URL": "sqlite:////data/aegis.db"}
+        adopt_platform_env(env)
+        assert env["AEGIS_DATABASE_URL"] == "sqlite:////data/aegis.db"
+
+    def test_the_image_never_sets_the_operator_variable(self):
+        """The Dockerfile setting AEGIS_DATABASE_URL is the defect itself."""
+        from pathlib import Path
+
+        dockerfile = Path(__file__).resolve().parents[1] / "Dockerfile"
+        for line in dockerfile.read_text().splitlines():
+            stripped = line.strip()
+            if stripped.startswith("ENV") or stripped.startswith("AEGIS_"):
+                assert "AEGIS_DATABASE_URL=" not in stripped, (
+                    "The image must not set AEGIS_DATABASE_URL; it outranks the "
+                    "DATABASE_URL a managed host injects."
+                )

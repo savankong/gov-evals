@@ -43,7 +43,10 @@ COPY packs /packs
 RUN mkdir -p /data/evidence && chown -R aegis:aegis /data /app
 USER aegis
 
-ENV AEGIS_DATABASE_URL=sqlite:////data/aegis.db \
+# A fallback, not a choice. Setting AEGIS_DATABASE_URL here would outrank the
+# DATABASE_URL a managed host injects, which is how this image ended up running
+# on SQLite in production and refusing to start.
+ENV AEGIS_DEFAULT_DATABASE_URL=sqlite:////data/aegis.db \
     AEGIS_EVIDENCE_PATH=/data/evidence \
     AEGIS_PACK_DIR=/packs
 

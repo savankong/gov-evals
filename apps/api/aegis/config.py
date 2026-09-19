@@ -102,6 +102,14 @@ class Settings(BaseSettings):
 PLATFORM_DATABASE_VARS = ("AEGIS_DATABASE_URL", "DATABASE_URL")
 PLATFORM_REDIS_VARS = ("AEGIS_REDIS_URL", "REDIS_URL")
 
+# The container image needs a working database path for `docker run` with no
+# configuration, but it must not set AEGIS_DATABASE_URL to supply it. An image
+# ENV is indistinguishable from an operator's choice, so it counted as one and
+# beat the platform's DATABASE_URL: on App Platform the API fell back to SQLite,
+# tripped its own ephemeral-filesystem guard and refused to start. The image
+# announces its fallback here instead, and it loses to anything real.
+IMAGE_DEFAULT_DATABASE_VAR = "AEGIS_DEFAULT_DATABASE_URL"
+
 
 def normalize_database_url(url: str) -> str:
     """Name the driver SQLAlchemy should use for a Postgres URL.
@@ -128,10 +136,16 @@ def adopt_platform_env(env: dict | None = None) -> dict[str, str]:
     env = env if env is not None else _os.environ
     adopted: dict[str, str] = {}
 
+    # Precedence, strongest first: what the operator set, what the platform
+    # injected, what the image falls back to.
     aegis_db, platform_db = PLATFORM_DATABASE_VARS
-    if not env.get(aegis_db) and env.get(platform_db):
-        env[aegis_db] = normalize_database_url(env[platform_db])
-        adopted[aegis_db] = platform_db
+    if not env.get(aegis_db):
+        if env.get(platform_db):
+            env[aegis_db] = normalize_database_url(env[platform_db])
+            adopted[aegis_db] = platform_db
+        elif env.get(IMAGE_DEFAULT_DATABASE_VAR):
+            env[aegis_db] = normalize_database_url(env[IMAGE_DEFAULT_DATABASE_VAR])
+            adopted[aegis_db] = IMAGE_DEFAULT_DATABASE_VAR
 
     aegis_redis, platform_redis = PLATFORM_REDIS_VARS
     if not env.get(aegis_redis) and env.get(platform_redis):
