@@ -60,8 +60,20 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             DatasetVersion.is_current.is_(True)
         )
     ).scalar_one()
+    # Project-local scenarios only. The evaluation packs ship ~19 approved
+    # library scenarios and install them at startup, so counting every approved
+    # scenario marked this step done on an account where nobody had loaded
+    # anything -- a step reading as complete because of content that came in the
+    # box, which is the exact failure this checklist exists to not commit.
     scenarios = db.execute(
-        select(func.count()).select_from(Scenario).where(Scenario.approved.is_(True))
+        select(func.count())
+        .select_from(Scenario)
+        .where(Scenario.approved.is_(True), Scenario.project_id.is_not(None))
+    ).scalar_one()
+    library_scenarios = db.execute(
+        select(func.count())
+        .select_from(Scenario)
+        .where(Scenario.project_id.is_(None))
     ).scalar_one()
     approved_plans = db.execute(
         select(func.count()).select_from(EvaluationPlan).where(
@@ -82,6 +94,7 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
         evidence: str,
         href: str | None = None,
         command: str | None = None,
+        blocked: str | None = None,
     ) -> dict:
         return {
             "key": key,
@@ -92,6 +105,11 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "evidence": evidence,
             "href": href,
             "command": command,
+            # Set when the screen exists but cannot be reached yet. Distinct
+            # from `command`, which means there is no screen at all -- telling
+            # someone "there is no screen for this yet" about a page that does
+            # exist sends them looking for a gap that is not there.
+            "blocked": blocked,
         }
 
     steps = [
@@ -131,7 +149,9 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "what it found in the file — duplicates, empty inputs, whether any row "
             "carries an expected answer — before a campaign spends anything on it.",
             datasets > 0 or scenarios > 0,
-            f"{datasets} dataset(s), {dataset_items} example(s), {scenarios} approved scenario(s)",
+            f"{datasets} dataset(s), {dataset_items} example(s), "
+            f"{scenarios} project scenario(s)"
+            + (f" — {library_scenarios} library scenario(s) available, not counted" if library_scenarios else ""),
             href="/datasets",
         ),
         step(
@@ -143,7 +163,7 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             approved_plans > 0,
             f"{approved_plans} approved plan(s)",
             href=f"/projects/{pid}/plan" if pid else None,
-            command=None if pid else "Create a project first.",
+            blocked=None if pid else "This screen opens once a project exists — step 1.",
         ),
         step(
             "campaign",
@@ -153,7 +173,7 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             campaigns > 0 and results > 0,
             f"{campaigns} campaign(s), {results} stored result(s)",
             href=f"/projects/{pid}/campaigns" if pid else None,
-            command=None if pid else "Create a project first.",
+            blocked=None if pid else "This screen opens once a project exists — step 1.",
         ),
         step(
             "experts",
