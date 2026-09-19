@@ -16,6 +16,7 @@ from . import (
     scenarios,
     systems,
     tenancy,
+    users,
 )
 
 ROUTERS = [
@@ -34,4 +35,5 @@ ROUTERS = [
     reports.router,
     dashboard.router,
     onboarding.router,
+    users.router,
 ]

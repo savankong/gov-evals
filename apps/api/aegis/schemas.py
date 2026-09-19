@@ -503,6 +503,67 @@ class HumanReviewOut(HumanReviewIn, ORMModel):
     created_at: datetime
 
 
+# -- user administration ----------------------------------------------------
+
+
+class UserCreate(BaseModel):
+    email: EmailAddress
+    full_name: str | None = None
+    password: str
+    # Optional opening grant, so a new account is not created unable to do
+    # anything and then forgotten about.
+    organization_id: str | None = None
+    role: str | None = None
+
+
+class UserUpdate(BaseModel):
+    """Partial. There is no delete: accounts are deactivated, never removed."""
+
+    full_name: str | None = None
+    is_active: bool | None = None
+
+
+class PasswordChange(BaseModel):
+    """Changing your own. The current one is required even for an administrator."""
+
+    current_password: str
+    new_password: str
+
+
+class PasswordReset(BaseModel):
+    """An administrator setting somebody else's. A different act, audited as one."""
+
+    new_password: str
+
+
+class MembershipIn(BaseModel):
+    organization_id: str
+    role: str
+    # Null scope grants the role organisation-wide.
+    project_id: str | None = None
+
+
+class MembershipOut(ORMModel):
+    id: str
+    organization_id: str
+    project_id: str | None = None
+    role: str
+
+
+class UserAccountOut(UserOut):
+    """The administrative view of an account.
+
+    Extends `UserOut` rather than redefining it: /auth/me answers "who am I"
+    and does not need somebody's grants, so widening it here would have changed
+    an endpoint this work has no business changing.
+    """
+
+    # False for a federated account, which has no local password to change.
+    has_local_password: bool = False
+    memberships: list[MembershipOut] = Field(default_factory=list)
+    created_at: datetime
+
+
 # -- expert reviewers -------------------------------------------------------
 
 
