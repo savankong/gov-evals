@@ -141,6 +141,7 @@ def main() -> int:
     validate_deterministic_installs()
     validate_supply_chain()
     validate_schema_migrations()
+    validate_no_accent_rules()
 
     print(
         f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
@@ -650,6 +651,45 @@ def validate_schema_migrations() -> None:
             "apps/api/pyproject.toml does not depend on alembic, so the image that has to run "
             "the migrations at startup will not have it installed."
         )
+
+
+def validate_no_accent_rules() -> None:
+    """No block is flagged by a heavier rule down one of its sides.
+
+    A rule can only be darker or lighter, so it says "pay attention" and
+    nothing more, and every kind of aside ended up wearing the same one: an
+    error, a caution and a footnote about model-based judgements were all a
+    line in the margin. Worse, the error's rule was red -- the colour this
+    product reserves for a verdict about the system under evaluation, read off
+    five-pixel squares in dense tables.
+
+    Asides are marked by a glyph that names what they are, coloured by how much
+    they matter: `Note` and `ErrorNote` in components/ui.tsx. Hairline borders
+    that divide a table, a panel edge or a nesting level are structure, not
+    emphasis, and are not what this refuses.
+    """
+    web = ROOT / "apps" / "web" / "src"
+    if not web.exists():
+        return
+
+    # A rule is an accent when it is thicker than a hairline, or when a
+    # single-side hairline is drawn in a colour that carries meaning.
+    import re
+
+    thick = re.compile(r"border-(?:l|r|t|b)-2\b")
+    coloured = re.compile(r"border-(?:l|r|t|b) border-(?:fail|warn|pass|pending|accent|ink|line-strong)\b")
+
+    for path in sorted(web.rglob("*.tsx")):
+        for number, line in enumerate(path.read_text().splitlines(), 1):
+            hit = thick.search(line) or coloured.search(line)
+            if not hit:
+                continue
+            errors.append(
+                f"{path.relative_to(ROOT)}:{number}: {hit.group(0)!r} flags a block with a rule "
+                "down one side. Use Note or ErrorNote from components/ui.tsx -- the glyph says "
+                "what kind of aside it is and its colour says how much it matters, which a line "
+                "cannot."
+            )
 
 
 if __name__ == "__main__":

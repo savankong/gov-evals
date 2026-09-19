@@ -198,3 +198,34 @@ export const IconAdmin = (p: Props) => (
     <path d="M11 8.5h3.5M11 11h3.5M11 5.5h3.5" />
   </svg>
 );
+
+/* Status glyphs.
+ *
+ * These carry a colour where the rest of the set does not: an error is red, a
+ * caution is amber, a note is quiet. The glyph says what kind of thing it is
+ * and the colour says how much it matters, which is a job a rule drawn down
+ * the side of a block cannot do -- a rule can only be darker or lighter. */
+
+export const IconError = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="8" r="6" />
+    <path d="M8 5v4" />
+    <path d="M8 11.25v.01" />
+  </svg>
+);
+
+export const IconWarning = (p: Props) => (
+  <svg {...base} {...p}>
+    <path d="M8 2.25 14.5 13.5h-13L8 2.25Z" />
+    <path d="M8 6.5v3" />
+    <path d="M8 11.5v.01" />
+  </svg>
+);
+
+export const IconNote = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="8" r="6" />
+    <path d="M8 7.5v3.5" />
+    <path d="M8 4.75v.01" />
+  </svg>
+);

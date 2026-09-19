@@ -549,11 +549,13 @@ function NavLink({ item, expanded }: { item: NavItem; expanded: boolean }) {
       {active ? (
         <motion.span
           layoutId="nav-active"
-          className="absolute inset-0 border-l-2 border-accent bg-sunken"
+          className="absolute inset-0 bg-sunken"
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
         />
       ) : null}
-      <Icon className="relative shrink-0" />
+      {/* With the rule gone, the icon is what marks the current page: full
+          ink against the faint icons of everything else. */}
+      <Icon className={`relative shrink-0 ${active ? "text-ink" : ""}`} />
       {expanded ? (
         <span className="relative min-w-0 flex-1 truncate text-sm">{item.label}</span>
       ) : null}

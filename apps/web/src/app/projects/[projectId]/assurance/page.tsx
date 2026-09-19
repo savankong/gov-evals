@@ -16,6 +16,7 @@ import {
   Select,
   Spinner,
   Tag,
+  Note,
 } from "@/components/ui";
 import { api, ApiError } from "@/lib/api";
 import type { AssuranceClaim } from "@/lib/types";
@@ -92,9 +93,9 @@ function ClaimNode({ claim, depth }: { claim: AssuranceClaim; depth: number }) {
       {claim.evidence.length === 0 ? (
         // An unevidenced claim is the one thing an assurance case must never
         // let pass quietly, so it is stated rather than left blank.
-        <p className="border-l border-warn/40 pl-2.5 text-xs leading-relaxed text-warn">
+        <Note tone="warn">
           No evidence is linked. A claim with no evidence is an assertion, not an argument.
-        </p>
+        </Note>
       ) : (
         <ul className="space-y-1">
           {claim.evidence.map((item) => {
