@@ -37,17 +37,21 @@ const config: Config = {
         lg: "2px",
         full: "9999px",
       },
+      // One point larger at every step, line height moved with it so the
+      // leading ratio is unchanged -- raising the size alone tightens the
+      // leading, which reads worse rather than better. Nothing in the app
+      // sets a font size outside this scale, so this is the whole change.
       fontSize: {
-        "2xs": ["10px", { lineHeight: "14px", letterSpacing: "0.04em" }],
-        xs: ["11px", { lineHeight: "16px" }],
-        sm: ["12px", { lineHeight: "18px" }],
-        base: ["13px", { lineHeight: "20px" }],
-        lg: ["15px", { lineHeight: "22px" }],
-        xl: ["18px", { lineHeight: "26px" }],
-        "2xl": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em" }],
-        "3xl": ["30px", { lineHeight: "34px", letterSpacing: "-0.02em" }],
-        "4xl": ["38px", { lineHeight: "42px", letterSpacing: "-0.025em" }],
-        "5xl": ["48px", { lineHeight: "52px", letterSpacing: "-0.03em" }],
+        "2xs": ["11px", { lineHeight: "15px", letterSpacing: "0.04em" }],
+        xs: ["12px", { lineHeight: "17px" }],
+        sm: ["13px", { lineHeight: "19px" }],
+        base: ["14px", { lineHeight: "21px" }],
+        lg: ["16px", { lineHeight: "23px" }],
+        xl: ["19px", { lineHeight: "27px" }],
+        "2xl": ["23px", { lineHeight: "29px", letterSpacing: "-0.01em" }],
+        "3xl": ["31px", { lineHeight: "35px", letterSpacing: "-0.02em" }],
+        "4xl": ["39px", { lineHeight: "43px", letterSpacing: "-0.025em" }],
+        "5xl": ["49px", { lineHeight: "53px", letterSpacing: "-0.03em" }],
       },
       spacing: {
         rail: "44px",
