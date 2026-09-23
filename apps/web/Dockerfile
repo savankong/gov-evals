@@ -36,6 +36,11 @@ RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis
 
 COPY --from=build --chown=aegis:aegis /app/.next/standalone ./
 COPY --from=build --chown=aegis:aegis /app/.next/static ./.next/static
+# Standalone output leaves public/ behind: Next expects a CDN to serve it and
+# does not copy it into the server bundle. Without this line the onboarding
+# example dataset works under `npm run dev` and `next start`, and is a 404 in
+# the image that actually ships.
+COPY --from=build --chown=aegis:aegis /app/public ./public
 
 USER aegis
 EXPOSE 3000

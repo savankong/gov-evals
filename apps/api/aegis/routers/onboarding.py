@@ -150,7 +150,9 @@ def onboarding(db: Session = Depends(get_db), user: User = Depends(get_current_u
             "Load the cases to test against",
             "A dataset of real cases, approved scenarios, or both. The upload reports "
             "what it found in the file — duplicates, empty inputs, whether any row "
-            "carries an expected answer — before a campaign spends anything on it.",
+            "carries an expected answer — before a campaign spends anything on it. "
+            "No data yet? A new dataset's upload screen offers an example set of "
+            "fictional contract-review cases to start from.",
             datasets > 0 or scenarios > 0,
             f"{datasets} dataset(s), {dataset_items} example(s), "
             f"{scenarios} project scenario(s)"

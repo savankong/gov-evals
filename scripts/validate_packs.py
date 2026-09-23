@@ -137,6 +137,7 @@ def main() -> int:
     validate_deployment_specs()
     validate_build_sources()
     validate_container_entrypoints()
+    validate_web_public_shipped()
     validate_pinned_base_images()
     validate_deterministic_installs()
     validate_supply_chain()
@@ -344,6 +345,38 @@ def validate_container_entrypoints() -> None:
                 f"{source} runs {script}, but apps/api/Dockerfile never copies it into the "
                 f"image. That container exits immediately with 'can't open file'."
             )
+
+
+def validate_web_public_shipped() -> None:
+    """If the web app has a public/ directory, its image has to carry it.
+
+    Next.js standalone output does not include public/ -- it assumes a CDN
+    serves static files -- so anything there works under `npm run dev` and
+    `next start` and returns 404 from the container. The onboarding example
+    dataset lives there, so losing the COPY would leave the upload screen
+    offering a file that does not exist, on exactly the deployment a new user
+    is trying.
+    """
+    public = ROOT / "apps" / "web" / "public"
+    dockerfile = ROOT / "apps" / "web" / "Dockerfile"
+    if not public.is_dir() or not dockerfile.exists():
+        return
+
+    # COPY instructions only, for the same reason as the entrypoint check: a
+    # comment explaining why public/ is copied must not count as copying it.
+    copies = [
+        line.split()
+        for line in dockerfile.read_text().splitlines()
+        if line.strip().upper().startswith("COPY ")
+    ]
+    if not any(
+        any(part.rstrip("/").endswith("/public") or part.rstrip("/") == "public" for part in words)
+        for words in copies
+    ):
+        errors.append(
+            "apps/web/Dockerfile: apps/web/public exists but is never copied into the image. "
+            "Standalone output omits it, so every file in it is a 404 in production."
+        )
 
 
 def validate_pinned_base_images() -> None:

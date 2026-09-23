@@ -204,6 +204,19 @@ const ACCEPTED = ".jsonl,.ndjson,.json,.csv,.tsv,.txt";
 const MAX_BYTES = 64 * 1024 * 1024;
 
 /**
+ * The onboarding example, served from public/.
+ *
+ * Choosing it puts it in the picker exactly as a chosen file would be: the
+ * user still presses Upload, so it goes through the same endpoint and gets the
+ * same quality report their own data would. Nothing about it is simulated,
+ * which is what lets the walkthrough count it as a real step taken.
+ */
+const EXAMPLE = {
+  path: "/examples/contract-review-cases.jsonl",
+  name: "contract-review-cases.jsonl",
+};
+
+/**
  * Upload a new version.
  *
  * Every upload is a version: nothing is ever replaced in place, because a
@@ -214,16 +227,21 @@ const MAX_BYTES = 64 * 1024 * 1024;
 function UploadVersion({
   datasetId,
   nextVersion,
+  offerExample,
   onUploaded,
 }: {
   datasetId: string;
   nextVersion: string;
+  /** Only before the first upload. On a dataset that already holds real data,
+   *  one click would add fictional cases as its newest version. */
+  offerExample: boolean;
   onUploaded: (version: DatasetVersion) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [label, setLabel] = useState("");
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [fetchingExample, setFetchingExample] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -241,6 +259,24 @@ function UploadVersion({
       return;
     }
     setFile(candidate);
+  };
+
+  const loadExample = async () => {
+    setError(null);
+    setFetchingExample(true);
+    try {
+      const response = await fetch(EXAMPLE.path);
+      if (!response.ok) {
+        throw new Error(`The example file could not be loaded (HTTP ${response.status}).`);
+      }
+      const blob = await response.blob();
+      // Through `accept`, so the example meets the same size checks as any file.
+      accept(new File([blob], EXAMPLE.name, { type: "application/x-ndjson" }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The example file could not be loaded.");
+    } finally {
+      setFetchingExample(false);
+    }
   };
 
   const upload = async () => {
@@ -315,6 +351,30 @@ function UploadVersion({
           </>
         )}
       </div>
+
+      {offerExample && !file ? (
+        <div className="mt-2.5 border border-line bg-sunken px-3 py-2.5">
+          <p className="text-sm text-ink">No file to hand?</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted">
+            Try the example: fictional contract-review cases that use every field the platform
+            reads — source documents, expected answers, and the checks each answer has to pass.
+            It includes a question the documents cannot answer and an instruction planted in a
+            proposal, so a campaign against it has something real to find.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <Button onClick={loadExample} disabled={fetchingExample}>
+              {fetchingExample ? "Loading…" : "Use the example"}
+            </Button>
+            <a
+              href={EXAMPLE.path}
+              download={EXAMPLE.name}
+              className="text-xs text-muted underline-offset-2 hover:text-ink hover:underline"
+            >
+              Download it to read first
+            </a>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
         <input
@@ -430,6 +490,7 @@ export default function DatasetDetailPage({
         <UploadVersion
           datasetId={dataset.id}
           nextVersion={`v${versions.length + 1}`}
+          offerExample={versions.length === 0}
           onUploaded={(created) => {
             // Show the version that was just uploaded, so its quality report is
             // what the reader sees next.
