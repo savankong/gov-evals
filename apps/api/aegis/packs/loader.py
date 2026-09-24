@@ -176,15 +176,27 @@ def _install_scenario(db: Session, spec: dict, pack: Pack) -> int:
     if isinstance(declared, str):
         declared = [declared]
     scenario.required_expertise = [str(d) for d in declared if d]
+    scenario.criteria = [
+        {"id": str(c["id"]), "text": str(c["text"])}
+        for c in spec.get("criteria") or []
+        if isinstance(c, dict) and c.get("id") and c.get("text")
+    ]
     scenario.source = pack.key
     scenario.version = str(spec.get("version", pack.version))
     scenario.classification = spec.get("classification", "UNCLASSIFIED")
     scenario.provenance = {"pack": pack.key, "pack_version": pack.version}
     # Library scenarios ship reviewed; only generated drafts start unapproved.
     scenario.approved = bool(spec.get("approved", True))
-    scenario.content_hash = content_hash(
-        {"key": key, "input": scenario.input, "version": scenario.version}
-    )
+    # A model-drafted question says so, and stays a draft until an expert
+    # approves it (it cannot run while `approved` is false).
+    scenario.generated = bool(spec.get("generated", False))
+    # Criteria change what a pass means, so they are part of the identity --
+    # but only when present, so a scenario without them keeps the hash it has
+    # always had and comparisons against earlier campaigns still line up.
+    identity = {"key": key, "input": scenario.input, "version": scenario.version}
+    if scenario.criteria:
+        identity["criteria"] = scenario.criteria
+    scenario.content_hash = content_hash(identity)
     return 1
 
 

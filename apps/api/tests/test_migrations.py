@@ -21,6 +21,9 @@ from sqlalchemy import create_engine, select
 from aegis.migrate import BASELINE_REVISION, current_revision, upgrade_to_head
 from aegis.models import Base, Dataset, Organization, Program, Project
 
+# The newest revision. Each new migration moves this, in one place.
+HEAD_REVISION = "0003_benchmark_criteria"
+
 # Revision bookkeeping is not part of the application's schema.
 _IGNORED_TABLES = {"alembic_version"}
 
@@ -105,7 +108,7 @@ def test_empty_database_is_built_entirely_by_migrations(tmp_path):
 
     upgrade_to_head(engine)
 
-    assert current_revision(engine) == "0002_expert_review"
+    assert current_revision(engine) == HEAD_REVISION
     assert "datasets" in sa.inspect(engine).get_table_names()
 
 
@@ -189,7 +192,7 @@ def test_a_database_from_before_migrations_is_adopted_and_repaired(tmp_path):
 
     upgrade_to_head(engine)
 
-    assert current_revision(engine) == "0002_expert_review"
+    assert current_revision(engine) == HEAD_REVISION
     assert _schema(engine)["datasets"]["columns"]["required_expertise"] == ("JSON", False)
 
 
@@ -236,7 +239,7 @@ def test_a_database_already_holding_the_change_is_adopted_without_reapplying_it(
 
     upgrade_to_head(engine)
 
-    assert current_revision(engine) == "0002_expert_review"
+    assert current_revision(engine) == HEAD_REVISION
     assert _schema(engine) == before
 
 

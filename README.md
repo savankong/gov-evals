@@ -93,7 +93,7 @@ An evaluation project pairs an AI capability with the mission it is meant for.
 | --- | --- |
 | **Connectors** | OpenAI-compatible, Anthropic-compatible, generic REST, RAG application, offline deterministic target |
 | **Evaluators** | 22 across four kinds: deterministic, model-based, human, external tool |
-| **Evaluation packs** | GenAI Baseline, RAG Baseline, AI Agent Baseline, DoD Responsible AI Starter |
+| **Evaluation packs** | GenAI Baseline, RAG Baseline, AI Agent Baseline, DoD Responsible AI Starter, GovCon Bench (benchmark, seed questions awaiting expert validation) |
 | **Attack library** | 15 techniques — injection, jailbreak, evasion, poisoning, exfiltration, agent abuse |
 | **Scenario packs** | Acquisition document review, intelligence summarisation, agent missions |
 | **Frameworks** | CDAO AI T&E, DoD RAI Pathway, DoD AI Ethical Principles, NIST AI RMF, NIST GenAI Profile |
@@ -219,6 +219,7 @@ says so in those words.
 - [Architecture](docs/architecture.md)
 - [Evaluation model](docs/evaluation-model.md)
 - [Writing a pack](docs/writing-packs.md)
+- [Producing a benchmark report](docs/benchmarks.md)
 - [Requirement traceability](docs/traceability.md)
 - [Security posture](docs/security.md)
 - [Deploying on DigitalOcean](docs/deploy-digitalocean.md)

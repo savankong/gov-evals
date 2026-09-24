@@ -101,6 +101,19 @@ recorded but does not count, and the result stays `pending_human`. Leave it out
 and the case is undeclared, which the review queue reports as unchecked rather
 than as vetted.
 
+A benchmark question adds `criteria`, the checks a good answer must meet, each
+judged on its own by the `rubric_criteria` evaluator:
+
+```yaml
+    criteria:
+      - {id: c1, text: "States that registering in SAM.gov is free."}
+      - {id: c2, text: "Warns that paid registration offers are not required."}
+```
+
+The `id` is what an expert's label and the judge's verdict are matched on, so the
+validator refuses a missing or repeated one. Criteria are never sent to the system
+under test. See [Producing a benchmark report](benchmarks.md).
+
 `expected_behavior` and `prohibited_behavior` are not decoration: they are given to
 the judge and shown next to every result, which is what lets a reader argue with a
 judgement instead of taking it on trust.

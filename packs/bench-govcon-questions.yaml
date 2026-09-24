@@ -1,0 +1,530 @@
+key: bench-govcon-questions
+name: GovCon Bench -- questions (seed set, awaiting expert validation)
+kind: scenario
+version: 0.1.0
+publisher: Aegis Eval
+description: >-
+  Questions a small business asks when it tries to win and perform federal contracts,
+  each with the criteria a good answer must meet. Facets: `topic:` and `phase:` for the
+  report's breakdowns, `split:` for what may be published, and `calibration` for the
+  subset qualified experts label to measure the model judge.
+provenance:
+  note: >-
+    SEED SET. Every question and criterion here was drafted by a model from general
+    knowledge of federal contracting, and every one is marked generated and unapproved.
+    None runs until a qualified acquisition expert has reviewed it, corrected it where
+    needed, and approved it -- the platform will not select an unapproved scenario.
+    Reviewers should check each criterion against the current FAR, DFARS and 13 CFR,
+    which have changed substantially since 2025, and especially any figure or deadline.
+    All questions are fictional and contain no real company, person or contract.
+  split_policy: >-
+    Everything in this repository is treated as public. Held-out questions belong in an
+    organisation pack directory (AEGIS_PACK_DIR) that is never published, tagged
+    split:private.
+
+scenarios:
+  # -- Getting ready ---------------------------------------------------------
+
+  - key: govcon-q01-sam-fee
+    title: Paying a fee to register in SAM
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:registration, phase:readiness, split:public, calibration]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        I got an email saying I need to pay $499 to register my company in SAM so I can
+        bid on federal contracts. Is this legit? What do I actually need to do?
+    criteria:
+      - {id: c1, text: "States that registering in SAM.gov is free; the government charges no fee."}
+      - {id: c2, text: "Explains that paid registration offers come from third parties, are not required, and may be scams."}
+      - {id: c3, text: "Directs the user to register at SAM.gov, the official site."}
+      - {id: c4, text: "Mentions that the Unique Entity ID (UEI) is assigned through SAM.gov."}
+      - {id: c5, text: "States that the registration must be renewed every year to stay active."}
+    rubric: Does the answer protect the user from the fee and describe the real, free process?
+
+  - key: govcon-q02-sam-timing
+    title: How early to start SAM registration before a bid
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:registration, phase:readiness, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        There's a bid due in three weeks that we want to go after, but we've never
+        registered in SAM. Do we have time, and what could hold us up?
+    criteria:
+      - {id: c1, text: "Advises starting immediately, because registration can take weeks to complete."}
+      - {id: c2, text: "States that the solicitation generally requires the offeror to be registered in SAM at the time of offer or award, and to check the solicitation's wording."}
+      - {id: c3, text: "Mentions that entity details (legal name, address, taxpayer ID) must match the records used to validate them, and mismatches cause delays."}
+      - {id: c4, text: "Mentions that a CAGE code is assigned as part of registration for US entities."}
+      - {id: c5, text: "Does not promise a specific guaranteed processing time."}
+    rubric: Does the answer set realistic expectations and name the usual causes of delay?
+
+  - key: govcon-q03-size-standard
+    title: Is my company small?
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:size, phase:readiness, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        My IT consulting firm has 40 employees and averaged about $22 million a year in
+        revenue over the last few years. Are we a small business for federal contracts?
+    criteria:
+      - {id: c1, text: "Explains that small business status depends on the size standard for the NAICS code assigned to the specific solicitation."}
+      - {id: c2, text: "States that size standards are set by the SBA and are based either on average annual receipts or on number of employees."}
+      - {id: c3, text: "Does not give an unconditional yes or no without knowing the NAICS code."}
+      - {id: c4, text: "Mentions that the receipts or employees of affiliates generally count toward size."}
+      - {id: c5, text: "Points the user to the SBA's size standards table or size standards tool."}
+    rubric: Does the answer explain why the answer depends on the NAICS code, and how to find out?
+
+  - key: govcon-q04-wosb
+    title: Self-certifying as women-owned
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:certifications, phase:readiness, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        I'm a woman and I own 60% of my company. Can I just check the women-owned box in
+        SAM and start bidding on WOSB set-asides?
+    criteria:
+      - {id: c1, text: "States that WOSB set-asides require certification through the SBA or an SBA-approved third-party certifier, not self-certification alone."}
+      - {id: c2, text: "States that the business must be at least 51% owned and controlled by one or more women who are US citizens."}
+      - {id: c3, text: "Mentions that the woman owner must control day-to-day management and long-term decision making."}
+      - {id: c4, text: "Distinguishes EDWOSB, which adds economic-disadvantage requirements."}
+      - {id: c5, text: "Directs the user to the SBA's online certification application."}
+    rubric: Does the answer correct the self-certification assumption and state the eligibility tests?
+
+  - key: govcon-q05-sdvosb
+    title: Relying on SDVOSB self-certification
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:certifications, phase:readiness, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        I'm a service-disabled veteran and I self-certified my company as an SDVOSB a
+        couple of years ago. Is that still enough to bid on SDVOSB set-asides?
+    criteria:
+      - {id: c1, text: "States that SDVOSB set-asides and sole-source awards now require SBA certification, and self-certification is no longer enough for them."}
+      - {id: c2, text: "Mentions that SDVOSB certification moved from the VA to the SBA (the SBA's veteran small business certification)."}
+      - {id: c3, text: "States that the business must be at least 51% owned and controlled by one or more service-disabled veterans."}
+      - {id: c4, text: "Advises applying promptly because certification takes time."}
+      - {id: c5, text: "Does not tell the user that self-certification remains sufficient for SDVOSB set-asides."}
+    rubric: Does the answer correct an outdated assumption without inventing requirements?
+
+  - key: govcon-q06-hubzone
+    title: Qualifying for HUBZone
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:certifications, phase:readiness, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: What does it take for my company to qualify as a HUBZone small business?
+    criteria:
+      - {id: c1, text: "States that the principal office must be located in a HUBZone."}
+      - {id: c2, text: "States that at least 35% of employees must reside in a HUBZone."}
+      - {id: c3, text: "States that the business must be small and at least 51% owned and controlled by US citizens (or other permitted owners)."}
+      - {id: c4, text: "States that HUBZone status requires SBA certification."}
+      - {id: c5, text: "Mentions ongoing obligations such as annual recertification."}
+    rubric: Does the answer state the core eligibility tests and that status must be maintained?
+
+  # -- Finding work ------------------------------------------------------------
+
+  - key: govcon-q07-finding-opportunities
+    title: Where to find contracts to bid on
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:opportunities, phase:finding-work, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: Where do I actually find federal contracts to bid on as a new small business?
+    criteria:
+      - {id: c1, text: "Names the contract opportunities section of SAM.gov as the official place where opportunities are posted."}
+      - {id: c2, text: "Notes that many smaller purchases are not publicly posted, so agency small business offices and relationships matter."}
+      - {id: c3, text: "Mentions subcontracting with prime contractors as a route in, for example through the SBA's SubNet."}
+      - {id: c4, text: "Mentions APEX Accelerators (formerly PTACs) as free help."}
+      - {id: c5, text: "Suggests agency procurement forecasts to see upcoming opportunities."}
+    rubric: Does the answer give a new business several concrete, real starting points?
+
+  - key: govcon-q08-sources-sought
+    title: Whether to answer a sources sought notice
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:opportunities, phase:finding-work, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        A sources sought notice just came out for exactly the work we do. There's no
+        contract yet. Is it worth responding?
+    criteria:
+      - {id: c1, text: "Recommends responding."}
+      - {id: c2, text: "Explains that a sources sought notice is market research and responses can influence whether the work is set aside for small businesses."}
+      - {id: c3, text: "Advises tailoring the response to the stated requirement and stating the company's socioeconomic status and relevant NAICS code."}
+      - {id: c4, text: "Notes that a response is not a proposal and does not guarantee or commit to a future award."}
+      - {id: c5, text: "Advises following the notice's own instructions, such as page limits and the response deadline."}
+    rubric: Does the answer explain why responding matters and how to do it well?
+
+  - key: govcon-q09-micro-purchase
+    title: The purchase card limit
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:purchasing, phase:finding-work, split:public]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        What's the most a government buyer can spend with a purchase card without having
+        to compete the purchase? I want to target those buys.
+    criteria:
+      - {id: c1, text: "Identifies the limit as the micro-purchase threshold."}
+      - {id: c2, text: "Notes that the threshold is adjusted periodically and advises checking the current FAR figure."}
+      - {id: c3, text: "Mentions that different thresholds apply in some cases, such as construction, certain services, or contingency operations."}
+      - {id: c4, text: "Notes that buyers may not split a requirement to stay under the threshold."}
+      - {id: c5, text: "If it gives a dollar figure, it says what date or source the figure comes from."}
+    rubric: Does the answer handle a figure that changes over time without stating a stale one as current?
+
+  # -- Bidding -----------------------------------------------------------------
+
+  - key: govcon-q10-set-aside-decision
+    title: Why some contracts are set aside
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:set-asides, phase:bidding, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: Why do some contracts get set aside for small businesses and others don't?
+    criteria:
+      - {id: c1, text: "Explains the 'rule of two': a set-aside when the contracting officer reasonably expects offers from at least two responsible small businesses at fair market prices."}
+      - {id: c2, text: "Explains that market research drives the decision."}
+      - {id: c3, text: "Recommends responding to sources sought notices and RFIs to show small business capability."}
+      - {id: c4, text: "Mentions socioeconomic set-asides such as 8(a), HUBZone, WOSB and SDVOSB."}
+      - {id: c5, text: "Notes that the contracting officer makes the set-aside decision."}
+    rubric: Does the answer explain the decision rule and what a business can do to influence it?
+
+  - key: govcon-q11-big-sub
+    title: A large subcontractor doing most of the work
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:subcontracting, phase:bidding, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        We're a small business and want to bid on a small business set-aside for IT
+        services. A large company would be our subcontractor and do most of the work.
+        Any problem with that?
+    criteria:
+      - {id: c1, text: "Identifies the limitations on subcontracting rule for set-aside contracts."}
+      - {id: c2, text: "States that for services the prime generally may not pay more than 50% of the amount paid to it to subcontractors that are not similarly situated."}
+      - {id: c3, text: "Explains the ostensible subcontractor rule: the SBA may find affiliation if the subcontractor performs primary and vital requirements or the prime is unusually reliant on it."}
+      - {id: c4, text: "Notes that such affiliation can make the company ineligible for the award."}
+      - {id: c5, text: "Mentions compliant alternatives such as a joint venture under the SBA Mentor-Protege Program."}
+    rubric: Does the answer identify both rules the arrangement runs into and a compliant alternative?
+
+  - key: govcon-q12-unsolicited
+    title: Sending an unsolicited proposal
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:proposals, phase:bidding, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        I have an idea that could save the Army a lot of money. Can I just send them a
+        proposal and get a contract?
+    criteria:
+      - {id: c1, text: "Explains that unsolicited proposals are allowed but must be innovative and unique, independently developed, and not for a known or planned requirement."}
+      - {id: c2, text: "Sets realistic expectations that awards from unsolicited proposals are uncommon."}
+      - {id: c3, text: "Advises marking proprietary information with the appropriate restrictive legend."}
+      - {id: c4, text: "Suggests other routes, such as SBIR/STTR, commercial solutions openings, or industry days."}
+      - {id: c5, text: "Advises contacting the agency's point of contact for unsolicited proposals before submitting."}
+    rubric: Does the answer explain the real bar and the better routes in?
+
+  - key: govcon-q13-page-limit
+    title: Going over the page limit
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:proposals, phase:bidding, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        The RFP limits the technical volume to 20 pages. We have great material. Would it
+        really hurt to submit 25?
+    criteria:
+      - {id: c1, text: "Warns that pages over the limit may not be read or evaluated, or the proposal may be found noncompliant."}
+      - {id: c2, text: "Advises following the proposal instructions (Section L or equivalent) exactly."}
+      - {id: c3, text: "Advises using the evaluation criteria (Section M or equivalent) to decide what to cut."}
+      - {id: c4, text: "Suggests asking questions through the solicitation's question process if the instructions are unclear."}
+      - {id: c5, text: "Does not suggest workarounds that evade the limit, such as shrinking the font below the stated minimum."}
+    rubric: Does the answer warn clearly and help the user comply?
+
+  - key: govcon-q14-late-proposal
+    title: A proposal three minutes late
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:proposals, phase:bidding, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        Our proposal was due at 2:00 p.m. Eastern and it went in at 2:03 because our
+        upload stalled. Will they still consider it?
+    criteria:
+      - {id: c1, text: "States the general rule that late proposals are not considered."}
+      - {id: c2, text: "Mentions that narrow exceptions exist, for example when there is evidence the proposal was received and under government control before the deadline."}
+      - {id: c3, text: "Notes that the offeror bears the risk of technical problems in submitting on time."}
+      - {id: c4, text: "Recommends contacting the contracting officer immediately with documentation of the submission."}
+      - {id: c5, text: "Does not assure the user that the proposal will be accepted."}
+    rubric: Does the answer state the strict rule honestly while naming the narrow exceptions?
+
+  - key: govcon-q15-ffp-risk
+    title: Pricing fixed-price work with a fuzzy scope
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:contract-types, phase:bidding, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        The agency wants a firm-fixed-price quote, but the scope of work is vague. What
+        are my risks and how do I protect myself?
+    criteria:
+      - {id: c1, text: "Explains that under a firm-fixed-price contract the contractor bears the risk of cost overruns."}
+      - {id: c2, text: "Recommends asking clarifying questions about the scope before submitting."}
+      - {id: c3, text: "Advises documenting pricing assumptions, while warning that assumptions that take exception to the terms can make a proposal unacceptable."}
+      - {id: c4, text: "Notes that work outside the scope requires a contract modification from the contracting officer."}
+      - {id: c5, text: "Notes that the contract type is the government's decision, not the offeror's."}
+    rubric: Does the answer explain the risk allocation and practical protections?
+
+  - key: govcon-q16-cost-type-accounting
+    title: Joining a cost-reimbursement contract
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:pricing, phase:bidding, split:public]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        We've been asked to join a team bidding a cost-plus contract. We've only done
+        fixed-price work. Do we need anything special?
+    criteria:
+      - {id: c1, text: "States that a cost-reimbursement contract requires an accounting system adequate for determining costs, including separating direct and indirect costs by contract."}
+      - {id: c2, text: "Mentions that the government may review the accounting system before award."}
+      - {id: c3, text: "Mentions the FAR cost principles (Part 31), under which some costs are unallowable and cannot be billed."}
+      - {id: c4, text: "Mentions indirect rates, provisional billing rates, and year-end incurred cost submissions."}
+      - {id: c5, text: "Mentions the need for reliable timekeeping for labour charged to contracts."}
+    rubric: Does the answer name the systems and obligations a first-time cost-type contractor needs?
+
+  # -- Award ------------------------------------------------------------------
+
+  - key: govcon-q17-debrief-protest
+    title: After losing a competition
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:protests, phase:award, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        We just got notice that we lost a competitive negotiated procurement. What
+        should we do next?
+    criteria:
+      - {id: c1, text: "Recommends requesting a debriefing in writing promptly."}
+      - {id: c2, text: "States that the deadline to request a debriefing is only a few days after notification."}
+      - {id: c3, text: "Names the protest forums: the agency, the GAO, and the Court of Federal Claims."}
+      - {id: c4, text: "States that GAO protest deadlines are short, generally measured in days from when the basis is known, with timing tied to the debriefing."}
+      - {id: c5, text: "Suggests consulting a government contracts attorney because the deadlines are strict."}
+    rubric: Does the answer get the user to act in time, through the right forum?
+
+  - key: govcon-q18-size-protest
+    title: The winner doesn't look small
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:protests, phase:award, split:public]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        The company that won the small business set-aside we bid on is much bigger than
+        us. I don't think they're really small. What can I do?
+    criteria:
+      - {id: c1, text: "Explains that an offeror can file a size protest."}
+      - {id: c2, text: "States that size protests are decided by the SBA, and are filed through the contracting officer."}
+      - {id: c3, text: "States that the deadline is short: within five business days of notice of the apparent successful offeror, for negotiated procurements."}
+      - {id: c4, text: "Advises that the protest must give specific reasons and evidence, not a general allegation."}
+      - {id: c5, text: "Distinguishes a size protest from a GAO bid protest."}
+    rubric: Does the answer name the right process, decision-maker and deadline?
+
+  # -- Performance -------------------------------------------------------------
+
+  - key: govcon-q19-cor-direction
+    title: Extra work requested by the COR
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:contract-changes, phase:performance, split:public, calibration]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        The COR on our contract keeps asking us to do extra work that isn't in the
+        contract. He says it's fine. Should we just do it?
+    criteria:
+      - {id: c1, text: "States that only the contracting officer has authority to change the contract."}
+      - {id: c2, text: "Explains that the COR generally has no authority to direct changes."}
+      - {id: c3, text: "Warns that the company may not be paid for work done at the direction of someone without authority."}
+      - {id: c4, text: "Recommends notifying the contracting officer in writing and getting a modification before doing the work."}
+      - {id: c5, text: "Recommends documenting each request (who, when, what) to preserve the company's rights."}
+    rubric: Does the answer protect the company from unpaid work and explain who has authority?
+
+  - key: govcon-q20-cpars
+    title: An unfair past performance rating
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:past-performance, phase:performance, split:public]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: We got a Marginal rating in CPARS that we think is unfair. What can we do?
+    criteria:
+      - {id: c1, text: "Explains that the contractor can submit comments on the evaluation in CPARS."}
+      - {id: c2, text: "States that the comment window is short (14 calendar days) and should not be missed."}
+      - {id: c3, text: "States that a disagreement can be reviewed at a level above the contracting officer."}
+      - {id: c4, text: "Advises a factual, documented response rather than an emotional one."}
+      - {id: c5, text: "Notes that the evaluation is used in future source selections, which is why responding matters."}
+    rubric: Does the answer give the user the process, the deadline and why it matters?
+
+  - key: govcon-q21-cmmc-level
+    title: Which CMMC level a machine shop needs
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:compliance, phase:performance, split:public, calibration]
+    difficulty: hard
+    required_expertise: [acquisition, cyber]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        We machine parts for a DoD prime contractor, and they say we need CMMC. All we
+        handle are the technical drawings they send us. What level do we need?
+    criteria:
+      - {id: c1, text: "Explains that the CMMC level depends on the information handled: Level 1 for Federal Contract Information, Level 2 (or 3) for Controlled Unclassified Information."}
+      - {id: c2, text: "Notes that technical drawings from a DoD prime are often CUI (for example controlled technical information), which points to Level 2."}
+      - {id: c3, text: "States that Level 2 is based on the security requirements of NIST SP 800-171."}
+      - {id: c4, text: "Explains that Level 2 may require a third-party assessment (C3PAO) or allow self-assessment, depending on the contract."}
+      - {id: c5, text: "Advises confirming with the prime which level the subcontract requires and how the drawings are marked."}
+    rubric: Does the answer reason from the data handled to the level, and send the user to confirm?
+
+  - key: govcon-q22-late-payment
+    title: An invoice 45 days unpaid
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:payment, phase:payment, split:public, calibration]
+    difficulty: standard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        We invoiced the Air Force 45 days ago and still haven't been paid. What can we do?
+    criteria:
+      - {id: c1, text: "Explains that the Prompt Payment Act requires interest penalties on late payments, generally after 30 days from receipt of a proper invoice unless the contract says otherwise."}
+      - {id: c2, text: "Explains that the invoice must be a proper invoice, and that the government must tell the contractor about defects."}
+      - {id: c3, text: "Mentions checking the invoice status in PIEE (formerly WAWF), where DoD invoices are submitted."}
+      - {id: c4, text: "Recommends contacting the paying office and the contracting officer."}
+      - {id: c5, text: "Does not advise stopping work under the contract because of the late payment without first consulting the contracting officer."}
+    rubric: Does the answer explain the user's rights and the practical steps without risky advice?
+
+  - key: govcon-q23-termination
+    title: Terminated for convenience halfway through
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:termination, phase:payment, split:public]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        The government terminated our contract for convenience halfway through. Do we
+        get paid for the rest of it?
+    criteria:
+      - {id: c1, text: "Explains that termination for convenience is a government right and not a finding of fault."}
+      - {id: c2, text: "States that the contractor is generally paid for costs incurred and a reasonable profit on work done, plus settlement expenses, but not anticipated profit on work not performed."}
+      - {id: c3, text: "Advises stopping work as the notice directs and following its instructions."}
+      - {id: c4, text: "Mentions submitting a termination settlement proposal within the deadline, generally one year."}
+      - {id: c5, text: "Advises documenting all costs and working with the contracting officer or termination contracting officer."}
+    rubric: Does the answer set correct expectations about recovery and explain what to do?
+
+  - key: govcon-q24-acquisition
+    title: Selling the company with contracts in place
+    mission: Help small businesses navigate federal contracting.
+    task: Answer a small business owner's question.
+    tags: [govcon-bench, mission-task, topic:ownership-change, phase:performance, split:public]
+    difficulty: hard
+    required_expertise: [acquisition]
+    generated: true
+    approved: false
+    input:
+      prompt: >-
+        A larger company wants to buy my small business. What happens to our federal
+        contracts and our small business status?
+    criteria:
+      - {id: c1, text: "Explains that when contracts are transferred to a new entity, the government must recognise the new contractor through a novation agreement."}
+      - {id: c2, text: "Notes that a stock purchase in which the contracting entity continues generally does not need novation, while an asset transfer does."}
+      - {id: c3, text: "States that the company must recertify its size within 30 days after the merger or acquisition."}
+      - {id: c4, text: "Explains that recertifying as other than small can affect eligibility for future orders and how the agency counts the contract toward small business goals."}
+      - {id: c5, text: "Recommends involving a government contracts attorney before closing."}
+    rubric: Does the answer cover both the contracts and the size status, and when each is affected?

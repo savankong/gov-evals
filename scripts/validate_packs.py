@@ -48,6 +48,36 @@ def load(path: Path) -> dict:
         return {}
 
 
+def validate_criteria(spec: dict) -> list[str]:
+    """Grading criteria must each be identifiable and say something.
+
+    The criterion id is what an expert's label and the judge's verdict are
+    matched on. A missing or repeated id makes that match silently wrong: two
+    verdicts land on one criterion, or an expert label lands on nothing, and
+    the published judge-agreement figure is computed over the wrong pairs.
+    """
+    if "criteria" not in spec:
+        return []
+    key = spec.get("key")
+    criteria = spec.get("criteria")
+    if not isinstance(criteria, list) or not criteria:
+        return [f"scenario {key!r} declares criteria but lists none"]
+    problems, seen = [], set()
+    for index, criterion in enumerate(criteria, start=1):
+        if not isinstance(criterion, dict):
+            problems.append(f"scenario {key!r} criterion {index} is not a mapping with id and text")
+            continue
+        cid = criterion.get("id")
+        if not cid:
+            problems.append(f"scenario {key!r} criterion {index} has no id")
+        elif cid in seen:
+            problems.append(f"scenario {key!r} repeats criterion id {cid!r}")
+        seen.add(cid)
+        if not str(criterion.get("text") or "").strip():
+            problems.append(f"scenario {key!r} criterion {cid or index} has no text")
+    return problems
+
+
 def main() -> int:
     pack_files = sorted(PACKS.glob("*.y*ml"))
     if not pack_files:
@@ -80,9 +110,12 @@ def main() -> int:
                 errors.append(f"{path.name}: a scenario has no key")
             if not (spec.get("input") or {}).get("prompt"):
                 errors.append(f"{path.name}: scenario {spec.get('key')!r} has no input prompt")
+            errors.extend(f"{path.name}: {e}" for e in validate_criteria(spec))
             # A scenario without expectations cannot be argued with, which is
-            # the whole point of stating them.
-            if not spec.get("expected_behavior") and not spec.get("reference_answer"):
+            # the whole point of stating them. Criteria are expectations too.
+            if not (
+                spec.get("expected_behavior") or spec.get("reference_answer") or spec.get("criteria")
+            ):
                 warnings.append(
                     f"{path.name}: scenario {spec.get('key')!r} states no expected behaviour"
                 )

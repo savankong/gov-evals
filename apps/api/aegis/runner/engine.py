@@ -155,6 +155,7 @@ def scenario_to_dict(scenario: Scenario) -> dict:
         "difficulty": scenario.difficulty,
         "threat_type": scenario.threat_type,
         "tags": scenario.tags or [],
+        "criteria": scenario.criteria or [],
         "version": scenario.version,
         "content_hash": scenario.content_hash,
         # Selector fields evaluators read directly off the scenario input.

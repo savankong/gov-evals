@@ -412,6 +412,9 @@ class Scenario(Base, TimestampMixin, GovernedArtifactMixin):
     version: Mapped[str] = mapped_column(String(32), default="1")
     # Overrides the dataset's declaration when set on the scenario itself.
     required_expertise: Mapped[list] = mapped_column(JSON, default=list)
+    # Grading criteria, each judged on its own: [{"id": "c1", "text": "..."}].
+    # Never sent to the system under test -- only `input` is.
+    criteria: Mapped[list] = mapped_column(JSON, default=list)
     # Generated scenarios stay drafts until a human approves them (section 17).
     approved: Mapped[bool] = mapped_column(Boolean, default=True)
     approved_by: Mapped[str | None] = mapped_column(String(255))
@@ -681,6 +684,9 @@ class HumanReview(Base, TimestampMixin):
     qualified: Mapped[bool] = mapped_column(Boolean, default=False)
     # Why it was or was not counted, in words, so the evidence explains itself.
     qualification_note: Mapped[str | None] = mapped_column(Text)
+    # A verdict per scenario criterion, {"c1": "pass", "c2": "fail"}. This is
+    # the expert label a model judge's criterion verdicts are measured against.
+    criteria_labels: Mapped[dict | None] = mapped_column(JSON)
 
     expert_profile: Mapped[ExpertProfile | None] = relationship()
 

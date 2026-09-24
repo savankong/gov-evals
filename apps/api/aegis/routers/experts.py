@@ -255,6 +255,7 @@ def review_queue(
                 rubric=scenario.rubric if scenario else None,
                 expected_behavior=(scenario.expected_behavior or []) if scenario else [],
                 prohibited_behavior=(scenario.prohibited_behavior or []) if scenario else [],
+                criteria=(scenario.criteria or []) if scenario else [],
                 required_expertise=required,
                 viewer_is_qualified=qualified_viewer,
                 review_count=len(reviews),
