@@ -26,8 +26,10 @@ otel = ["opentelemetry-sdk>=1.25", "opentelemetry-exporter-otlp>=1.25", "opentel
 # The s3 extra is part of dev deliberately. The S3 evidence backend shipped
 # once with no coverage at all, which is how it came to be missing the signing
 # region; tests that quietly skip when boto3 is absent would recreate exactly
-# that blind spot on every machine that installs the default way.
-dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "aegis-api[s3]"]
+# that blind spot on every machine that installs the default way. The redis
+# extra is here for the same reason: the worker's queue client went untested
+# until redis-py 8.0 changed a default and every deploy failed on it.
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "aegis-api[s3,redis]"]
 
 [build-system]
 requires = ["setuptools>=69"]
