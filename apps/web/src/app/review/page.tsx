@@ -39,6 +39,7 @@ interface QueueItem {
   rubric: string | null;
   expected_behavior: string[];
   prohibited_behavior: string[];
+  criteria?: { id: string; text: string }[];
   required_expertise: string[];
   viewer_is_qualified: boolean;
   review_count: number;
@@ -66,6 +67,14 @@ const VERDICTS = [
   { key: "pass", label: "Pass", hint: "1" },
   { key: "warning", label: "Warning", hint: "2" },
   { key: "fail", label: "Fail", hint: "3" },
+] as const;
+
+// A criterion is met, not met, or cannot be told from the answer. The last is
+// recorded as not_evaluated and is never counted as either.
+const CRITERION_VERDICTS = [
+  { key: "pass", label: "Met" },
+  { key: "fail", label: "Not met" },
+  { key: "not_evaluated", label: "Can't tell" },
 ] as const;
 
 /** A 0–1 rating rendered as a labelled slider with the value shown. */
@@ -122,6 +131,7 @@ function ReviewPanel({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState(() => Date.now());
+  const [labels, setLabels] = useState<Record<string, string>>({});
 
   const labelFor = useCallback(
     (key: string) => disciplines.find((d) => d.key === key)?.label ?? key.replace(/_/g, " "),
@@ -142,6 +152,7 @@ function ReviewPanel({
 
   useEffect(() => {
     setVerdict(null);
+    setLabels({});
     setComments("");
     setConfidence(0.7);
     setFamiliarity(0.7);
@@ -169,8 +180,11 @@ function ReviewPanel({
 
   if (!item) return null;
 
+  const criteria = item.criteria ?? [];
+  const unlabelled = criteria.filter((c) => !labels[c.id]).length;
+
   const submit = async () => {
-    if (!verdict) return;
+    if (!verdict || unlabelled) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -180,6 +194,7 @@ function ReviewPanel({
         confidence,
         familiarity,
         expertise: expertise || null,
+        criteria_labels: criteria.length ? labels : null,
         time_spent_seconds: Math.max(1, Math.round((Date.now() - startedAt) / 1000)),
       });
       onSubmitted();
@@ -268,6 +283,44 @@ function ReviewPanel({
           </section>
         ) : null}
 
+        {criteria.length ? (
+          <section className="border-t border-line pt-4">
+            <div className="text-2xs uppercase tracking-wider text-faint">
+              Criteria · label each one
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Judge each criterion on its own, from the response alone. These labels are what
+              the model judge is measured against, so its verdicts are not shown here.
+            </p>
+            <ol className="mt-2 space-y-2.5">
+              {criteria.map((criterion) => (
+                <li key={criterion.id}>
+                  <p className="text-xs leading-relaxed text-ink">{criterion.text}</p>
+                  <div className="mt-1 flex gap-1.5">
+                    {CRITERION_VERDICTS.map((option) => (
+                      <button
+                        key={option.key}
+                        type="button"
+                        aria-pressed={labels[criterion.id] === option.key}
+                        onClick={() =>
+                          setLabels((current) => ({ ...current, [criterion.id]: option.key }))
+                        }
+                        className={`inline-flex h-7 flex-1 items-center justify-center border px-2 text-xs transition-colors duration-150 ease-out ${
+                          labels[criterion.id] === option.key
+                            ? "border-line-strong bg-sunken text-ink"
+                            : "border-line text-muted hover:border-line-strong hover:text-ink"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+
         <div className="border-t border-line pt-4">
           <div className="text-2xs uppercase tracking-wider text-faint">Your judgement</div>
           <div className="mt-1.5 flex gap-1.5">
@@ -343,8 +396,16 @@ function ReviewPanel({
         {error ? <ErrorNote message={error} /> : null}
 
         <div className="flex items-center gap-2 pb-2">
-          <Button variant="primary" onClick={submit} disabled={!verdict || submitting}>
-            {submitting ? "Submitting…" : "Submit review"}
+          <Button
+            variant="primary"
+            onClick={submit}
+            disabled={!verdict || unlabelled > 0 || submitting}
+          >
+            {submitting
+              ? "Submitting…"
+              : unlabelled
+                ? `Label ${unlabelled} more criteri${unlabelled === 1 ? "on" : "a"}`
+                : "Submit review"}
           </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancel

@@ -391,6 +391,9 @@ def submit_review(
     else:
         profile = expertise.profile_for_user(db, user.id)
 
+    if payload.criteria_labels is not None:
+        _check_criteria_labels(db, result, payload.criteria_labels)
+
     required = expertise.required_for_result(db, result)
     qualified, note = expertise.qualify(required, profile, payload.expertise)
 
@@ -427,6 +430,37 @@ def submit_review(
     db.commit()
     db.refresh(review)
     return review
+
+
+_CRITERION_VERDICTS = (ResultStatus.PASS, ResultStatus.FAIL, ResultStatus.NOT_EVALUATED)
+
+
+def _check_criteria_labels(db: Session, result: Result, labels: dict[str, str]) -> None:
+    """Refuse labels that do not line up with the scenario's criteria.
+
+    A label for a criterion the scenario does not have would be counted in the
+    judge-agreement figures against nothing, and a verdict outside pass, fail or
+    not_evaluated has no meaning there.
+    """
+    scenario = db.get(Scenario, result.scenario_id) if result.scenario_id else None
+    known = {c.get("id") for c in (scenario.criteria if scenario else []) or []}
+    if not known:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "This result's scenario has no criteria, so there is nothing to label.",
+        )
+    unknown = sorted(set(labels) - known)
+    if unknown:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"Unknown criteria {unknown}. This scenario's criteria are {sorted(known)}.",
+        )
+    bad = sorted(k for k, v in labels.items() if v not in _CRITERION_VERDICTS)
+    if bad:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"Criteria {bad} need a verdict of pass, fail or not_evaluated.",
+        )
 
 
 def _reresolve(db: Session, result: Result) -> None:

@@ -294,6 +294,7 @@ class ScenarioIn(BaseModel):
     threat_type: str | None = None
     tags: list[str] = Field(default_factory=list)
     knowledge_area: str | None = None
+    criteria: list[dict] = Field(default_factory=list)
     classification: str = Classification.UNCLASSIFIED
     approved: bool = True
 
@@ -315,6 +316,8 @@ class ScenarioOut(ORMModel):
     threat_type: str | None = None
     tags: list
     knowledge_area: str | None = None
+    criteria: list = Field(default_factory=list)
+    required_expertise: list = Field(default_factory=list)
     source: str | None = None
     version: str
     approved: bool
@@ -494,6 +497,8 @@ class HumanReviewIn(BaseModel):
     expertise: str | None = None
     expert_profile_id: str | None = None
     familiarity: float | None = Field(default=None, ge=0.0, le=1.0)
+    # One verdict per scenario criterion id: pass, fail or not_evaluated.
+    criteria_labels: dict[str, str] | None = None
 
 
 class HumanReviewOut(HumanReviewIn, ORMModel):
@@ -606,6 +611,9 @@ class ReviewQueueItem(BaseModel):
     rubric: str | None = None
     expected_behavior: list = Field(default_factory=list)
     prohibited_behavior: list = Field(default_factory=list)
+    # Criteria to label one by one. The judge's verdicts on them are not sent,
+    # so the expert's labels are independent of the thing they measure.
+    criteria: list = Field(default_factory=list)
     required_expertise: list[str] = Field(default_factory=list)
     # Whether the *caller* holds the expertise this item asks for.
     viewer_is_qualified: bool = False
@@ -862,6 +870,8 @@ class TriggerOut(TriggerIn, ORMModel):
 class ReportRequest(BaseModel):
     kind: str
     campaign_id: str | None = None
+    # A benchmark can pool campaigns -- one per condition, say -- into one report.
+    campaign_ids: list[str] = Field(default_factory=list)
     plan_id: str | None = None
     assurance_case_id: str | None = None
     title: str | None = None

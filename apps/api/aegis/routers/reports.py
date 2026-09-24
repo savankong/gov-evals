@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..benchmark import benchmark_data
 from ..db import get_db
 from ..hashing import content_hash, evidence_store
 from ..models import (
@@ -23,6 +24,7 @@ from ..models import (
 from ..reports import (
     REPORT_KINDS,
     assurance_case_report,
+    benchmark_report,
     comparison_report,
     evaluation_plan_report,
     executive_report,
@@ -96,6 +98,20 @@ def generate_report(
         case = fetch(db, AssuranceCase, payload.assurance_case_id, "Assurance case")
         body = assurance_case_report(db, project, case)
         scope = {"assurance_case_id": case.id}
+    elif payload.kind == "benchmark":
+        ids = list(dict.fromkeys([*payload.campaign_ids, *([payload.campaign_id] if payload.campaign_id else [])]))
+        if not ids:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "campaign_id or campaign_ids is required for this report"
+            )
+        campaigns = [fetch(db, Campaign, cid, "Campaign") for cid in ids]
+        foreign = [c.id for c in campaigns if c.project_id != project.id]
+        if foreign:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, f"Campaigns {foreign} belong to another project."
+            )
+        body = benchmark_report(db, project, benchmark_data(db, campaigns), payload.title)
+        scope = {"campaign_ids": ids}
     else:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,

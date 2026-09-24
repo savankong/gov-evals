@@ -22,7 +22,7 @@ from aegis.migrate import BASELINE_REVISION, current_revision, upgrade_to_head
 from aegis.models import Base, Dataset, Organization, Program, Project
 
 # The newest revision. Named once so adding a revision is one edit here.
-HEAD_REVISION = "0003_capture_and_delivery"
+HEAD_REVISION = "0004_benchmark_criteria"
 
 # Revision bookkeeping is not part of the application's schema.
 _IGNORED_TABLES = {"alembic_version"}

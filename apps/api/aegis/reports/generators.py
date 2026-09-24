@@ -617,4 +617,5 @@ REPORT_KINDS = {
     "findings": "Failure and findings report",
     "comparison": "Model comparison report",
     "assurance_case": "AI assurance case",
+    "benchmark": "Benchmark report",
 }
