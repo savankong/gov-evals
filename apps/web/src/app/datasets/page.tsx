@@ -337,7 +337,7 @@ export default function DatasetsPage() {
         <Card>
           <Empty
             title="No datasets yet"
-            detail="A dataset is the set of cases a system is put through. Create one against a project and upload JSONL, JSON, CSV or plain text — the platform reports what it found in the file before anything runs against it: empty inputs, duplicates, and whether any row carries an expected answer at all."
+            detail="A dataset is the set of cases a system is put through. Create one against a project and upload JSONL, JSON, CSV, plain text or a provider's zip — the platform reports what it found in the file before anything runs against it: empty inputs, duplicates, and whether any row carries an expected answer at all."
             action={
               canWrite ? (
                 <Button variant="primary" onClick={() => setCreating(true)}>

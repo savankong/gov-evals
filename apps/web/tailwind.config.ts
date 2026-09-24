@@ -37,22 +37,26 @@ const config: Config = {
         lg: "2px",
         full: "9999px",
       },
+      // Sizes are in rem so the whole interface scales with the root size set
+      // in globals.css, which steps up on large monitors. Nothing is smaller
+      // than 12px at the default root; validate_readable_type() refuses a
+      // step below that, or one written in px that would not scale.
       fontSize: {
-        "2xs": ["10px", { lineHeight: "14px", letterSpacing: "0.04em" }],
-        xs: ["11px", { lineHeight: "16px" }],
-        sm: ["12px", { lineHeight: "18px" }],
-        base: ["13px", { lineHeight: "20px" }],
-        lg: ["15px", { lineHeight: "22px" }],
-        xl: ["18px", { lineHeight: "26px" }],
-        "2xl": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em" }],
-        "3xl": ["30px", { lineHeight: "34px", letterSpacing: "-0.02em" }],
-        "4xl": ["38px", { lineHeight: "42px", letterSpacing: "-0.025em" }],
-        "5xl": ["48px", { lineHeight: "52px", letterSpacing: "-0.03em" }],
+        "2xs": ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.04em" }],
+        xs: ["0.8125rem", { lineHeight: "1.25rem" }],
+        sm: ["0.875rem", { lineHeight: "1.375rem" }],
+        base: ["0.9375rem", { lineHeight: "1.5rem" }],
+        lg: ["1.0625rem", { lineHeight: "1.625rem" }],
+        xl: ["1.25rem", { lineHeight: "1.75rem" }],
+        "2xl": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.01em" }],
+        "3xl": ["2rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em" }],
+        "4xl": ["2.5rem", { lineHeight: "2.75rem", letterSpacing: "-0.025em" }],
+        "5xl": ["3.125rem", { lineHeight: "3.375rem", letterSpacing: "-0.03em" }],
       },
       spacing: {
-        rail: "44px",
-        sidebar: "224px",
-        topbar: "44px",
+        rail: "2.75rem",
+        sidebar: "14rem",
+        topbar: "2.75rem",
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.16, 1, 0.3, 1)",

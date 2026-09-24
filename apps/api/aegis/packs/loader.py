@@ -169,6 +169,11 @@ def _install_scenario(db: Session, spec: dict, pack: Pack) -> int:
     scenario.difficulty = spec.get("difficulty", "standard")
     scenario.threat_type = spec.get("threat_type")
     scenario.tags = spec.get("tags") or []
+    scenario.knowledge_area = spec.get("knowledge_area")
+    # Only when the pack says. A program may have declared expertise on a
+    # library scenario itself, and a pack that is silent should not erase it.
+    if "required_expertise" in spec:
+        scenario.required_expertise = spec.get("required_expertise") or []
     scenario.source = pack.key
     scenario.version = str(spec.get("version", pack.version))
     scenario.classification = spec.get("classification", "UNCLASSIFIED")

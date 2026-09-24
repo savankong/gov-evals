@@ -59,22 +59,22 @@ export default function CampaignsPage({ params }: { params: Promise<{ projectId:
           <thead>
             <tr>
               <Th>Campaign</Th>
-              <Th className="w-[110px]">Trigger</Th>
-              <Th className="w-[96px]">Status</Th>
-              <Th className="w-[130px]">Outcome</Th>
-              <Th className="w-[80px]" align="right">
+              <Th className="w-[8.25rem]">Trigger</Th>
+              <Th className="w-[7.25rem]">Status</Th>
+              <Th className="w-[9.75rem]">Outcome</Th>
+              <Th className="w-[6rem]" align="right">
                 Exec
               </Th>
-              <Th className="w-[80px]" align="right">
+              <Th className="w-[6rem]" align="right">
                 Passed
               </Th>
-              <Th className="w-[80px]" align="right">
+              <Th className="w-[6rem]" align="right">
                 Failed
               </Th>
-              <Th className="w-[90px]" align="right">
+              <Th className="w-[6.75rem]" align="right">
                 Awaiting
               </Th>
-              <Th className="w-[130px]">Completed</Th>
+              <Th className="w-[9.75rem]">Completed</Th>
             </tr>
           </thead>
           <tbody>

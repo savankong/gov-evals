@@ -168,6 +168,32 @@ export const IconExpert = (p: Props) => (
   </svg>
 );
 
+/** Target: crosshairs on a point, for where the model is weak. */
+export const IconTarget = (p: Props) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="8" r="5.5" />
+    <circle cx="8" cy="8" r="2" />
+    <path d="M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15" />
+  </svg>
+);
+
+/** Capture: a pen drawing a line of reasoning. */
+export const IconCapture = (p: Props) => (
+  <svg {...base} {...p}>
+    <path d="M10.5 2.5l3 3-7.5 7.5H3v-3z" />
+    <path d="M9 4l3 3" />
+    <path d="M9.5 14h4.5" />
+  </svg>
+);
+
+/** Deliver: a sealed box. */
+export const IconPackage = (p: Props) => (
+  <svg {...base} {...p}>
+    <path d="M2 5l6-3 6 3v6.5L8 14.5 2 11.5z" />
+    <path d="M2 5l6 3 6-3M8 8v6.5" />
+  </svg>
+);
+
 export const IconCollapse = (p: Props) => (
   <svg {...base} {...p}>
     <rect x="2" y="2.5" width="12" height="11" />

@@ -94,10 +94,10 @@ export default function FrameworksPage({ params }: { params: Promise<{ projectId
           <Table minWidth={820}>
             <thead>
               <tr>
-                <Th className="w-[180px]">Reference</Th>
+                <Th className="w-[13.5rem]">Reference</Th>
                 <Th>Topic</Th>
-                <Th className="w-[140px]">Status</Th>
-                <Th className="w-[320px]">Evidence</Th>
+                <Th className="w-[10.5rem]">Status</Th>
+                <Th className="w-[24rem]">Evidence</Th>
               </tr>
             </thead>
             <tbody>

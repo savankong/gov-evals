@@ -275,12 +275,12 @@ function DimensionRow({
       style={{ ["--stagger-delay" as string]: `${index * 24}ms` }}
     >
       <div className="w-40 shrink-0 text-base text-ink">{dimension.label}</div>
-      <div className="w-[104px] shrink-0">
+      <div className="w-[8rem] shrink-0">
         <Status status={dimension.status} />
       </div>
 
       {scoreable > 0 ? (
-        <div className="flex h-[3px] min-w-[70px] flex-1 overflow-hidden bg-line">
+        <div className="flex h-[3px] min-w-[5.25rem] flex-1 overflow-hidden bg-line">
           {[
             { n: dimension.passed, cls: "bg-pass" },
             { n: dimension.warning, cls: "bg-warn" },
@@ -294,7 +294,7 @@ function DimensionRow({
           ))}
         </div>
       ) : (
-        <div className="min-w-[70px] flex-1 text-xs text-faint">
+        <div className="min-w-[5.25rem] flex-1 text-xs text-faint">
           {dimension.pending_human > 0
             ? `${dimension.pending_human} awaiting human review`
             : dimension.executions > 0

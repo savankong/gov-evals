@@ -44,6 +44,7 @@ from ..models import (
     SystemVersion,
     utcnow,
 )
+from ..targeting import sample_agreement
 
 # Aegis' own version, recorded on every run for reproducibility.
 PLATFORM_VERSION = "0.1.0"
@@ -403,6 +404,12 @@ def _execute_one(
     }
 
     response = adapter.invoke(request)
+    confidence, confidence_source = response.confidence, response.confidence_source
+    if confidence is None and not response.error:
+        # No confidence from the target. Asking the same question again is
+        # the one measure that needs nothing from the lab.
+        confidence = sample_agreement(repetition_texts, response.text)
+        confidence_source = "sample_agreement" if confidence is not None else None
     response_dict = {
         "text": response.text,
         "latency_ms": response.latency_ms,
@@ -411,6 +418,10 @@ def _execute_one(
         "retrieved": response.retrieved,
         "citations": response.citations,
         "error": response.error,
+        # Part of the response rather than a column beside it, so the stored
+        # evidence and its digest cover the confidence a weakness was found by.
+        "confidence": confidence,
+        "confidence_source": confidence_source,
         "repetition_outputs": [*repetition_texts, response.text] if repetition_texts else [],
         "system_correct": (scenario.get("input") or {}).get("system_correct"),
     }

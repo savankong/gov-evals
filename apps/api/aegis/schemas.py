@@ -293,6 +293,7 @@ class ScenarioIn(BaseModel):
     difficulty: str = "standard"
     threat_type: str | None = None
     tags: list[str] = Field(default_factory=list)
+    knowledge_area: str | None = None
     classification: str = Classification.UNCLASSIFIED
     approved: bool = True
 
@@ -313,6 +314,7 @@ class ScenarioOut(ORMModel):
     difficulty: str
     threat_type: str | None = None
     tags: list
+    knowledge_area: str | None = None
     source: str | None = None
     version: str
     approved: bool
@@ -611,6 +613,77 @@ class ReviewQueueItem(BaseModel):
     review_count: int = 0
     qualified_review_count: int = 0
     required_reviews: int = 1
+    created_at: datetime
+
+
+# -- capture and delivery --------------------------------------------------
+
+
+class TraceStep(BaseModel):
+    """One step of an expert's reasoning, and what it rests on."""
+
+    text: str = Field(min_length=1, max_length=8000)
+    # The rule, clause or record the step relies on: "FAR 15.306(d)(3)".
+    basis: str | None = Field(default=None, max_length=512)
+
+
+class ReasoningTraceIn(BaseModel):
+    scenario_id: str
+    # The model answer the expert was shown and is correcting, if any.
+    result_id: str | None = None
+    steps: list[TraceStep] = Field(min_length=1, max_length=100)
+    final_answer: str = Field(min_length=1, max_length=20000)
+    sources: list[str] = Field(default_factory=list, max_length=100)
+    time_spent_seconds: int | None = Field(default=None, ge=0, le=7 * 24 * 3600)
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    expertise: str | None = None
+    classification: str | None = None
+    contains_pii: bool = False
+
+
+class ReasoningTraceOut(ORMModel):
+    id: str
+    scenario_id: str | None = None
+    result_id: str | None = None
+    author_label: str | None = None
+    knowledge_area: str | None = None
+    problem: dict
+    steps: list
+    final_answer: str
+    sources: list
+    time_spent_seconds: int | None = None
+    confidence: float | None = None
+    contains_pii: bool
+    classification: str
+    expertise: str | None = None
+    qualified: bool
+    qualification_note: str | None = None
+    content_hash: str
+    created_at: datetime
+
+
+class DataPackageIn(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    customer: str | None = Field(default=None, max_length=255)
+    # Empty means every area, including undeclared.
+    knowledge_areas: list[str] = Field(default_factory=list)
+    include_traces: bool = True
+    include_scored_responses: bool = True
+    project_id: str | None = None
+
+
+class DataPackageOut(ORMModel):
+    id: str
+    name: str
+    customer: str | None = None
+    selection: dict
+    record_count: int
+    manifest: dict
+    media_type: str
+    sha256: str
+    size_bytes: int
+    classification: str
+    created_by: str | None = None
     created_at: datetime
 
 

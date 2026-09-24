@@ -55,6 +55,9 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        # A download's name and digest travel as headers; a browser on another
+        # origin cannot read either unless they are named here.
+        expose_headers=["Content-Disposition", "X-Content-SHA256"],
     )
 
     for router in ROUTERS:

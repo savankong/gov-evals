@@ -119,10 +119,10 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
             <thead>
               <tr>
                 <Th>Report</Th>
-                <Th className="w-[120px]">Marking</Th>
-                <Th className="w-[160px]">Generated</Th>
-                <Th className="w-[140px]">By</Th>
-                <Th className="w-[130px]">Digest</Th>
+                <Th className="w-[9rem]">Marking</Th>
+                <Th className="w-[12rem]">Generated</Th>
+                <Th className="w-[10.5rem]">By</Th>
+                <Th className="w-[9.75rem]">Digest</Th>
               </tr>
             </thead>
             <tbody>

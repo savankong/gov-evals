@@ -50,6 +50,11 @@ class TargetResponse:
     citations: list[dict] = field(default_factory=list)
     error: str | None = None
     refused: bool = False
+    # How sure the target was of this answer, 0-1, and how that was obtained:
+    # "reported" by the target itself, or "logprob" from token probabilities.
+    # None is unknown, which is the common case and is reported as such.
+    confidence: float | None = None
+    confidence_source: str | None = None
 
 
 class ModelAdapter(ABC):
