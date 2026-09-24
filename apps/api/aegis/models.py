@@ -412,6 +412,11 @@ class Scenario(Base, TimestampMixin, GovernedArtifactMixin):
     version: Mapped[str] = mapped_column(String(32), default="1")
     # Overrides the dataset's declaration when set on the scenario itself.
     required_expertise: Mapped[list] = mapped_column(JSON, default=list)
+    # The body of government knowledge this problem tests -- "Source selection
+    # (FAR 15.3)", "Bid protests". What a weakness is found in, what expert
+    # time is spent on, and what a delivery is binned by. Null means nobody
+    # said, which is reported as undeclared rather than guessed from tags.
+    knowledge_area: Mapped[str | None] = mapped_column(String(255), index=True)
     # Generated scenarios stay drafts until a human approves them (section 17).
     approved: Mapped[bool] = mapped_column(Boolean, default=True)
     approved_by: Mapped[str | None] = mapped_column(String(255))
@@ -737,6 +742,93 @@ class HumanStudySession(Base, TimestampMixin):
     errors_detected: Mapped[int] = mapped_column(Integer, default=0)
     workload_score: Mapped[float | None] = mapped_column(Float)
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+# ---------------------------------------------------------------------------
+# Capture and delivery
+# ---------------------------------------------------------------------------
+
+
+class ReasoningTrace(Base, TimestampMixin, GovernedArtifactMixin):
+    """An expert working a problem, step by step, in their own words.
+
+    This is the thing the platform exists to collect. A score on a model's
+    answer says the answer was wrong; a trace says how someone qualified gets
+    it right -- which rule applies, what they checked, in what order, and why.
+
+    It is human reasoning, written for the record. Model chain-of-thought is a
+    different thing and is still never requested or stored (section 25).
+
+    The problem is snapshotted at capture. A scenario can be edited later; the
+    trace answers the problem as it stood when the expert read it, and the
+    content hash covers that snapshot.
+    """
+
+    __tablename__ = "reasoning_traces"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    scenario_id: Mapped[str | None] = mapped_column(
+        ForeignKey("scenarios.id", ondelete="SET NULL"), index=True
+    )
+    # The model answer the expert was shown, when the trace corrects one.
+    result_id: Mapped[str | None] = mapped_column(
+        ForeignKey("results.id", ondelete="SET NULL"), index=True
+    )
+    author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    author_label: Mapped[str | None] = mapped_column(String(255))
+
+    # Copied from the scenario, so a later edit to the scenario does not move
+    # a trace between delivery bins after it was delivered.
+    knowledge_area: Mapped[str | None] = mapped_column(String(255), index=True)
+    problem: Mapped[dict] = mapped_column(JSON, default=dict)
+    # [{"text": "...", "basis": "FAR 15.306(d)"}], in the order worked.
+    steps: Mapped[list] = mapped_column(JSON, default=list)
+    final_answer: Mapped[str] = mapped_column(Text, default="")
+    sources: Mapped[list] = mapped_column(JSON, default=list)
+    time_spent_seconds: Mapped[int | None] = mapped_column(Integer)
+    # The expert's own confidence in their answer, 0-1. Unset is unknown.
+    confidence: Mapped[float | None] = mapped_column(Float)
+    contains_pii: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Same rule as a human review: recorded regardless, counted only when the
+    # author was qualified for this problem.
+    expert_profile_id: Mapped[str | None] = mapped_column(
+        ForeignKey("expert_profiles.id", ondelete="SET NULL")
+    )
+    expertise: Mapped[str | None] = mapped_column(String(128))
+    qualified: Mapped[bool] = mapped_column(Boolean, default=False)
+    qualification_note: Mapped[str | None] = mapped_column(Text)
+
+    content_hash: Mapped[str] = mapped_column(String(64), default="", index=True)
+
+    expert_profile: Mapped[ExpertProfile | None] = relationship()
+
+
+class DataPackage(Base, TimestampMixin):
+    """A delivery to a customer's ingest pipeline.
+
+    Built once and stored, never regenerated: what was sent is what the record
+    shows, and the digest proves it. Everything that was considered and left
+    out is counted by reason in the manifest, so "the package has 40 records"
+    can always be read against how many it could have had and why it did not.
+    """
+
+    __tablename__ = "data_packages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    customer: Mapped[str | None] = mapped_column(String(255))
+    # What was asked for: knowledge areas, record kinds, project.
+    selection: Mapped[dict] = mapped_column(JSON, default=dict)
+    record_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Counts per bin, per kind, and per exclusion reason.
+    manifest: Mapped[dict] = mapped_column(JSON, default=dict)
+    media_type: Mapped[str] = mapped_column(String(128), default="application/x-ndjson")
+    storage_uri: Mapped[str | None] = mapped_column(String(1024))
+    sha256: Mapped[str] = mapped_column(String(64), default="", index=True)
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    classification: Mapped[str] = mapped_column(String(64), default=Classification.UNCLASSIFIED)
+    created_by: Mapped[str | None] = mapped_column(String(255))
 
 
 # ---------------------------------------------------------------------------
