@@ -67,13 +67,28 @@ class InlineQueue:
             return len(self._inflight)
 
 
+# How long one wait on the queue lasts, server side, before it comes back
+# empty and the worker waits again.
+BLOCK_SECONDS = 5
+# How long the client waits for any reply. It has to outlast BLOCK_SECONDS by a
+# margin: an empty queue answers only when the block expires, and a client that
+# stops listening at the same moment reports the ordinary "nothing yet" as a
+# timeout. redis-py 8.0 began defaulting this to 5 seconds -- exactly
+# BLOCK_SECONDS -- which crashed every worker on its first quiet poll and
+# failed every deploy with DeployContainerExitNonZero.
+SOCKET_TIMEOUT_SECONDS = BLOCK_SECONDS + 10
+
+
 class RedisQueue:
     """Pushes campaign ids onto a Redis list consumed by worker processes."""
 
     def __init__(self, url: str) -> None:
         import redis
 
-        self._client = redis.Redis.from_url(url)
+        self._timeout_error = redis.exceptions.TimeoutError
+        # Set explicitly rather than inherited, so the relationship with
+        # BLOCK_SECONDS holds whichever redis-py version the image resolves.
+        self._client = redis.Redis.from_url(url, socket_timeout=SOCKET_TIMEOUT_SECONDS)
 
     def enqueue(self, campaign_id: str, judge_config: dict | None = None) -> str:
         self._client.rpush(
@@ -84,14 +99,25 @@ class RedisQueue:
     def depth(self) -> int:
         return int(self._client.llen(QUEUE_NAME))
 
+    def poll(self) -> dict | None:
+        """One wait on the queue: the next message, or None if there was none.
+
+        A read that times out is a quiet queue, not a dead worker. It is logged
+        and retried; exiting would turn a network stall into a failed deploy.
+        """
+        try:
+            item = self._client.blpop(QUEUE_NAME, timeout=BLOCK_SECONDS)
+        except self._timeout_error:
+            log.warning("Queue read timed out after %ss; waiting again", SOCKET_TIMEOUT_SECONDS)
+            return None
+        return json.loads(item[1]) if item else None
+
     def consume_forever(self) -> None:  # pragma: no cover - worker entry point
         log.info("Worker listening on %s", QUEUE_NAME)
         while True:
-            item = self._client.blpop(QUEUE_NAME, timeout=5)
-            if not item:
-                continue
-            message = json.loads(item[1])
-            _run_campaign(message["campaign_id"], message.get("judge"))
+            message = self.poll()
+            if message is not None:
+                _run_campaign(message["campaign_id"], message.get("judge"))
 
 
 _queue = None
