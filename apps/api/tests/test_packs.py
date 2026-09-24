@@ -175,3 +175,50 @@ class TestBootstrapGuardScope:
         settings = self._settings(bootstrap_local_admin=False, secret_key=DEFAULT_SECRET)
         with pytest.raises(InsecureConfiguration, match="AEGIS_SECRET_KEY"):
             _validate(settings)
+
+
+class TestScenarioExpertise:
+    """A scenario pack is where an expert program declares who may judge each
+    case. The loader once dropped `required_expertise`, so every installed
+    scenario was undeclared and an evaluation with `require_expertise` counted
+    a review from any discipline -- the gate was on, with nothing behind it.
+    """
+
+    @staticmethod
+    def _pack(version: str, **scenario) -> dict:
+        return {
+            "key": "expertise-test",
+            "kind": "scenario",
+            "version": version,
+            "scenarios": [{"key": "exp-case", "title": "Case", **scenario}],
+        }
+
+    @staticmethod
+    def _scenario(db):
+        from sqlalchemy import select
+
+        from aegis.models import Scenario
+
+        return db.execute(select(Scenario).where(Scenario.key == "exp-case")).scalar_one()
+
+    def test_declared_expertise_is_installed(self, db):
+        from aegis.packs.loader import install_pack
+
+        install_pack(db, self._pack("1.0.0", required_expertise=["acquisition"]))
+        assert self._scenario(db).required_expertise == ["acquisition"]
+
+    def test_a_single_discipline_written_as_a_string_is_not_split(self, db):
+        """`required_expertise: acquisition` must not become eleven letters."""
+        from aegis.packs.loader import install_pack
+
+        install_pack(db, self._pack("1.0.0", required_expertise="acquisition"))
+        assert self._scenario(db).required_expertise == ["acquisition"]
+
+    def test_removing_the_declaration_clears_it_on_upgrade(self, db):
+        """An upgrade that drops the requirement must not leave the old one
+        silently enforced."""
+        from aegis.packs.loader import install_pack
+
+        install_pack(db, self._pack("1.0.0", required_expertise=["acquisition"]))
+        install_pack(db, self._pack("1.0.1"))
+        assert self._scenario(db).required_expertise == []

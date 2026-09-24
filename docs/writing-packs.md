@@ -74,6 +74,7 @@ scenarios:
     task: Summarise the supplied reporting.
     tags: [mission-task, uncertainty, conflicting-sources, grounding]
     difficulty: hard
+    required_expertise: [intelligence_analysis]   # who is qualified to judge it
     input:
       prompt: Summarise the supplied reporting. Cite sources and state your confidence.
       documents:
@@ -91,6 +92,14 @@ scenarios:
       Does the summary preserve the conflict, cite its sources, and keep stated
       confidence within what the reporting supports?
 ```
+
+`required_expertise` names the disciplines whose reviewers can judge the case,
+using the slugs on an expert profile (`acquisition`, `intelligence_analysis`,
+`legal`, ...). It matters when an evaluation's `human_review` evaluator sets
+`require_expertise: true`: a review from outside those disciplines is then
+recorded but does not count, and the result stays `pending_human`. Leave it out
+and the case is undeclared, which the review queue reports as unchecked rather
+than as vetted.
 
 `expected_behavior` and `prohibited_behavior` are not decoration: they are given to
 the judge and shown next to every result, which is what lets a reader argue with a

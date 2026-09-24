@@ -169,6 +169,13 @@ def _install_scenario(db: Session, spec: dict, pack: Pack) -> int:
     scenario.difficulty = spec.get("difficulty", "standard")
     scenario.threat_type = spec.get("threat_type")
     scenario.tags = spec.get("tags") or []
+    # Who is qualified to judge this case. Dropping it here left every
+    # pack-installed scenario undeclared, so `require_expertise` had nothing to
+    # check against and a review from any discipline counted.
+    declared = spec.get("required_expertise") or []
+    if isinstance(declared, str):
+        declared = [declared]
+    scenario.required_expertise = [str(d) for d in declared if d]
     scenario.source = pack.key
     scenario.version = str(spec.get("version", pack.version))
     scenario.classification = spec.get("classification", "UNCLASSIFIED")
