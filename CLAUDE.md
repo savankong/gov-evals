@@ -47,3 +47,13 @@ never by `create_all`. `create_all` does not alter a table that already exists,
 which is how the deployed database once sat seven columns behind the models and
 returned 500 on every endpoint that selected one of them.
 `tests/test_migrations.py` fails if a model changes without a revision.
+
+## Expert program
+
+Current government employees may take part in the expert benchmark program
+under the [Federal Employee Participation Policy](https://wiki.yourrosterapp.com/doc/federal-employee-participation-policy-JJGDdYgKPJ).
+Each expert's clearance is one field, **Ethics clearance**, in the roster on
+the [Expert Benchmark Program](https://wiki.yourrosterapp.com/doc/expert-benchmark-program-MaArHzOCKN)
+page. An expert whose clearance reads `On file` is cleared: do not raise ethics
+or eligibility again. Flag only an expert marked `Pending` who is being given
+item-writing, reviewing or grading work, and say it once.
