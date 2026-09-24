@@ -233,9 +233,9 @@ export default function PlanPage({ params }: { params: Promise<{ projectId: stri
               <Table minWidth={880}>
                 <thead>
                   <tr>
-                    <Th className="w-[240px]">Evaluation</Th>
-                    <Th className="w-[150px]">Layer / domain</Th>
-                    <Th className="w-[230px]">Threshold</Th>
+                    <Th className="w-[18rem]">Evaluation</Th>
+                    <Th className="w-[11.25rem]">Layer / domain</Th>
+                    <Th className="w-[17.25rem]">Threshold</Th>
                     <Th>Why it is in this plan</Th>
                   </tr>
                 </thead>

@@ -214,11 +214,14 @@ class TestScenarioExpertise:
         install_pack(db, self._pack("1.0.0", required_expertise="acquisition"))
         assert self._scenario(db).required_expertise == ["acquisition"]
 
-    def test_removing_the_declaration_clears_it_on_upgrade(self, db):
-        """An upgrade that drops the requirement must not leave the old one
-        silently enforced."""
+    def test_a_pack_that_is_silent_keeps_what_was_declared(self, db):
+        """A program may declare expertise on a library scenario itself. A pack
+        upgrade that says nothing about it must not erase that declaration;
+        one that declares an empty list clears it on purpose."""
         from aegis.packs.loader import install_pack
 
         install_pack(db, self._pack("1.0.0", required_expertise=["acquisition"]))
         install_pack(db, self._pack("1.0.1"))
+        assert self._scenario(db).required_expertise == ["acquisition"]
+        install_pack(db, self._pack("1.0.2", required_expertise=[]))
         assert self._scenario(db).required_expertise == []

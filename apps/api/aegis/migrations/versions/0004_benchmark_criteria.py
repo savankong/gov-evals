@@ -16,8 +16,8 @@ from __future__ import annotations
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0003_benchmark_criteria"
-down_revision = "0002_expert_review"
+revision = "0004_benchmark_criteria"
+down_revision = "0003_capture_and_delivery"
 branch_labels = None
 depends_on = None
 

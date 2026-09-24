@@ -114,6 +114,38 @@ export const api = {
     return request<T>(search ? `${path}?${search}` : path, { method: "POST", body: form });
   },
 
+  /** Fetch a file and hand it to the browser to save. The server's digest
+   *  header is returned so the caller can show what was saved. */
+  async download(path: string, fallbackName: string): Promise<{ sha256: string | null }> {
+    const token = getToken();
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const response = await fetch(`${API}${path}`, { headers, cache: "no-store" });
+    if (response.status === 401) {
+      setToken(null);
+      throw new ApiError("Session expired. Sign in again.", 401);
+    }
+    if (!response.ok) {
+      let message = describeStatus(response.status, response.statusText);
+      try {
+        const d = ((await response.json()) as { detail?: unknown }).detail;
+        if (typeof d === "string") message = d;
+      } catch {
+        /* non-JSON error body */
+      }
+      throw new ApiError(message, response.status);
+    }
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const name = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    link.click();
+    URL.revokeObjectURL(url);
+    return { sha256: response.headers.get("X-Content-SHA256") };
+  },
+
   async login(email: string, password: string) {
     const body = await request<{ access_token: string }>("/auth/login", {
       method: "POST",

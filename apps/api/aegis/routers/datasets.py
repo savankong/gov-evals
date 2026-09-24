@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import zipfile
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy import func, select
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 from .. import audit
 from ..classification import enforce as enforce_classification
 from ..db import get_db
-from ..hashing import content_hash
+from ..hashing import content_hash, sha256_bytes
 from ..models import Dataset, DatasetItem, DatasetVersion, Run, User
 from ..schemas import DatasetIn, DatasetOut, DatasetUpdate, DatasetVersionOut
 from ..security import Permission, get_current_user, require
@@ -113,10 +114,90 @@ def create_dataset(
     return dataset
 
 
+# An archive is decompressed in memory, so what it may expand to is bounded
+# independently of what it weighs on the wire. A 64 MB zip can declare
+# terabytes; these are checked against what is actually read, not declared.
+MAX_ARCHIVE_ENTRIES = 10_000
+MAX_ARCHIVE_EXPANDED_BYTES = 256 * 1024 * 1024
+
+_STRUCTURED = (".jsonl", ".ndjson", ".json", ".csv", ".tsv")
+
+
+class ArchiveRefused(ValueError):
+    """The archive is outside what this endpoint will expand."""
+
+
 def _parse(content: bytes, filename: str) -> tuple[list[dict], str]:
-    """Parse JSONL, JSON or CSV into a list of row dicts."""
+    """Parse JSONL, JSON, CSV or a zip archive into a list of row dicts."""
     name = (filename or "").lower()
-    text = content.decode("utf-8-sig", errors="replace")
+    if name.endswith(".zip"):
+        return _parse_archive(content), "zip"
+    return _parse_text(content.decode("utf-8-sig", errors="replace"), name)
+
+
+def _parse_archive(content: bytes) -> list[dict]:
+    """Expand a provider's archive into rows.
+
+    Data providers hand over one large zip and leave the sorting to whoever
+    receives it. Structured files inside are expanded row by row; every other
+    file becomes one row carrying its text. A file that is not UTF-8 text --
+    a PDF, a scan -- is still a row, with its digest and no text, so the
+    quality report can say how much of the archive nobody can read yet instead
+    of the upload silently dropping it.
+    """
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(content))
+    except zipfile.BadZipFile as exc:
+        raise ArchiveRefused(f"Not a readable zip archive: {exc}") from exc
+
+    entries = [
+        info
+        for info in archive.infolist()
+        if not info.is_dir()
+        and not info.filename.startswith("__MACOSX/")
+        and not info.filename.rsplit("/", 1)[-1].startswith(".")
+    ]
+    if len(entries) > MAX_ARCHIVE_ENTRIES:
+        raise ArchiveRefused(
+            f"The archive holds {len(entries)} files; at most {MAX_ARCHIVE_ENTRIES} are expanded "
+            "per upload. Split it and upload each part as a version."
+        )
+
+    rows: list[dict] = []
+    expanded = 0
+    for info in sorted(entries, key=lambda i: i.filename):
+        budget = MAX_ARCHIVE_EXPANDED_BYTES - expanded
+        with archive.open(info) as handle:
+            data = handle.read(budget + 1)
+        expanded += len(data)
+        if expanded > MAX_ARCHIVE_EXPANDED_BYTES:
+            raise ArchiveRefused(
+                f"The archive expands past {MAX_ARCHIVE_EXPANDED_BYTES // (1024 * 1024)} MB. "
+                "Split it and upload each part as a version."
+            )
+
+        source = {"source_file": info.filename, "source_sha256": sha256_bytes(data)}
+        lower = info.filename.lower()
+        if lower.endswith(".zip"):
+            rows.append({**source, "input": "", "text_extracted": False,
+                         "note": "Nested archive; not expanded."})
+            continue
+        try:
+            text = data.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            rows.append({**source, "input": "", "text_extracted": False,
+                         "size_bytes": len(data)})
+            continue
+        if lower.endswith(_STRUCTURED):
+            parsed, _ = _parse_text(text, lower)
+            rows.extend({**source, **(r if isinstance(r, dict) else {"input": r})} for r in parsed)
+        else:
+            rows.append({**source, "input": text, "text_extracted": True})
+    return rows
+
+
+def _parse_text(text: str, name: str) -> tuple[list[dict], str]:
+    """Parse JSONL, JSON or CSV text into a list of row dicts."""
 
     if name.endswith((".jsonl", ".ndjson")):
         rows = [json.loads(line) for line in text.splitlines() if line.strip()]
@@ -168,6 +249,12 @@ def _quality_report(rows: list[dict]) -> dict:
             "No row carries an expected answer. Deterministic comparison evaluators will "
             "report NOT EVALUATED against this dataset."
         )
+    unread = sum(1 for row in rows if row.get("text_extracted") is False)
+    if unread:
+        issues.append(
+            f"{unread} archived file(s) are not text, so nothing was extracted from them. "
+            "Each is recorded by name and digest."
+        )
     inconsistent = [k for k, count in keys.items() if 0 < count < len(rows)]
     if inconsistent:
         issues.append(f"Fields present on only some rows: {sorted(inconsistent)[:8]}.")
@@ -178,6 +265,7 @@ def _quality_report(rows: list[dict]) -> dict:
         "empty_inputs": empty_inputs,
         "duplicates": duplicates,
         "rows_with_expected_answer": with_expected,
+        "files_without_text": unread,
         "issues": issues,
     }
 
@@ -258,6 +346,8 @@ async def upload_version(
 
     try:
         rows, source_format = _parse(content, file.filename or "")
+    except ArchiveRefused as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     except (json.JSONDecodeError, csv.Error, UnicodeDecodeError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Could not parse file: {exc}") from exc
     if not rows:

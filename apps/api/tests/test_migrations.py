@@ -21,8 +21,8 @@ from sqlalchemy import create_engine, select
 from aegis.migrate import BASELINE_REVISION, current_revision, upgrade_to_head
 from aegis.models import Base, Dataset, Organization, Program, Project
 
-# The newest revision. Each new migration moves this, in one place.
-HEAD_REVISION = "0003_benchmark_criteria"
+# The newest revision. Named once so adding a revision is one edit here.
+HEAD_REVISION = "0004_benchmark_criteria"
 
 # Revision bookkeeping is not part of the application's schema.
 _IGNORED_TABLES = {"alembic_version"}

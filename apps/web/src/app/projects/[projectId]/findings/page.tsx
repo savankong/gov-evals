@@ -193,14 +193,14 @@ export default function FindingsPage({ params }: { params: Promise<{ projectId: 
           <Table minWidth={860}>
             <thead>
               <tr>
-                <Th className="w-[72px]">ID</Th>
-                <Th className="w-[90px]">Severity</Th>
+                <Th className="w-[5.5rem]">ID</Th>
+                <Th className="w-[6.75rem]">Severity</Th>
                 <Th>Finding</Th>
-                <Th className="w-[120px]">Domain</Th>
-                <Th className="w-[130px]" align="right">
+                <Th className="w-[9rem]">Domain</Th>
+                <Th className="w-[9.75rem]" align="right">
                   Reproduced
                 </Th>
-                <Th className="w-[96px]">Status</Th>
+                <Th className="w-[7.25rem]">Status</Th>
               </tr>
             </thead>
             <tbody>

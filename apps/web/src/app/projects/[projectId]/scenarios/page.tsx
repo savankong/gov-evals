@@ -179,10 +179,10 @@ export default function ScenariosPage({ params }: { params: Promise<{ projectId:
             <thead>
               <tr>
                 <Th>Scenario</Th>
-                <Th className="w-[220px]">Tags</Th>
-                <Th className="w-[110px]">Difficulty</Th>
-                <Th className="w-[130px]">Source</Th>
-                <Th className="w-[120px]">Version hash</Th>
+                <Th className="w-[16.5rem]">Tags</Th>
+                <Th className="w-[8.25rem]">Difficulty</Th>
+                <Th className="w-[9.75rem]">Source</Th>
+                <Th className="w-[9rem]">Version hash</Th>
               </tr>
             </thead>
             <tbody>

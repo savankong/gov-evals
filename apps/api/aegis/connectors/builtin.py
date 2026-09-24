@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 
@@ -68,6 +69,10 @@ class OpenAICompatibleAdapter(ModelAdapter):
                 payload[field] = self.parameters[field]
         if request.tools:
             payload["tools"] = request.tools
+        # Token log-probabilities are the one confidence signal this API
+        # exposes. Opt-in, because not every compatible server implements it.
+        if self.parameters.get("logprobs"):
+            payload["logprobs"] = True
 
         headers = {"Content-Type": "application/json"}
         token = _resolve_secret(self, "OPENAI_API_KEY")
@@ -96,6 +101,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
                     "call_id": call.get("id"),
                 }
             )
+        confidence = _logprob_confidence(choice.get("logprobs"))
         return TargetResponse(
             text=message.get("content") or "",
             raw=body,
@@ -103,7 +109,23 @@ class OpenAICompatibleAdapter(ModelAdapter):
             tokens_in=usage.get("prompt_tokens"),
             tokens_out=usage.get("completion_tokens"),
             trace=trace,
+            confidence=confidence,
+            confidence_source="logprob" if confidence is not None else None,
         )
+
+
+def _logprob_confidence(logprobs: dict | None) -> float | None:
+    """Geometric-mean token probability of the answer, or None.
+
+    A rough signal: it measures how expected each token was, not whether the
+    claim is true, and it is recorded as `logprob` so nobody reads it as the
+    model's stated belief.
+    """
+    tokens = (logprobs or {}).get("content") or []
+    values = [t.get("logprob") for t in tokens if isinstance(t.get("logprob"), (int, float))]
+    if not values:
+        return None
+    return round(math.exp(sum(values) / len(values)), 4)
 
 
 @register_adapter
@@ -341,9 +363,17 @@ class EchoAdapter(ModelAdapter):
                 trace.append({"step": "tool_result", "tool": name, "output": "simulated result"})
         trace.append({"step": "respond", "detail": f"{len(text)} chars"})
 
+        # A stated confidence, seeded like everything else here. Opt-in, so
+        # the offline target does not claim a signal nobody configured.
+        confidence = None
+        if self.parameters.get("report_confidence"):
+            confidence = round(0.5 + (seed % 50) / 100, 2)
+
         return TargetResponse(
             text=text,
             raw={"profile": profile, "seed": seed},
+            confidence=confidence,
+            confidence_source="reported" if confidence is not None else None,
             latency_ms=latency,
             tokens_in=len(request.prompt.split()),
             tokens_out=len(text.split()),

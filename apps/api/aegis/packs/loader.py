@@ -169,13 +169,15 @@ def _install_scenario(db: Session, spec: dict, pack: Pack) -> int:
     scenario.difficulty = spec.get("difficulty", "standard")
     scenario.threat_type = spec.get("threat_type")
     scenario.tags = spec.get("tags") or []
-    # Who is qualified to judge this case. Dropping it here left every
-    # pack-installed scenario undeclared, so `require_expertise` had nothing to
-    # check against and a review from any discipline counted.
-    declared = spec.get("required_expertise") or []
-    if isinstance(declared, str):
-        declared = [declared]
-    scenario.required_expertise = [str(d) for d in declared if d]
+    scenario.knowledge_area = spec.get("knowledge_area")
+    # Only when the pack says. A program may have declared expertise on a
+    # library scenario itself, and a pack that is silent should not erase it.
+    if "required_expertise" in spec:
+        declared = spec.get("required_expertise") or []
+        # One discipline written as a string must not become a list of letters.
+        if isinstance(declared, str):
+            declared = [declared]
+        scenario.required_expertise = [str(d) for d in declared if d]
     scenario.criteria = [
         {"id": str(c["id"]), "text": str(c["text"])}
         for c in spec.get("criteria") or []

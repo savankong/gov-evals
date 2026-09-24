@@ -200,7 +200,7 @@ function ExpertiseEditor({
   );
 }
 
-const ACCEPTED = ".jsonl,.ndjson,.json,.csv,.tsv,.txt";
+const ACCEPTED = ".jsonl,.ndjson,.json,.csv,.tsv,.txt,.zip";
 const MAX_BYTES = 64 * 1024 * 1024;
 
 /**
@@ -309,8 +309,10 @@ function UploadVersion({
           <>
             <p className="text-sm text-ink">Drop a file here, or click to choose one</p>
             <p className="text-xs text-muted">
-              JSONL, JSON, CSV, TSV or plain text, up to 64 MB. Unlabelled text is read as one
-              case per line.
+              JSONL, JSON, CSV, TSV, plain text, or a provider&apos;s zip, up to 64 MB. Unlabelled
+              text is read as one case per line. In a zip, structured files expand row by row and
+              every other file becomes one row; files that are not text are kept by name and
+              digest and counted.
             </p>
           </>
         )}

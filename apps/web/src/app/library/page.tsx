@@ -93,10 +93,10 @@ export default function LibraryPage() {
             <thead>
               <tr>
                 <Th>Pack</Th>
-                <Th className="w-[110px]">Kind</Th>
-                <Th className="w-[80px]">Version</Th>
-                <Th className="w-[150px]">Publisher</Th>
-                <Th className="w-[120px]">Content hash</Th>
+                <Th className="w-[8.25rem]">Kind</Th>
+                <Th className="w-[6rem]">Version</Th>
+                <Th className="w-[11.25rem]">Publisher</Th>
+                <Th className="w-[9rem]">Content hash</Th>
               </tr>
             </thead>
             <tbody>
@@ -139,8 +139,8 @@ export default function LibraryPage() {
           <Table minWidth={720}>
             <thead>
               <tr>
-                <Th className="w-[200px]">Key</Th>
-                <Th className="w-[130px]">Kind</Th>
+                <Th className="w-[15rem]">Key</Th>
+                <Th className="w-[9.75rem]">Kind</Th>
                 <Th>What it judges</Th>
               </tr>
             </thead>
@@ -174,9 +174,9 @@ export default function LibraryPage() {
           <Table minWidth={680}>
             <thead>
               <tr>
-                <Th className="w-[180px]">Key</Th>
+                <Th className="w-[13.5rem]">Key</Th>
                 <Th>Adapter</Th>
-                <Th className="w-[230px]">Network</Th>
+                <Th className="w-[17.25rem]">Network</Th>
               </tr>
             </thead>
             <tbody>
@@ -219,10 +219,10 @@ export default function LibraryPage() {
           <Table minWidth={860}>
             <thead>
               <tr>
-                <Th className="w-[240px]">Technique</Th>
-                <Th className="w-[90px]">Severity</Th>
+                <Th className="w-[18rem]">Technique</Th>
+                <Th className="w-[6.75rem]">Severity</Th>
                 <Th>Description</Th>
-                <Th className="w-[280px]">Mitigation</Th>
+                <Th className="w-[21rem]">Mitigation</Th>
               </tr>
             </thead>
             <tbody>

@@ -109,7 +109,7 @@ export default function ComparePage({ params }: { params: Promise<{ projectId: s
                   {/* The evaluation column stays put while the systems scroll:
                       a verdict three columns right is meaningless once its row
                       label has slid off the screen. */}
-                  <th className="sticky left-0 z-10 w-[280px] border-b border-line bg-panel px-3 py-2.5 text-left text-2xs font-normal uppercase tracking-wider text-faint">
+                  <th className="sticky left-0 z-10 w-[21rem] border-b border-line bg-panel px-3 py-2.5 text-left text-2xs font-normal uppercase tracking-wider text-faint">
                     Evaluation
                   </th>
                   {data.systems.map((system) => (
