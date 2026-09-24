@@ -80,6 +80,24 @@ def main() -> int:
                 errors.append(f"{path.name}: a scenario has no key")
             if not (spec.get("input") or {}).get("prompt"):
                 errors.append(f"{path.name}: scenario {spec.get('key')!r} has no input prompt")
+            # Knowledge area is what a weakness is found in and a delivery is
+            # binned and priced by. A list or a blank here is a bin nobody can
+            # sell; absent is fine and is reported as undeclared.
+            if "knowledge_area" in spec and not (
+                isinstance(spec["knowledge_area"], str) and spec["knowledge_area"].strip()
+            ):
+                errors.append(
+                    f"{path.name}: scenario {spec.get('key')!r} has a knowledge_area that is not "
+                    "a non-empty string"
+                )
+            if "required_expertise" in spec and not (
+                isinstance(spec["required_expertise"], list)
+                and all(isinstance(d, str) and d.strip() for d in spec["required_expertise"])
+            ):
+                errors.append(
+                    f"{path.name}: scenario {spec.get('key')!r} required_expertise must be a list "
+                    "of discipline slugs"
+                )
             # A scenario without expectations cannot be argued with, which is
             # the whole point of stating them.
             if not spec.get("expected_behavior") and not spec.get("reference_answer"):

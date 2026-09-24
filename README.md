@@ -1,17 +1,30 @@
 # Aegis Eval
 
-Test AI for the mission, not the benchmark.
+Find where a frontier model is weak on government work, have qualified experts
+show how to get it right, and deliver that to the lab.
 
-Aegis Eval evaluates AI systems against the missions, users, environments, risks
-and adversaries they will actually encounter, and keeps the evidence behind every
+The goal is not "collect government data". It is to collect the data the model
+is bad at. Expert hours are the expensive input, so the platform finds the
+problems a lab's model gets wrong, and most of all the ones it gets wrong while
+confident, before it spends any of them. It then delivers the result in bins,
+so the valuable data is not sold at the bulk rate.
+
+| # | Verb | What it does |
+| - | --- | --- |
+| 1 | **Target** | Weakness map: model failures per knowledge area, split by the model's confidence, beside the expert time already spent there. |
+| 2 | **Ingest** | Datasets, including a data provider's zip. |
+| 3 | **Store** | Problems and known answers, versioned, hashed and marked for classification. |
+| 4 | **Capture** | Experts solve problems step by step (reasoning traces) and score model answers. |
+| 5 | **Evaluate** | Run the customer's model against the problems and judge each answer. |
+| 6 | **Deliver** | Hashed JSONL packages of qualified, releasable data, binned by area and model outcome. |
+
+The design, and the reasoning behind each step, is in
+[docs/platform.md](docs/platform.md).
+
+Underneath is an evaluation engine that keeps the evidence behind every
 result. It answers one question:
 
 > What evidence justifies using this AI for this mission under these conditions?
-
-A model can score well on a public benchmark and still fail on unfamiliar mission
-data, under adversarial input, when connected to other systems, or in the hands of
-an operator who trusts it more than the evidence supports. This platform is built
-to find that out before deployment, and to keep finding out afterwards.
 
 ## Three rules the software enforces
 
@@ -55,7 +68,7 @@ For local development without Docker:
 make install
 make api     # :8000
 make web     # :3000
-make test    # 133 tests
+make test    # 287 tests
 ```
 
 ## How it works
@@ -216,6 +229,7 @@ says so in those words.
 
 ## Documentation
 
+- [Platform design](docs/platform.md)
 - [Architecture](docs/architecture.md)
 - [Evaluation model](docs/evaluation-model.md)
 - [Writing a pack](docs/writing-packs.md)

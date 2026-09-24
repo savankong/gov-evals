@@ -16,6 +16,7 @@ import type { ComponentType, ReactNode } from "react";
 
 import {
   IconBell,
+  IconCapture,
   IconCollapse,
   IconAdmin,
   IconCompass,
@@ -24,10 +25,12 @@ import {
   IconExpert,
   IconLibrary,
   IconMoon,
+  IconPackage,
   IconPortfolio,
   IconReview,
   IconSearch,
   IconSun,
+  IconTarget,
 } from "@/components/icons";
 import { Key } from "@/components/ui";
 import { ApiError, api, getToken } from "@/lib/api";
@@ -269,13 +272,36 @@ function useCommands(): Command[] {
             });
           }
         }
-        entries.push({
-          id: "library",
-          group: "Go to",
-          label: "Library",
-          hint: "Connectors, evaluators, attacks",
-          href: "/library",
-        });
+        entries.push(
+          {
+            id: "weakness",
+            group: "Go to",
+            label: "Weakness map",
+            hint: "Where the model is wrong",
+            href: "/weakness",
+          },
+          {
+            id: "capture",
+            group: "Go to",
+            label: "Capture",
+            hint: "Solve a problem step by step",
+            href: "/capture",
+          },
+          {
+            id: "library",
+            group: "Go to",
+            label: "Library",
+            hint: "Connectors, evaluators, attacks",
+            href: "/library",
+          },
+          {
+            id: "packages",
+            group: "Go to",
+            label: "Packages",
+            hint: "Deliveries to customers",
+            href: "/packages",
+          },
+        );
         setCommands(entries);
       } catch {
         /* palette degrades to navigation-only; not worth surfacing */
@@ -461,30 +487,55 @@ interface NavItem {
 interface NavGroup {
   /** Null for the first group, which needs no heading above the first item. */
   label: string | null;
+  /** Position in the pipeline, shown beside the verb. */
+  step?: number;
   items: NavItem[];
 }
 
+/**
+ * The rail is the pipeline, in order, one verb per stage.
+ *
+ * Target decides where expert time goes, and reads what Evaluate measured last
+ * time round -- it is a loop drawn as a list. See docs/platform.md.
+ */
 const NAV: NavGroup[] = [
   {
     label: null,
+    items: [{ href: "/welcome", label: "Getting started", Icon: IconCompass }],
+  },
+  {
+    label: "Target",
+    step: 1,
+    items: [{ href: "/weakness", label: "Weakness map", Icon: IconTarget }],
+  },
+  {
+    label: "Ingest",
+    step: 2,
+    items: [{ href: "/datasets", label: "Datasets", Icon: IconDataset }],
+  },
+  {
+    label: "Store",
+    step: 3,
+    items: [{ href: "/library", label: "Library", Icon: IconLibrary }],
+  },
+  {
+    label: "Capture",
+    step: 4,
     items: [
-      { href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true },
-      { href: "/welcome", label: "Getting started", Icon: IconCompass },
+      { href: "/capture", label: "Solve", Icon: IconCapture },
+      { href: "/review", label: "Review queue", Icon: IconReview },
+      { href: "/experts", label: "Experts", Icon: IconExpert },
     ],
   },
   {
     label: "Evaluate",
-    items: [
-      { href: "/datasets", label: "Datasets", Icon: IconDataset },
-      { href: "/library", label: "Library", Icon: IconLibrary },
-    ],
+    step: 5,
+    items: [{ href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true }],
   },
   {
-    label: "Expert review",
-    items: [
-      { href: "/review", label: "Review queue", Icon: IconReview },
-      { href: "/experts", label: "Experts", Icon: IconExpert },
-    ],
+    label: "Deliver",
+    step: 6,
+    items: [{ href: "/packages", label: "Packages", Icon: IconPackage }],
   },
   {
     label: "Manage",
@@ -626,7 +677,8 @@ function Sidebar({
           <div key={group.label ?? "root"}>
             {group.label ? (
               expanded ? (
-                <div className="px-2.5 pb-1 text-2xs uppercase tracking-wider text-faint">
+                <div className="flex items-baseline gap-1.5 px-2.5 pb-1 text-2xs uppercase tracking-wider text-faint">
+                  {group.step ? <span className="tnum font-mono">{group.step}</span> : null}
                   {group.label}
                 </div>
               ) : (

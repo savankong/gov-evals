@@ -97,12 +97,14 @@ Organization
            ├── Requirement             what the program must show
            ├── System → SystemVersion  immutable configuration snapshots
            ├── Dataset → DatasetVersion → DatasetItem
-           ├── Scenario                the fundamental test object
+           ├── Scenario                the fundamental test object, with its knowledge area
+           │    └── ReasoningTrace     an expert solving it, step by step
            ├── EvaluationPlan → EvaluationPlanItem
            └── Campaign → Run → Result → Evidence
                                    ├── HumanReview
                                    └── Finding → Risk
 AssuranceCase → AssuranceClaim → AssuranceEvidenceLink
+DataPackage                             a hashed delivery to a customer
 ```
 
 Two design choices carry weight.
