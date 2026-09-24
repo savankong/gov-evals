@@ -57,17 +57,17 @@ interface CaptureTasks {
 function ModelCell({ model }: { model: ModelRecord }) {
   if (model.outcome === "not_evaluated") {
     return (
-      <span className="text-xs text-faint" title="The model has not been judged on this problem.">
+      <span className="whitespace-nowrap text-xs text-faint" title="The model has not been judged on this problem.">
         Not evaluated
       </span>
     );
   }
   if (model.outcome === "passed") {
-    return <span className="text-xs text-muted">Right {model.passed + model.warned}×</span>;
+    return <span className="whitespace-nowrap text-xs text-muted">Right {model.passed + model.warned}×</span>;
   }
   return (
     <div>
-      <span className="tnum text-sm text-fail">Wrong {model.failed}×</span>
+      <span className="tnum whitespace-nowrap text-sm text-fail">Wrong {model.failed}×</span>
       <div className="mt-0.5 text-2xs text-faint">
         {model.confident_wrong ? `${model.confident_wrong} confidently` : null}
         {model.confident_wrong && (model.unsure_wrong || model.confidence_unknown_wrong) ? " · " : null}
@@ -160,7 +160,7 @@ export default function CapturePage({
             }
           />
         ) : (
-          <Table minWidth={860}>
+          <Table minWidth={980}>
             <thead>
               <tr>
                 <Th>Problem</Th>
@@ -215,7 +215,7 @@ export default function CapturePage({
                     ) : null}
                   </Td>
                   <Td align="right">
-                    <span className="text-xs text-muted">Solve →</span>
+                    <span className="whitespace-nowrap text-xs text-muted">Solve →</span>
                   </Td>
                 </Tr>
               ))}

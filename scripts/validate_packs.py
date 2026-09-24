@@ -160,6 +160,7 @@ def main() -> int:
     validate_supply_chain()
     validate_schema_migrations()
     validate_no_accent_rules()
+    validate_readable_type()
 
     print(
         f"Checked {len(pack_files)} packs: {len(evaluations)} evaluations, "
@@ -708,6 +709,103 @@ def validate_no_accent_rules() -> None:
                 "what kind of aside it is and its colour says how much it matters, which a line "
                 "cannot."
             )
+
+
+# The smallest text the interface may set, at the default root size.
+MIN_TEXT_REM = 0.75
+# WCAG 2.x AA for body-size text.
+MIN_CONTRAST = 4.5
+TEXT_TOKENS = ("ink", "ink-soft", "muted", "faint")
+SURFACE_TOKENS = ("canvas", "panel", "sunken")
+
+
+def _luminance(rgb: tuple[int, int, int]) -> float:
+    def channel(value: int) -> float:
+        c = value / 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (channel(v) for v in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+    high, low = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def validate_readable_type() -> None:
+    """Text is large enough to read and dark enough to see, in both themes.
+
+    The interface shipped with its body text at 12px, secondary text at 11px
+    and labels at 10px, all in px so nothing grew on a large monitor, and with
+    `faint` -- the colour of every label and secondary line -- at about 2.5:1.
+    Each looked fine in a screenshot on a laptop. Read at arm's length on a
+    27-inch screen, the product was small grey print.
+
+    Three things are refused: a font size set in px (it cannot follow the root
+    size up on a large screen), a size below 12px, and any text token below
+    4.5:1 against any surface token, in the light or the dark theme.
+    """
+    import re
+
+    web = ROOT / "apps" / "web"
+    config = web / "tailwind.config.ts"
+    css = web / "src" / "app" / "globals.css"
+    if not config.exists() or not css.exists():
+        return
+
+    text = config.read_text()
+    block = re.search(r"fontSize:\s*{(.*?)\n\s*},", text, re.S)
+    if not block:
+        errors.append(f"{config.relative_to(ROOT)}: no fontSize scale found to check")
+    else:
+        sizes = re.findall(r'"?([\w-]+)"?:\s*\[\s*"([\d.]+)(px|rem)"', block.group(1))
+        if not sizes:
+            errors.append(f"{config.relative_to(ROOT)}: fontSize scale could not be read")
+        for name, value, unit in sizes:
+            if unit != "rem":
+                errors.append(
+                    f"{config.relative_to(ROOT)}: text-{name} is {value}{unit}. Set sizes in rem "
+                    "so they follow the root size up on a large monitor."
+                )
+            elif float(value) < MIN_TEXT_REM:
+                errors.append(
+                    f"{config.relative_to(ROOT)}: text-{name} is {value}rem, below the "
+                    f"{MIN_TEXT_REM}rem (12px) floor."
+                )
+
+    for match in re.finditer(r"text-\[(\d+(?:\.\d+)?)px\]", "\n".join(
+        p.read_text() for p in sorted((web / "src").rglob("*.tsx"))
+    )):
+        errors.append(
+            f"apps/web/src: arbitrary text-[{match.group(1)}px] bypasses the type scale. Use a "
+            "step from tailwind.config.ts."
+        )
+
+    styles = css.read_text()
+    themes = {
+        "light": re.search(r":root\s*{(.*?)}", styles, re.S),
+        "dark": re.search(r"\.dark\s*{(.*?)}", styles, re.S),
+    }
+    for theme, found in themes.items():
+        if not found:
+            errors.append(f"{css.relative_to(ROOT)}: no {theme} theme tokens found")
+            continue
+        tokens = {
+            name: tuple(int(v) for v in rgb)
+            for name, *rgb in re.findall(r"--([\w-]+):\s*(\d+)\s+(\d+)\s+(\d+);", found.group(1))
+        }
+        for surface in SURFACE_TOKENS:
+            for ink in TEXT_TOKENS:
+                if surface not in tokens or ink not in tokens:
+                    errors.append(f"{css.relative_to(ROOT)}: {theme} theme is missing --{surface} or --{ink}")
+                    continue
+                ratio = contrast(tokens[ink], tokens[surface])
+                if ratio < MIN_CONTRAST:
+                    errors.append(
+                        f"{css.relative_to(ROOT)}: {theme} --{ink} on --{surface} is {ratio:.2f}:1, "
+                        f"below {MIN_CONTRAST}:1. Text in this colour is hard to read."
+                    )
 
 
 if __name__ == "__main__":

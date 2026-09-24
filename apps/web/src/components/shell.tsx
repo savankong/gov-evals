@@ -400,7 +400,7 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
           <motion.div
             role="dialog"
             aria-label="Command palette"
-            className="relative w-full max-w-[440px] border border-line-strong bg-panel"
+            className="relative w-full max-w-[27.5rem] border border-line-strong bg-panel"
             initial={{ opacity: 0, y: -6, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.995 }}
@@ -761,7 +761,7 @@ export function SlideOver({
           <motion.aside
             role="dialog"
             aria-label={label}
-            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[560px] flex-col border-l border-line bg-panel"
+            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[35rem] flex-col border-l border-line bg-panel"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -941,7 +941,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </header>
 
             <main className="min-h-0 flex-1 overflow-y-auto">
-              <div className="mx-auto w-full max-w-[1320px] px-5 py-5">{children}</div>
+              <div className="mx-auto w-full max-w-[82.5rem] px-5 py-5">{children}</div>
             </main>
           </div>
         </div>

@@ -20,10 +20,13 @@
   --line: 229 229 227;
   --line-strong: 212 212 209;
 
+  /* Text. Every step, down to `faint`, clears 4.5:1 against every surface
+     above; validate_readable_type() computes it. `faint` used to sit at
+     about 2.5:1, and it carried every label and secondary line. */
   --ink: 23 23 23;
-  --ink-soft: 82 82 82;
-  --muted: 115 115 115;
-  --faint: 163 163 163;
+  --ink-soft: 64 64 64;
+  --muted: 94 94 92;
+  --faint: 112 112 110;
 
   /* The accent is ink. Emphasis comes from weight and contrast, not hue. */
   --accent: 23 23 23;
@@ -49,9 +52,9 @@
   --line-strong: 56 56 56;
 
   --ink: 237 237 235;
-  --ink-soft: 190 190 187;
-  --muted: 138 138 135;
-  --faint: 100 100 98;
+  --ink-soft: 205 205 202;
+  --muted: 160 160 157;
+  --faint: 130 130 127;
 
   --accent: 237 237 235;
   --accent-ink: 10 10 10;
@@ -71,6 +74,24 @@ html,
 body {
   background: rgb(var(--canvas));
   color: rgb(var(--ink));
+}
+
+/* The root size, and so every rem in the interface, steps up on a large
+   monitor. A dense tool at laptop size is small print from arm's length on a
+   27-inch screen. Percentages, so a reader's own browser setting still
+   applies on top. */
+html {
+  font-size: 100%;
+}
+@media (min-width: 1680px) {
+  html {
+    font-size: 106.25%;
+  }
+}
+@media (min-width: 2200px) {
+  html {
+    font-size: 112.5%;
+  }
 }
 
 body {
