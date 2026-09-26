@@ -88,10 +88,16 @@ jobs:
           fi
           echo "All four are set."
 
+      # Pinned, not "latest". The action resolves "latest" with an
+      # unauthenticated GitHub API call, and when the runner's shared IP is rate
+      # limited it silently installs its own default instead -- v1.98.1, which
+      # predates `digest` in an app spec image and fails the rollout with
+      # `json: unknown field "digest"`. That is how deploy run 16 failed.
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          version: 1.175.0
 
       - name: Log in to the container registry
         run: doctl registry login --expiry-seconds 1200

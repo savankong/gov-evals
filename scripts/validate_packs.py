@@ -9,6 +9,7 @@ recognised key, a framework reference nothing maps to.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -516,6 +517,19 @@ def validate_supply_chain() -> None:
 
     steps = job.get("steps") or []
     bodies = [str(s.get("run") or "") for s in steps]
+
+    # "latest" is resolved by an unauthenticated API call; rate limited, the
+    # action falls back to a 2023 doctl that cannot parse a digest-pinned spec.
+    for step in steps:
+        if "action-doctl" not in str(step.get("uses") or ""):
+            continue
+        version = str((step.get("with") or {}).get("version") or "")
+        if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            errors.append(
+                "deploy-digitalocean.yml: action-doctl is not pinned to an exact version "
+                f"(version: {version or 'unset'}). Unpinned, a rate-limited lookup installs "
+                "doctl 1.98.1, which rejects the digest-pinned spec at rollout."
+            )
     joined = "\n".join(bodies)
 
     for fragment, message in (
