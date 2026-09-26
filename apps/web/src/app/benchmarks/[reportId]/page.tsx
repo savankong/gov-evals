@@ -76,9 +76,22 @@ function Report({ b }: { b: BenchmarkDetail }) {
   );
   const facetNames = Object.keys(d.facets).filter((f) => f !== "split");
   const simulated = d.demonstration.some((s) => s.simulated_reviewer);
+  const contents = [
+    { id: "summary", label: "Key measurements" },
+    { id: "results", label: "Results" },
+    ...facetNames.map((f) => ({ id: `by-${f}`, label: `By ${FACET_TITLES[f] ?? f}` })),
+    { id: "efficiency", label: "Cost and latency" },
+    { id: "questions", label: "Every question" },
+    { id: "method", label: "Methodology" },
+    { id: "grading", label: "Grading" },
+    ...(d.example ? [{ id: "sample", label: "Sample" }] : []),
+    { id: "limits", label: "Limitations" },
+    { id: "cite", label: "Citation" },
+  ];
 
   return (
-    <article className="mx-auto max-w-5xl space-y-10 pb-16">
+    <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_11rem]">
+    <article className="min-w-0 space-y-10 pb-16">
       <header className="animate-rise space-y-4">
         <Crumbs items={[{ label: "Benchmarks", href: "/benchmarks" }, { label: b.project.name }]} />
         <div className="flex flex-wrap items-center gap-1.5">
@@ -99,20 +112,22 @@ function Report({ b }: { b: BenchmarkDetail }) {
         {b.project.description ? (
           <p className="max-w-3xl text-base text-ink-soft">{b.project.description}</p>
         ) : null}
+        <Figures d={d} systems={systems} simulated={simulated} />
         {d.demonstration.length ? <Demonstration d={d} /> : null}
       </header>
 
-      <Section eyebrow="Summary" title="Key measurements">
+      <Section id="summary" eyebrow="Summary" title="Key measurements">
         <KeyMeasurements d={d} systems={systems} simulated={simulated} />
       </Section>
 
-      <Section eyebrow="Results" title="Pass rate by model">
+      <Section id="results" eyebrow="Results" title="Pass rate by model">
         <Results d={d} systems={systems} />
       </Section>
 
       {facetNames.map((facet) => (
         <Section
           key={facet}
+          id={`by-${facet}`}
           eyebrow="Breakdown"
           title={`Performance by ${FACET_TITLES[facet] ?? facet}`}
         >
@@ -120,33 +135,33 @@ function Report({ b }: { b: BenchmarkDetail }) {
         </Section>
       ))}
 
-      <Section eyebrow="Efficiency" title="Cost and latency">
+      <Section id="efficiency" eyebrow="Efficiency" title="Cost and latency">
         <CostLatency d={d} />
       </Section>
 
-      <Section eyebrow="Every question" title="Criterion by criterion">
+      <Section id="questions" eyebrow="Every question" title="Criterion by criterion">
         <QuestionGrid rows={b.question_rows} systems={systems} />
       </Section>
 
-      <Section eyebrow="Methodology" title="How this was measured">
+      <Section id="method" eyebrow="Methodology" title="How this was measured">
         <Methodology d={d} simulated={simulated} />
       </Section>
 
-      <Section eyebrow="Grading" title={simulated ? "Judge agreement with a simulated reviewer" : "Judge agreement with experts"}>
+      <Section id="grading" eyebrow="Grading" title={simulated ? "Judge agreement with a simulated reviewer" : "Judge agreement with experts"}>
         <Grading d={d} simulated={simulated} />
       </Section>
 
       {d.example ? (
-        <Section eyebrow="Sample" title="One graded answer">
+        <Section id="sample" eyebrow="Sample" title="One graded answer">
           <Sample example={d.example} />
         </Section>
       ) : null}
 
-      <Section eyebrow="Limits" title="Limitations">
+      <Section id="limits" eyebrow="Limits" title="Limitations">
         <Limitations d={d} />
       </Section>
 
-      <Section eyebrow="Cite" title="Citation">
+      <Section id="cite" eyebrow="Cite" title="Citation">
         <CodeBlock>{citation(b)}</CodeBlock>
       </Section>
 
@@ -155,12 +170,60 @@ function Report({ b }: { b: BenchmarkDetail }) {
         publishes the benchmark, and are published alongside it.
       </Caveat>
     </article>
+    <Contents items={contents} />
+    </div>
   );
 }
 
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
+/** The report's sections, pinned beside it on a wide screen. */
+function Contents({ items }: { items: Array<{ id: string; label: string }> }) {
   return (
-    <section className="space-y-3">
+    <nav aria-label="Contents" className="hidden lg:block">
+      <div className="sticky top-4 space-y-2 pt-24">
+        <div className="font-mono text-2xs uppercase tracking-wider text-faint">Contents</div>
+        <ul className="space-y-1.5 border-l border-line pl-3">
+          {items.map((item) => (
+            <li key={item.id}>
+              <a href={`#${item.id}`} className="block text-xs text-muted transition-colors duration-150 hover:text-ink">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  );
+}
+
+/** The headline figures in one strip: the reading a visitor takes away before
+ *  scrolling. Each is a measurement with its denominator in the label. */
+function Figures({ d, systems, simulated }: { d: BenchmarkData; systems: string[]; simulated: boolean }) {
+  const best = d.leaderboard.find((r) => `${r.model} / ${r.condition}` === systems[0]);
+  const a = d.judge_alignment;
+  const items = [
+    { value: pct(best?.pass_rate), label: best ? `top pass rate · ${best.model}` : "top pass rate" },
+    { value: String(d.models.length), label: `models under ${d.conditions.length} condition${d.conditions.length === 1 ? "" : "s"}` },
+    { value: String(d.dataset.questions), label: `questions · ${d.dataset.criteria} criteria` },
+    {
+      value: a.accuracy === null ? "not measured" : pct(a.accuracy),
+      label: a.accuracy === null ? "judge agreement with experts" : simulated ? "judge vs simulated reviewer" : "judge agreement with experts",
+    },
+  ];
+  return (
+    <div className="grid grid-cols-2 border-y border-line md:grid-cols-4 md:divide-x md:divide-line">
+      {items.map((x) => (
+        <div key={x.label} className="px-1 py-3 md:px-4 md:first:pl-0">
+          <div className="tnum font-mono text-2xl text-ink">{x.value}</div>
+          <div className="mt-0.5 text-2xs text-muted">{x.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-6 space-y-3">
       <div>
         <div className="font-mono text-2xs uppercase tracking-wider text-faint">{eyebrow}</div>
         <h2 className="mt-1 text-xl text-ink">{title}</h2>
@@ -240,57 +303,77 @@ function Legend({ systems }: { systems: string[] }) {
   );
 }
 
+/** Chart and ranking side by side in one panel: the bars for the shape of the
+ *  field, the ranked rows for the exact counts behind each bar. */
 function Results({ d, systems }: { d: BenchmarkData; systems: string[] }) {
-  const models = Array.from(new Set(systems.map((s) => s.split(" / ")[0])));
-  const rate = (m: string, c: string) => d.leaderboard.find((r) => r.model === m && r.condition === c);
+  const rows = systems.map((s) => d.leaderboard.find((x) => `${x.model} / ${x.condition}` === s)!);
+  const label = (r: (typeof rows)[number]) => (d.conditions.length > 1 ? `${r.model} · ${r.condition}` : r.model);
   return (
-    <div className="space-y-4">
-      <Card className="space-y-3 p-4">
-        {systems.map((s, i) => {
-          const r = d.leaderboard.find((x) => `${x.model} / ${x.condition}` === s)!;
-          return (
-            <div key={s} className="grid grid-cols-[minmax(8rem,14rem)_1fr_5.5rem] items-center gap-3">
-              <span className="truncate text-sm text-ink">{d.conditions.length > 1 ? s : r.model}</span>
-              <div className="relative h-5 bg-sunken" title={`${r.criteria_passed} of ${r.criteria_judged} criteria met`}>
-                <div className={`absolute inset-y-0 left-0 ${SERIES[i % SERIES.length]}`} style={{ width: `${(r.pass_rate ?? 0) * 100}%` }} />
-              </div>
-              <span className="tnum text-right font-mono text-base text-ink">{pct(r.pass_rate)}</span>
+    <Card className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:divide-x lg:divide-line">
+      <div className="p-4">
+        <div className="mb-3 text-xs text-muted">Pass rate</div>
+        <div className="relative h-56 pl-9">
+          {[0, 25, 50, 75, 100].map((t) => (
+            <div key={t} className="absolute left-9 right-0 border-t border-dashed border-line" style={{ bottom: `${t}%` }}>
+              <span className="tnum absolute -left-9 -top-2 w-7 text-right font-mono text-2xs text-faint">{t}%</span>
             </div>
-          );
-        })}
-      </Card>
-      <Card>
-        <Table minWidth={560}>
-          <thead>
-            <tr>
-              <Th>Model</Th>
-              {d.conditions.map((c) => (
-                <Th key={c} className="text-right">{c}</Th>
+          ))}
+          <div className="relative flex h-full items-end justify-around gap-3">
+            {rows.map((r, i) => (
+              <div
+                key={label(r)}
+                className={`w-full max-w-[3.5rem] ${SERIES[i % SERIES.length]}`}
+                style={{ height: `${(r.pass_rate ?? 0) * 100}%` }}
+                title={`${label(r)}: ${r.criteria_passed} of ${r.criteria_judged} criteria met (${pct(r.pass_rate)})`}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="mt-2 flex justify-around gap-3 pl-9">
+          {rows.map((r) => (
+            <span key={label(r)} className="w-full max-w-[7rem] truncate text-center text-2xs text-ink-soft">
+              {label(r)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="border-t border-line p-4 lg:border-t-0">
+        <div className="mb-1 text-xs text-muted">Rank</div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[26rem] text-sm">
+            <thead>
+              <tr className="border-b border-line text-left font-mono text-2xs uppercase tracking-wider text-faint">
+                <th className="py-2 pr-2 font-normal">#</th>
+                <th className="py-2 pr-2 font-normal">Model</th>
+                <th className="py-2 pr-2 text-right font-normal">Pass rate</th>
+                <th className="py-2 pr-2 text-right font-normal">Met / judged</th>
+                <th className="py-2 pr-2 text-right font-normal">Not judged</th>
+                <th className="py-2 text-right font-normal">Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={label(r)} className="border-b border-line/60">
+                  <td className="tnum py-2.5 pr-2 font-mono text-2xs text-faint">{i + 1}.</td>
+                  <td className="py-2.5 pr-2">
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-ink">
+                      <i className={`inline-block h-2.5 w-2.5 rounded-full ${SERIES[i % SERIES.length]}`} aria-hidden />
+                      {label(r)}
+                    </span>
+                  </td>
+                  <td className="tnum py-2.5 pr-2 text-right font-mono text-ink">{pct(r.pass_rate)}</td>
+                  <td className="tnum py-2.5 pr-2 text-right font-mono text-xs text-muted">
+                    {r.criteria_passed} / {r.criteria_judged}
+                  </td>
+                  <td className="tnum py-2.5 pr-2 text-right font-mono text-xs text-muted">{r.criteria_not_judged}</td>
+                  <td className="tnum py-2.5 text-right font-mono text-xs text-muted">{r.errors}</td>
+                </tr>
               ))}
-              <Th className="text-right">Criteria met / judged</Th>
-              <Th className="text-right">Not judged</Th>
-              <Th className="text-right">Errors</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {models.map((m, index) => {
-              const rows = d.conditions.map((c) => rate(m, c)).filter(Boolean);
-              return (
-                <Tr key={m} index={index}>
-                  <Td><span className="text-sm text-ink">{m}</span></Td>
-                  {d.conditions.map((c) => (
-                    <Td key={c} className="text-right"><span className="tnum font-mono text-sm">{pct(rate(m, c)?.pass_rate)}</span></Td>
-                  ))}
-                  <Td className="text-right"><span className="tnum font-mono text-xs text-muted">{rows.map((r) => `${r!.criteria_passed} / ${r!.criteria_judged}`).join(", ")}</span></Td>
-                  <Td className="text-right"><span className="tnum font-mono text-xs text-muted">{rows.reduce((a, r) => a + r!.criteria_not_judged, 0)}</span></Td>
-                  <Td className="text-right"><span className="tnum font-mono text-xs text-muted">{rows.reduce((a, r) => a + r!.errors, 0)}</span></Td>
-                </Tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      </Card>
-    </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Card>
   );
 }
 

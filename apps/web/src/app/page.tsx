@@ -20,7 +20,9 @@ import {
   formatPercent,
   greeting,
 } from "@/components/ui";
+import { BenchmarkLeaders } from "@/components/benchmark-leaders";
 import { api } from "@/lib/api";
+import type { BenchmarkSummary } from "@/lib/benchmark";
 import type { Overview, Severity } from "@/lib/types";
 
 const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
@@ -99,6 +101,8 @@ export default function PortfolioPage() {
               </div>
             ))}
           </div>
+
+          <PortfolioBenchmarks />
 
           <div className="grid items-start gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
@@ -229,6 +233,36 @@ export default function PortfolioPage() {
     
       <Primer open={primer.show} onClose={primer.close} />
     </div>
+  );
+}
+
+/** The latest benchmark reports, leaders first. A failed load says so; an
+ *  empty list is left out, since the portfolio has nothing to rank yet. */
+function PortfolioBenchmarks() {
+  const list = useResource<BenchmarkSummary[]>(() => api.get<BenchmarkSummary[]>("/benchmarks"), []);
+  if (list.loading) return null;
+  if (list.error) return <ErrorNote message={`Benchmarks: ${list.error}`} status={list.status} onRetry={list.reload} />;
+  const items = (list.data ?? []).slice(0, 2);
+  if (!items.length) return null;
+  return (
+    <Card>
+      <CardHead
+        title="Benchmarks"
+        meta="Pass rate over judged criteria, latest report per benchmark"
+        action={
+          <Link href="/benchmarks" className="link-underline text-xs text-ink">
+            View all
+          </Link>
+        }
+      />
+      <div className={`grid gap-px border-t border-line bg-line ${items.length > 1 ? "md:grid-cols-2" : ""}`}>
+        {items.map((b) => (
+          <div key={b.id} className="bg-panel p-4">
+            <BenchmarkLeaders b={b} compact />
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
