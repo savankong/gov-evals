@@ -46,6 +46,9 @@ services:
       args:
         # Next.js inlines this at build time, so it is a build argument.
         NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8000}
+        # The product tour, and presenter mode for org administrators. 1 or 0.
+        NEXT_PUBLIC_AEGIS_TOUR: ${NEXT_PUBLIC_AEGIS_TOUR:-}
+        NEXT_PUBLIC_AEGIS_TOUR_PRESENTER: ${NEXT_PUBLIC_AEGIS_TOUR_PRESENTER:-}
     ports:
       - "3000:3000"
     depends_on:

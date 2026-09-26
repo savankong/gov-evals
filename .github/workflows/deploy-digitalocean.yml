@@ -125,8 +125,12 @@ jobs:
           # at <repo>/packs and the image has to carry them.
           docker build -f apps/api/Dockerfile \
             -t "$REG/aegis-api:$SHA" -t "$REG/aegis-api:latest" .
+          # Every NEXT_PUBLIC_* build-time value in .do/app.yaml is passed here
+          # too: this image, not App Platform's own build, is what serves.
           docker build \
             --build-arg NEXT_PUBLIC_API_BASE="${{ vars.PUBLIC_API_BASE }}" \
+            --build-arg NEXT_PUBLIC_AEGIS_TOUR=1 \
+            --build-arg NEXT_PUBLIC_AEGIS_TOUR_PRESENTER=1 \
             -t "$REG/aegis-web:$SHA" -t "$REG/aegis-web:latest" apps/web
 
           for name in aegis-api aegis-web; do

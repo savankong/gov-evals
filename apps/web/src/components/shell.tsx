@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Fragment,
   createContext,
   useCallback,
   useContext,
@@ -35,6 +36,7 @@ import {
 } from "@/components/icons";
 import { Key } from "@/components/ui";
 import { ApiError, api, getToken } from "@/lib/api";
+import { TourBanner, TourHelpMenu, useTourShell } from "@/tour";
 
 /* ------------------------------------------------------------------ *
  * Session
@@ -580,6 +582,8 @@ function NavLink({ item, expanded }: { item: NavItem; expanded: boolean }) {
       title={expanded ? undefined : item.label}
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
+      // The product tour points at the rail by these; see src/tour/steps.ts.
+      data-tour={`nav.${item.href.replace(/^\//, "") || "portfolio"}`}
       className={`relative flex h-8 items-center transition-colors duration-150 ease-out ${
         expanded ? "gap-2.5 px-2.5" : "justify-center px-0"
       } ${active ? "text-ink" : "text-faint hover:text-ink-soft"}`}
@@ -788,6 +792,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const [classification, setClassification] = useState("UNCLASSIFIED");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Changes when the tour switches the app onto its sample or back, so the
+  // page remounts and reloads: nothing fetched from one is left on screen
+  // under the other.
+  const tour = useTourShell();
 
   const declare = useCallback((value: string) => {
     setClassification((current) => (rankOf(value) > rankOf(current) ? value : current));
@@ -849,6 +857,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <ClassificationContext.Provider value={classificationValue}>
       <div className="flex h-screen flex-col overflow-hidden">
         <ClassificationBanner classification={classification} />
+        <TourBanner />
 
         {/* `relative` so the drawer below can be positioned against this row
             rather than the viewport, which keeps it under the classification
@@ -894,6 +903,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => setNavOpen(true)}
                 aria-label="Open navigation"
+                data-tour="shell.open-nav"
                 className="-ml-1 shrink-0 p-1 text-muted transition-colors duration-150 hover:text-ink md:hidden"
               >
                 <IconExpand />
@@ -909,6 +919,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Key>K</Key>
                 </span>
               </button>
+
+              <TourHelpMenu />
 
               <button
                 onClick={toggle}
@@ -937,13 +949,24 @@ export function AppShell({ children }: { children: ReactNode }) {
             </header>
 
             <main className="min-h-0 flex-1 overflow-y-auto">
-              <div className="mx-auto w-full max-w-[82.5rem] px-5 py-5">{children}</div>
+              <div
+                className="mx-auto w-full max-w-[82.5rem] px-5 py-5"
+                // Room below the page for the tour's bottom sheet on a phone,
+                // so whatever it points at can be scrolled clear of it.
+                style={{ paddingBottom: "calc(1.25rem + var(--tour-sheet, 0px))" }}
+              >
+                <Fragment key={tour.epoch}>{children}</Fragment>
+              </div>
             </main>
           </div>
         </div>
       </div>
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandPalette
+        key={tour.epoch}
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
     </ClassificationContext.Provider>
   );
 }

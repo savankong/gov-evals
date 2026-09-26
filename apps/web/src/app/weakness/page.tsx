@@ -19,6 +19,7 @@ import {
   Tr,
 } from "@/components/ui";
 import { api } from "@/lib/api";
+import { tourSignal } from "@/tour/signal";
 
 interface AreaRow {
   knowledge_area: string | null;
@@ -109,9 +110,12 @@ export default function WeaknessMapPage() {
         <div className="flex items-center gap-2">
           <span className="text-2xs uppercase tracking-wider text-faint">Confident at</span>
           <Segmented
-            options={THRESHOLDS.map((t) => ({ key: t, label: `≥ ${t}` }))}
+            options={THRESHOLDS.map((t) => ({ key: t, label: `≥ ${t}`, tour: `weakness.threshold.${t}` }))}
             active={threshold}
-            onChange={(key) => setThreshold(key ?? "0.8")}
+            onChange={(key) => {
+              setThreshold(key ?? "0.8");
+              tourSignal(`weakness.threshold:${key}`);
+            }}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -157,7 +161,7 @@ export default function WeaknessMapPage() {
         </div>
       ) : null}
 
-      <Card>
+      <Card tour="weakness.table">
         {map.loading && !data ? (
           <TableSkeleton rows={5} cols={6} />
         ) : map.error ? null : rows.length === 0 ? (
@@ -174,10 +178,12 @@ export default function WeaknessMapPage() {
           <Table minWidth={980}>
             <thead>
               <tr>
-                <Th>Knowledge area</Th>
+                {/* Pinned below md, so a row keeps its name while the counts
+                    scroll sideways on a phone. */}
+                <Th className="max-md:sticky max-md:left-0 max-md:z-[1] max-md:bg-panel">Knowledge area</Th>
                 <Th align="right">Judged</Th>
                 <Th align="right">Wrong</Th>
-                <Th align="right">Confidently</Th>
+                <Th align="right" tour="weakness.col.confident">Confidently</Th>
                 <Th align="right">Unsure</Th>
                 <Th align="right">Unknown</Th>
                 <Th align="right">No judgement</Th>
@@ -189,11 +195,12 @@ export default function WeaknessMapPage() {
             <tbody>
               {rows.map((row, index) => (
                 <Tr key={row.label} index={index}>
-                  <Td>
+                  <Td className="max-md:sticky max-md:left-0 max-md:z-[1] max-md:bg-panel">
                     {row.declared ? (
                       <Link
                         href={`/capture?area=${encodeURIComponent(row.knowledge_area ?? "")}`}
                         className="link-underline text-ink"
+                        data-tour={`weakness.area:${row.knowledge_area}`}
                       >
                         {row.label}
                       </Link>

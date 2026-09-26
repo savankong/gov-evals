@@ -192,6 +192,7 @@ def main() -> int:
     validate_pinned_base_images()
     validate_deterministic_installs()
     validate_supply_chain()
+    validate_web_build_args()
     validate_schema_migrations()
     validate_no_accent_rules()
     validate_readable_type()
@@ -473,6 +474,61 @@ def validate_deterministic_installs() -> None:
             "apps/web/package-lock.json is missing, so `npm ci` cannot pin the web "
             "dependency tree."
         )
+
+
+def validate_web_build_args() -> None:
+    """The web image that serves is built by the deploy workflow, not by App
+    Platform from .do/app.yaml: the workflow signs it, verifies it and pins the
+    live spec to its digest. Next.js bakes NEXT_PUBLIC_* in at build time, so a
+    value set only in the spec never reaches production -- the spec reads as
+    though the product tour is on while the served bundle has it off.
+
+    Every NEXT_PUBLIC_* build-time value on the web component must therefore
+    also be a --build-arg of the workflow's web build, and a literal value must
+    match.
+    """
+    spec_path = ROOT / ".do" / "app.yaml"
+    deploy_path = ROOT / ".github" / "workflows" / "deploy-digitalocean.yml"
+    if not spec_path.exists() or not deploy_path.exists():
+        return
+    import re
+
+    spec = load(spec_path)
+    web = next((s for s in spec.get("services") or [] if s.get("name") == "web"), None)
+    if web is None:
+        return
+    wanted = {
+        e.get("key"): str(e.get("value"))
+        for e in web.get("envs") or []
+        if str(e.get("key", "")).startswith("NEXT_PUBLIC_") and e.get("scope") == "BUILD_TIME"
+    }
+
+    text = deploy_path.read_text()
+    build = re.search(r"docker build \\\n(?:.*\\\n)*?.*apps/web\s*$", text, re.MULTILINE)
+    if not build:
+        errors.append(
+            "deploy-digitalocean.yml: could not find the web image's docker build, so the "
+            "NEXT_PUBLIC_* values in .do/app.yaml cannot be checked against it."
+        )
+        return
+    passed = dict(re.findall(r'--build-arg\s+(NEXT_PUBLIC_\w+)=("?[^"\s]*"?)', build.group(0)))
+
+    for key, value in sorted(wanted.items()):
+        if key not in passed:
+            errors.append(
+                f"deploy-digitalocean.yml: the web build does not pass {key}. .do/app.yaml "
+                "sets it at build time, but the image that serves is built by this workflow, "
+                "so production would be built without it."
+            )
+            continue
+        given = passed[key].strip('"')
+        # Values the spec takes from App Platform (${APP_URL}) are supplied by a
+        # repository variable in the workflow; only literals can be compared.
+        if "${" not in value and "${{" not in given and given != value:
+            errors.append(
+                f"deploy-digitalocean.yml: the web build passes {key}={given} but .do/app.yaml "
+                f"sets {value}. The spec and the served image must agree."
+            )
 
 
 def validate_supply_chain() -> None:

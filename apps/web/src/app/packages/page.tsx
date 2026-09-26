@@ -22,6 +22,7 @@ import {
   formatDate,
 } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
+import { useTourCommand } from "@/tour/signal";
 
 interface Bin {
   knowledge_area: string | null;
@@ -91,6 +92,16 @@ function NewPackage({ onCreated }: { onCreated: (pkg: DataPackage) => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // "Fill it in for me" in the product tour.
+  useTourCommand<{ name: string; customer: string; knowledge_areas: string[] }>(
+    "packages.fill",
+    (fill) => {
+      setName(fill.name);
+      setCustomer(fill.customer);
+      setSelected(fill.knowledge_areas);
+    },
+  );
+
   const submit = async () => {
     setSubmitting(true);
     setError(null);
@@ -115,7 +126,7 @@ function NewPackage({ onCreated }: { onCreated: (pkg: DataPackage) => void }) {
   const options = areas.data?.areas ?? [];
 
   return (
-    <Card>
+    <Card tour="packages.new">
       <CardHead
         title="Build a package"
         subtitle="Choose what to send. What may leave is decided by the platform, not here: only UNCLASSIFIED, PII-free work by qualified experts, and only judgements someone actually made."
@@ -173,14 +184,16 @@ function NewPackage({ onCreated }: { onCreated: (pkg: DataPackage) => void }) {
             <Label htmlFor="inc-scored">Scored model answers</Label>
           </div>
         </div>
-        <FormActions
-          onSubmit={submit}
-          submitting={submitting}
-          disabled={!name.trim() || (!traces && !scored)}
-          error={error}
-          submitLabel="Build package"
-          busyLabel="Building…"
-        />
+        <div data-tour="packages.build">
+          <FormActions
+            onSubmit={submit}
+            submitting={submitting}
+            disabled={!name.trim() || (!traces && !scored)}
+            error={error}
+            submitLabel="Build package"
+            busyLabel="Building…"
+          />
+        </div>
       </div>
     </Card>
   );

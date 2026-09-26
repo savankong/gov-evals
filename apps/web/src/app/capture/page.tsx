@@ -179,7 +179,9 @@ export default function CapturePage({
                   onClick={() => router.push(`/capture/${task.scenario_id}`)}
                 >
                   <Td>
-                    <span className="text-ink">{task.title}</span>
+                    <span className="text-ink" data-tour={`capture.task:${task.scenario_id}`}>
+                      {task.title}
+                    </span>
                     {task.task ? <div className="mt-0.5 text-xs text-muted">{task.task}</div> : null}
                   </Td>
                   <Td className="text-muted">

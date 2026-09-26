@@ -20,6 +20,7 @@ import {
   Tag,
 } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
+import { tourSeed, tourSignal, useTourCommand } from "@/tour/signal";
 
 interface Problem {
   scenario_key: string;
@@ -175,6 +176,32 @@ export default function SolvePage({ params }: { params: Promise<{ scenarioId: st
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<Trace | null>(null);
 
+  // A presenter who jumps past "record the trace" lands on the recorded panel.
+  useEffect(() => {
+    const seeded = tourSeed<Trace>(`solve.saved:${scenarioId}`);
+    if (seeded) setSaved(seeded);
+  }, [scenarioId]);
+
+  // "Use a worked example" in the product tour.
+  useTourCommand<{ steps: Step[]; answer: string; sources: string[] }>(
+    "solve.fill-example",
+    (example) => {
+      setSteps(example.steps.map((step) => ({ text: step.text, basis: step.basis })));
+      setAnswer(example.answer);
+      setSources(example.sources);
+      setConfidence("0.9");
+    },
+  );
+
+  // The tour's "write your first step" is done once a step says what it rests
+  // on. Reported after a pause in typing, so the tour does not move on mid-word.
+  const firstStepWritten = Boolean(steps[0]?.text.trim() && steps[0]?.basis.trim());
+  useEffect(() => {
+    if (!firstStepWritten) return;
+    const timer = window.setTimeout(() => tourSignal("solve.step-written"), 700);
+    return () => window.clearTimeout(timer);
+  }, [firstStepWritten, steps]);
+
   const disciplines = profile.data?.disciplines ?? [];
   useEffect(() => {
     if (!expertise && task.data) {
@@ -265,8 +292,12 @@ export default function SolvePage({ params }: { params: Promise<{ scenarioId: st
                   {problem.documents.map((doc, index) => (
                     <Disclosure
                       key={index}
+                      tour={`solve.document:${index}`}
                       open={!!openDocs[index]}
-                      onToggle={() => setOpenDocs((o) => ({ ...o, [index]: !o[index] }))}
+                      onToggle={() => {
+                        if (!openDocs[index]) tourSignal("solve.document:opened");
+                        setOpenDocs((o) => ({ ...o, [index]: !o[index] }));
+                      }}
                       summary={
                         <span className="text-sm text-ink">
                           {doc.title ?? "Untitled document"}
@@ -298,10 +329,12 @@ export default function SolvePage({ params }: { params: Promise<{ scenarioId: st
             <Card>
               <div className="px-4 py-3">
                 <Disclosure
+                  tour="solve.model-answer"
                   open={shownAnswer !== null}
-                  onToggle={() =>
-                    setShownAnswer(shownAnswer === null ? data.model_answers[0].result_id : null)
-                  }
+                  onToggle={() => {
+                    if (shownAnswer === null) tourSignal("solve.model-answer:opened");
+                    setShownAnswer(shownAnswer === null ? data.model_answers[0].result_id : null);
+                  }}
                   summary={
                     <span className="text-sm text-ink">
                       The model&apos;s answer
@@ -364,7 +397,9 @@ export default function SolvePage({ params }: { params: Promise<{ scenarioId: st
                 subtitle="Write it the way you would explain it to a new contracting officer: each step, and what it rests on."
               />
               <div className="space-y-4 border-t border-line px-4 py-3">
-                <StepEditor steps={steps} onChange={setSteps} />
+                <div data-tour="solve.steps">
+                  <StepEditor steps={steps} onChange={setSteps} />
+                </div>
                 <TextArea
                   id="answer"
                   label="Your answer"
@@ -410,14 +445,16 @@ export default function SolvePage({ params }: { params: Promise<{ scenarioId: st
                   />
                   <Label htmlFor="pii">Contains personal information</Label>
                 </div>
-                <FormActions
-                  onSubmit={submit}
-                  submitting={submitting}
-                  disabled={!ready}
-                  error={error}
-                  submitLabel="Record trace"
-                  busyLabel="Recording…"
-                />
+                <div data-tour="solve.record">
+                  <FormActions
+                    onSubmit={submit}
+                    submitting={submitting}
+                    disabled={!ready}
+                    error={error}
+                    submitLabel="Record trace"
+                    busyLabel="Recording…"
+                  />
+                </div>
               </div>
             </>
           )}

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { AppShell, AuthProvider } from "@/components/shell";
+import { TourProvider } from "@/tour";
 import "./globals.css";
 
 /*
@@ -55,7 +56,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <AppShell>{children}</AppShell>
+          <TourProvider>
+            <AppShell>{children}</AppShell>
+          </TourProvider>
         </AuthProvider>
       </body>
     </html>
