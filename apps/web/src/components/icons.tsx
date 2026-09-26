@@ -261,13 +261,3 @@ export const IconNote = (p: Props) => (
     <path d="M8 4.75v.01" />
   </svg>
 );
-
-/* Your Roster's R mark, the product Aegis Eval belongs to. Filled rather than
- * stroked, because the brand kit's paths are solid shapes and are never
- * re-traced; drawn in currentColor so it stays as quiet as the text beside it. */
-export const IconRoster = (p: Props) => (
-  <svg width="12" height="12" viewBox="0 0 198 198" fill="currentColor" {...p}>
-    <path d="M3 0H137C167 0 197 32 197 71C197 108 173 134 153 142L198 198H131C101 165 81 140 77 117L114 111C132 105 140 94 140 77C140 61 129 48 117 48H3V0Z" />
-    <path d="M54 89H42C19 89 0 108 0 131V198H54V89Z" />
-  </svg>
-);
