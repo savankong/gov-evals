@@ -34,6 +34,10 @@ worker: ## Run an evaluation worker (needs AEGIS_QUEUE_BACKEND=redis)
 test: ## Run the API test suite
 	cd apps/api && ../../$(VENV)/bin/pytest -q
 
+.PHONY: bench-demo
+bench-demo: ## Rebuild the Acquisition Bench demonstration report in docs/examples
+	$(PY) scripts/bench_demo.py
+
 .PHONY: typecheck
 typecheck: ## Typecheck the web UI
 	cd apps/web && npx tsc --noEmit

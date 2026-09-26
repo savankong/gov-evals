@@ -1,0 +1,135 @@
+{
+ "labels": {
+  "claude-haiku-4-5": {
+   "acqb-q02-pws-review": {
+    "c1": "pass",
+    "c2": "fail",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q07-section-l-m": {
+    "c1": "pass",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "fail",
+    "c5": "fail"
+   },
+   "acqb-q13-pick-the-winner": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "pass"
+   },
+   "acqb-q14-tina": {
+    "c1": "fail",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "fail",
+    "c5": "fail"
+   },
+   "acqb-q17-debriefing": {
+    "c1": "fail",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "fail",
+    "c5": "fail"
+   },
+   "acqb-q19-scope-change": {
+    "c1": "fail",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q22-cpars-narrative": {
+    "c1": "pass",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q25-where-do-we-stand": {
+    "c1": "fail",
+    "c2": "fail",
+    "c3": "pass",
+    "c4": "fail",
+    "c5": "fail"
+   },
+   "acqb-q27-ja-review": {
+    "c1": "fail",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "fail",
+    "c5": "fail"
+   }
+  },
+  "claude-sonnet-5": {
+   "acqb-q02-pws-review": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "pass"
+   },
+   "acqb-q07-section-l-m": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q13-pick-the-winner": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "pass"
+   },
+   "acqb-q14-tina": {
+    "c1": "fail",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "fail",
+    "c5": "pass"
+   },
+   "acqb-q17-debriefing": {
+    "c1": "pass",
+    "c2": "fail",
+    "c3": "fail",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q19-scope-change": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "pass",
+    "c5": "pass"
+   },
+   "acqb-q22-cpars-narrative": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "fail",
+    "c4": "pass",
+    "c5": "fail"
+   },
+   "acqb-q25-where-do-we-stand": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "fail",
+    "c5": "pass"
+   },
+   "acqb-q27-ja-review": {
+    "c1": "pass",
+    "c2": "pass",
+    "c3": "pass",
+    "c4": "fail",
+    "c5": "pass"
+   }
+  }
+ },
+ "recorded_via": "Written by the AI assistant that built the demonstration; simulated reviewer, not an expert"
+}

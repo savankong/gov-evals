@@ -40,7 +40,8 @@ class TargetResponse:
 
     text: str
     raw: dict = field(default_factory=dict)
-    latency_ms: int = 0
+    # None when the connector cannot measure it (a replay), never a made-up zero.
+    latency_ms: int | None = 0
     tokens_in: int | None = None
     tokens_out: int | None = None
     # Observable execution trace: retrieval steps, tool calls, actions.

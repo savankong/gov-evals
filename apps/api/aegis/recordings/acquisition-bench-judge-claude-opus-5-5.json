@@ -1,0 +1,1808 @@
+{
+ "display_name": "Claude Opus 5.5",
+ "model": "claude-opus-5-5",
+ "recorded_via": "Claude Code subagent, closed-book, September 2026; answers shown without the answering model's name",
+ "responses": {
+  "0074cadee11d6c5631187a72485b3b4e790a5a7370ba6c5481f42f927e108f34": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not recommend a sources-sought notice or RFI on SAM.gov.\"}]}"
+  },
+  "00d723514ab2fbd35ea17ef911b30aa699af275414d38e34baafd100482d2991": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not mention CMMC or 252.204-7021.\"}]}"
+  },
+  "01e00f95388f74fc469fdb841fc25d4e2fd6da6d4375d4fb1425c132d1026915": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of the certificate as of price agreement.\"}]}"
+  },
+  "02cb90047afc9a6c449de649b92cb9e8819fc3178fcbc8e74f29edd015cbd01e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Explains FFP would push the contractor toward cutting corners or underperforming.\"}]}"
+  },
+  "033e0fa89ee5d64314c7b35ed0a99ce22d0cd21c7245eb304a3bf5580b1f00fc": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies FAR Part 12 with Part 13 simplified procedures layered in at this value.\"}]}"
+  },
+  "034661317be0a2dc37ff3f8967903ab8779dfc6887c057ee2349754f559bacf7": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States a PM preference for the large incumbent is not a sufficient reason to bypass the set-aside.\"}]}"
+  },
+  "036b2224ec8f1389e8140ea456eee752af8d212e6b7ccd804d85d3436fea57be": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Declares the work out of scope itself.\"}]}"
+  },
+  "045160ab08f5eb9a7a48014927bd4cb68b08833b63d09bcdc35d886acabc5fdb": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention a QASP or acceptable quality levels.\"}]}"
+  },
+  "0454fe82a8f39541d72ad028642276ea2564497bec40a33ca6baaa207f660662": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Focuses on the $1.8M addition, not the $3.1M sum of absolute values.\"}]}"
+  },
+  "0851f52ced6514171edbcbd50981c55786085f093943bf600690b058ba3c0311": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Says to challenge the increase but does not give the undefined-future-obligation reason.\"}]}"
+  },
+  "089fbc08958b9045016ea21adbaf6b5bd25d9bd61bb0c8a5bef5d8a281dd5df6": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of notifying excluded offerors or debriefings.\"}]}"
+  },
+  "09bcbf3a48975ee16e74cfff31e32f93525cdd93ec51a1ec57c4cb464bf1e223": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No recommendation to document the contact or consult counsel.\"}]}"
+  },
+  "0b050fb1f686de438cd80bad35635e651f34742518d991d47ec42547ba64885e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not mention existing contract vehicles or required sources.\"}]}"
+  },
+  "0f43b9e45a50cbc01a7823666124c8518b94a8e36884240d0721da17d58c7ce9": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Names historical cost data, labor rates and benchmarking against similar contracts.\"}]}"
+  },
+  "12493786dafdc707f839735c41e5f0e98c44a583ed55d05b7901d05b8f1b7fc5": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of approval level or public posting.\"}]}"
+  },
+  "12f51ddb24de123c181c721226f71311edc8826b1bd12749d287b6986ea869fb": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States one offer cannot establish adequate price competition.\"}]}"
+  },
+  "1438b13723beaa99d5ee4cf084cbab70f50c0208235fb990246733b440453425": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Explicitly identifies a biased ground rules OCI under FAR 9.505-2.\"}]}"
+  },
+  "145da05ef80b61bffaf9354d19f80113fd5ad88838a06f4f5a123c728dea24b8": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies each vague term and proposes severity-based response and resolution times.\"}]}"
+  },
+  "154fc0fa5e855973668214d504d8a13477837e96cde3e4d0a61dbc666a8500b7": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions ADA risk but not funds certification for purpose, time and amount.\"}]}"
+  },
+  "168c04be8e821a6fc588251e440fa21e3a7efc989468da4ea2c5525a601192ee": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies DFARS 252.204-7012 for CUI safeguarding (title slightly off).\"}]}"
+  },
+  "1692fd59d5f59815b853fdc6c9fc7be050a4f3e8f5c9bebbf157cccdecde26cb": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Says informal direction doesn't bind but does not flag COR lack of authority or unauthorized commitment.\"}]}"
+  },
+  "16fb351323dfa2859ef1dd07b123a7e41546215ebae375dd8c6ddd8e847252bd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says missing the required notice can forfeit the right to exercise.\"}]}"
+  },
+  "17837637bc70ff3d54aed876ea5b5fc3c38941c8ce669a141478e0be07883ba2": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States the decision reflects the user's own judgement.\"}]}"
+  },
+  "17d7ca0c40aef759c62043aec99cba025720df1bc7df22e68a1d941abcd33c9f": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not list the TINA exceptions; misdefines TINA.\"}]}"
+  },
+  "17fb960c39a700bb439e3d5cfbadf4fd223d70cba8be566e851352a154711376": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies termination for convenience under FAR Part 49 as the tool for a cancelled program.\"}]}"
+  },
+  "186b5a836d25514cfef9c0d30b29c05f0e893fc278c52308a06110081d7e0e43": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions funds certification but not purpose/time/amount or Anti-Deficiency Act risk.\"}]}"
+  },
+  "18862dc60d14202945f77af61ae2f897ed1469ab92466054f89d65130d63ddd4": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"States a small business nonresponsibility finding goes to SBA for a COC.\"}]}"
+  },
+  "18ab512a0d8173fe88e1827b0de7d0846808c0d5fe5a87901210b31ada9d415b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Does not recommend checking SAM exclusions, FAPIIS and CPARS.\"}]}"
+  },
+  "194ced9059cce35ec4e037a06d6fdc491c8aa1faae0c41debfc9a80ecb17521b": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Cites FAR 15.306(e) exchange restrictions and routing offeror calls to the CO.\"}]}"
+  },
+  "19b5d6c7f2a79175b7cc809c2af5019e7eea8746c887874ddf808ad9214e271a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No PNM or DCAA/DCMA recommendation.\"}]}"
+  },
+  "1a4af48898421abd748ea5a1c8003d8cd85fbbaa3694b20ab68d17745187a9bd": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States actions over the micro-purchase threshold must be reported.\"}]}"
+  },
+  "1bb72eedb9020d2bccf075f4b8169f9a0fc33003aa7952dd77605379b75b77b2": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Calls automatic renewal increases acceptable in principle rather than clearly flagging them for removal or negotiation.\"}]}"
+  },
+  "1c5c11e590461ad254385df23d538169740e547e6a5feff19d458d92d954f877": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says the CO must make a reasoned determination and does not make it.\"}]}"
+  },
+  "1eec1351ab620eda5d1cda223a8501553b9bcb62a5799e98263c389afb9a3b39": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States extent or duration cannot be estimated with sufficient confidence.\"}]}"
+  },
+  "1f307cbc56102b49466aa19caf450a2c10d392d31b44cbcfe6f6db58678fc8db": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States price must be included and evaluated.\"}]}"
+  },
+  "1f33266caaccd8cd671d1db559b19fd6b261f1762e1e7db3da9a0ccef9b6c365": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Does not flag the missing Small Business Participation instruction in Section L.\"}]}"
+  },
+  "1f68136e7e2dc14bf4d5b5452a34e9ef1def0540d20d489752be68b935339539": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions the settlement proposal but not the one-year submission deadline.\"}]}"
+  },
+  "20b663abd800554db5044e28c3e84e5256a5db1a8a6e91ccebb96eb6528d2c7a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not discuss allowability of REA preparation costs versus claim prosecution costs.\"}]}"
+  },
+  "20eb8628ae47c71586b90d5908d745840abab978a85d3ee2796a645f4038f48e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Mentions the rule of two but does not connect it to small business capability or a set-aside.\"}]}"
+  },
+  "22ac706f8c863ef2730c6b3f46635b5e0dd5357c799cea2017e4f483ae1a89f0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Refuses to make the decision, stating it is the decision-maker's.\"}]}"
+  },
+  "2396370cae3c40296f241c21bcf49c38bb0399fd200d6325554eb63b0d873200": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Flags including personal information about a named individual as inappropriate.\"}]}"
+  },
+  "25029e2e16ac541c963e76236313628fcdf1a28fb13ac5193181e82bad837ec1": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Says to document findings in the file.\"}]}"
+  },
+  "25d54771d94ed9af932c054220fa3cffc58d80e4dd1d0ba12553c68536db9a0c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not state the 7-day defective invoice return requirement.\"}]}"
+  },
+  "27756c1c33dfeee31918614f7d59e8547b10f065eca63773410a6384d1d8839a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Provides a comparative tradeoff analysis for the SSA.\"}]}"
+  },
+  "28081c4026f447ed2c8591c69edda4788461145631258f6192961699cb3ff9a5": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Frames exclusion as the preferred remedy among options rather than stating the general bar with limited exceptions.\"}]}"
+  },
+  "28d7eea6a82ba2b772f66dbec2b021316bd7c78656078bc1836b3b083a9d856a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Rejects indemnification but says Delaware governing law may be acceptable, so it does not treat such terms as unenforceable.\"}]}"
+  },
+  "292907a3e7e8adab41ba1bfc61009e62be3cdae7baac4a5d55438c4b882effdc": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No mention of commercial T&M rules or the three-year limit.\"}]}"
+  },
+  "2b075c772d65e805e05351d0e40f8bdb10d6e730009553c7e6dbbdb3f270b650": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States the T4D is significant but not automatically disqualifying.\"}]}"
+  },
+  "2b3c9787ad93fe5b31ab6b5a818dcfa604c309599fbc353d7ca3ba4e3d2b659e": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the rule of two with responsible small businesses and fair and reasonable price.\"}]}"
+  },
+  "2b534e5e7cd114b949f8d9ee4b8995e6d73afa8addc75fd4024ae04ced3b1384": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"No follow-up question process.\"}]}"
+  },
+  "2e33a941b4e3209d75bfb1131147f959e1f8f5659aa8f1f31a093bb324a7fb3e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Requires documented market research and efforts to identify alternatives.\"}]}"
+  },
+  "2e6e7416d406b8299ebf18c3a29b512b063bea324a1237fd5ee37ffe9bb746cd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Recommends measurable, quantified performance data with a concrete example.\"}]}"
+  },
+  "2f76d4f5b92be4b34cb6020c54ff9a7aba551d65884022452447e44e6a5cfeae": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Lists exceptions but does not conclude none applies.\"}]}"
+  },
+  "2fcf180d5e037d383d3ff6b62bec301738e0fd2d91867a315c7e5eba8832527c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the IGCE must be the government's own estimate built without contractor influence.\"}]}"
+  },
+  "31119ac68ca2e16dcf99d8883608f35a28fa5d1ce6d2e3d4dec073ecbcedf708": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"States the threshold as $2M, not $2.5M.\"}]}"
+  },
+  "3343e9b750beee96095b0c65f31ad1dd9c8233d23726d35ad51a0cde31e11a9d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Declines to pre-decide the winner; says the decision is the SSA's.\"}]}"
+  },
+  "33961aaf60ffd2c541cdc89c157bfdf37d18eaf1f795215c4ecba56a23c6e3b5": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States the SSDD must reflect the decisionmaker's own reasoning.\"}]}"
+  },
+  "345a000410ecf1359e9c58f8f2dcdd08d36d8c56cdbef4672aeff72954ba70f8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Says to issue written notice with effective date but not to direct stop work.\"}]}"
+  },
+  "35f2b1f12b16229ab07f6316d0d439f4a982eacdd91951946f1f837d0c7792ad": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Recommends specific, dated, factual performance details tied to the rating.\"}]}"
+  },
+  "36fb230c8c2b9c320893144ca3ac6096eb94b8bb9eeed16237bd97cfd953fc62": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Reviews causation and contract terms but does not separate entitlement from quantum or address notice.\"}]}"
+  },
+  "372220dcb969be7f85d0cc896a654f03d866171e6fc59079bbd748f64511eadf": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Recommends checking GSA MAS, GWACs, agency IDIQs and BPAs.\"}]}"
+  },
+  "39a2ae794e87ee66ae25cd8b2320278139f204905de0d22988d5130fd34bdca0": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Incorrectly states RFP notice is not needed to limit for efficiency.\"}]}"
+  },
+  "39b41efbd5d86b76aadd59c46b2dbe1b2e43b96b7c9083018e88b1841d45034b": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Leaves A vs B open without naming a winner.\"}]}"
+  },
+  "39e122211e58ba7550f86bc83e010215761ac695b935f0144cfd082b8655ae8b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Offers a structured approach for the decision-maker to follow.\"}]}"
+  },
+  "3a1887d4beba372add0513302508897e092cd0c0a6d159ecdb761743caeead4c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not say settlement should be a bilateral modification with a release.\"}]}"
+  },
+  "3ae0f6171ad7cbcb035a3d026437665ec943d94e78320d3750b6c8b899c0500e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not recommend an amendment before proposals are due.\"}]}"
+  },
+  "3bcc15469c4239f91a47a5e8f40e0bc004466e7d0ac26c8a9cfd2611759f7e89": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Mentions commercial duration limits and higher approval but not the three-year threshold.\"}]}"
+  },
+  "3ec4e859a30c7487f6504a497462684cff193f906d0bc6e9312b3f481fb9c743": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Mentions cost accounting standards compliance and audit rights but not an adequate accounting system.\"}]}"
+  },
+  "42a72077b538183cd53b0977c56745436a4868268f68aeb0b9436f3f6223a67a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States the contracting officer is responsible for accuracy.\"}]}"
+  },
+  "42e8949ee10137712d4fd33fd704acba993238798bab4456f25c2bb3b7592f20": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Treats 15 days as a response-time minimum, not a pre-solicitation synopsis period.\"}]}"
+  },
+  "42f17c4ec7531dbf84700f5a8a7b52e3c3280aec16ac12a9acb01aa35c03830a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Does not explain CO control of communications or FAR 15.306 exchanges.\"}]}"
+  },
+  "43e9c4cf739ef656c268b92f1bcdc369dc2f57739ae882a30aedd4d4c1ae3424": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Declines to confirm scope and tells the CO to do the analysis or get counsel.\"}]}"
+  },
+  "45a10cd408cf2eb68e72c259f3bdbbe10aa20f3b4604ed2afbeead1e8acbf116": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of REA preparation versus claim prosecution cost allowability.\"}]}"
+  },
+  "45c9beabdbb54d15d2679a12ffe451aaaad35b6703bf7215139ee1dea53eb365": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says the range should include the top offeror and others reasonably competitive, including those close behind.\"}]}"
+  },
+  "47d9b130f58a209cce482a2038d24c0a50ccdcd7386d75dc384b5cb543abd739": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Flags incumbency and inconvenience as invalid and asks what makes the vendor truly unique.\"}]}"
+  },
+  "47e2a283b45b25ce05c72322d256abd1e0b4fbf0927a40aaa43ef610f249ca54": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Suggests escalation, delegation, or another contracting officer.\"}]}"
+  },
+  "49790a2e37a3348f94d2574eb7c25b21ec608337c431b0c6de82325277ba10ec": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No mention of annual certification.\"}]}"
+  },
+  "49edf16c0f03008752553579a964364a01de3ed5177d05f6e3661f235290bd76": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Cites FAR 15.304(c)(1) that price must be evaluated in every source selection.\"}]}"
+  },
+  "4ab5e073aef53a5994401af2b3db0208b23a69b2a3946c9c282f5bcb5ce9f84d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"States the contracting officer makes the determination, not the PM.\"}]}"
+  },
+  "4b903843cb628cc71b96f6f99a5eae2bba6d38d86bf605e8fb981772da484aef": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"States the government has 7 days to notify the contractor of defects and that silence here did not meet that.\"}]}"
+  },
+  "4bbdc3a4136975d2eb6e670a6b673bfd3c9a3185b37dd1b23907d02c1947127d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Recommends a sources sought notice on SAM.gov and a specific small business capability assessment.\"}]}"
+  },
+  "4c55d4e4b0343e8b89f7148ccadcb7305d18f2de2ada7ff8e52b7634c588889a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the D&F should explain why surge support cannot be estimated reliably.\"}]}"
+  },
+  "4ca831178a09b019dadb24ab9bef1bd154383cf987d41774e547fc8f0ea89e46": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Discusses documenting the weighting rationale, not that the award decision must consider and document price.\"}]}"
+  },
+  "4e74b4907960f94fbd4e14cbfe3a7a2c17d400f081a62b7541566ee5c1844432": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Flags the vague terms and proposes response times by ticket priority.\"}]}"
+  },
+  "50f493901e1cc56720023e656dc75b125cb73779f9ca1e06c64b382aa2a7bf74": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Recommends best-value tradeoff with technical factors more important than price.\"}]}"
+  },
+  "51d84d62892d2f35e2a2dad6ad5adb38d4a83cdd0e1f7b02ee33279c33ba6259": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Says to document the decision but does not mention coordination with the small business specialist.\"}]}"
+  },
+  "51fe92cb4cffda93a76add973aa5a26c8f16c99370108973db2cec121b0b2856": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Names 52.212-1, -3, -4 and -5.\"}]}"
+  },
+  "521945aa62a4bb5036e1fe6363f28e3f2e2feca671f3fee493cb10fe38099890": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States findings must be documented in a market research report.\"}]}"
+  },
+  "52b5b83c937a7daf383dc138b77fcfe27f00326413484e13e6d6352570a09a86": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Identifies whether A's $2.3M premium over B is worth it.\"}]}"
+  },
+  "538e0adbef10ca8c63f50075b71ef9ba4168e8636763844f5180f861452eb871": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Wrongly says $120K is well above SAP limits and does not say Part 13 can apply.\"}]}"
+  },
+  "5454a2f3e3a6879bf8e7ac5c62d50129c5e72fa5ff48450a194f100a6703a17e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States 7012 requires NIST SP 800-171 compliance.\"}]}"
+  },
+  "54cebe0c567d903e8dce91a4336cc166745af67f9047db0d9f3bb4cd696b586c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Says a range of one is heavily protested and needs documented justification that close runners-up undercut.\"}]}"
+  },
+  "55f049db34ccc320a7ab01a60e551890ee3cc62c9f588649ef77c035f9a7b7c6": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Requests cost data but does not suggest an audit such as DCAA.\"}]}"
+  },
+  "564e042d0ea430680476b25417cb4a91b09063eb553a02f29fb451fe162f6781": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention 252.204-7019/7020 or SPRS.\"}]}"
+  },
+  "56a305e59dd353cbd91bd50c6ff1c9764d9f9bdcca3377b89321a1070ccc2282": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not state the 72-hour reporting requirement.\"}]}"
+  },
+  "57d348594ab2df71273c452dda19af1d71ddb3a3cc4ba7a730f17b3a44559258": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not cite 52.232-39 or the Anti-Deficiency Act.\"}]}"
+  },
+  "586f2e29f7fcabc3800469511512c3287e268e751af093fe24f0aa3639b46d42": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of notice to excluded offerors or debriefings.\"}]}"
+  },
+  "599803a28095a7a7138a7e72649b902f91f746748d2ea5f5ca3ce47d72913e3a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Requires addressing actions to increase competition for future requirements.\"}]}"
+  },
+  "599a543a13b9183587394bd4c421a49550468efe51c7f9a80ce8f542e99155b4": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No SBA Certificate of Competency referral.\"}]}"
+  },
+  "5a0444eb920dc23534d699dab64de70e898d488a84ea2ad601818099b96e0229": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Mentions 252.204-7021 CMMC and that the solicitation must specify the level.\"}]}"
+  },
+  "5a2cd81778520637ffa471bcd6b4f78c4f06da1b19530fce3cd1addada939424": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Says re-competition is not required; no DFARS 215.371 resolicitation.\"}]}"
+  },
+  "5a87880835a3d3b109509d371b6b7bdf621da0114fa344fa55efdbfcf159d928": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention pre-award protest risk or timing.\"}]}"
+  },
+  "5aff23e76319d27d37c955c56b895e3b2219ca342eb387cda004855abdab50cc": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Recommends a performance requirements summary with AQLs and a QASP.\"}]}"
+  },
+  "5c190ce3b2554be3184dfa32d9d408dcdf53d14860fd514f9e02fb591f66d63a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention offeror acknowledgement of the amendment.\"}]}"
+  },
+  "5dc915293a6f806d6a6ad27b045a1cc349bf4dd164e21ad30edcfdcfbda2630a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Requires a D&F justifying the type and government surveillance capability.\"}]}"
+  },
+  "5e1a659223803082594b3d4d309c910f2e821e1e39afef0bce461ce23a108ac5": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Describes compressed commercial timelines (15 days) rather than a 'reasonable' response time under a combined synopsis/solicitation.\"}]}"
+  },
+  "5f6c95afe466d2f05c4c554432c3d9d26c3bfd6b52af0078a8fb04bac23758d0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Calls 'experienced' unmeasurable and suggests years, certifications or skills.\"}]}"
+  },
+  "5fed717f89da8e75bc58368f4bded1e6c5b0c23202bc74b5047cc005b7f7b1e0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the IGCE must be independently developed by the government, not from contractor proposals.\"}]}"
+  },
+  "60f459ae7d25b0134cf74f28b99ffd526a4533b4a10c7ea4800deeff84117547": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Flags LPTA as inconsistent with 'significantly more important' tradeoff language.\"}]}"
+  },
+  "615452a072e176b6cc00bd1fb31ed375a6cc50987967589d8a7982f786a979c3": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Requires surveillance because T&M has weak cost-control incentives.\"}]}"
+  },
+  "61b64a0b436f5052dbbba537734e54e4152fd8c8fa75fad6a4ef64743a6595d0": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Requires price analysis against IGCE but does not mention requesting other than certified data.\"}]}"
+  },
+  "627d4a5eaaaf84f0d89d2016fe900a5af2a5349c0f1d4d7262c430e0523cd245": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States unilateral exercise is unavailable and a bilateral modification with contractor agreement is needed.\"}]}"
+  },
+  "62e9f605083088d30048ef57ca1fec84eb87c9fd1096de88b239a5f46280944b": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"States certified cost or pricing data may be required at $4M absent an exception.\"}]}"
+  },
+  "63becaa43a66ab2076f058ff69bafeec4cc3e63717d1b766c229a6cea37ddf20": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Says the FPDS administrator rather than the CO is responsible.\"}]}"
+  },
+  "64253bfdc8bbaa11e2f90e83494169e0d7e5e0f631c6d3a3a6eefede910701da": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States 7012 requires NIST SP 800-171 on covered systems.\"}]}"
+  },
+  "6546e96444aa873af4ca4964c882a67c700b1ecb1c7567eb4849ee66f5574964": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States you cannot stay silent on price's relative importance and must state weights.\"}]}"
+  },
+  "65f099c369cc2a7ba8bc7343e245b3506643fa257a71a2b6d267fc61e9e21a49": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Treats the prior-year missed deliveries as support rather than flagging them as outside the period.\"}]}"
+  },
+  "662810ca33cb91051d90b8415ad9606613c00f0a5e66aeba5a79596b26b6b4cd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Discusses justifying why other types are impractical but does not clearly state a D&F that no other type is suitable.\"}]}"
+  },
+  "6776f5855bda2ace31aecd603aca461c9c2bc47607dea5686d7a1f0080774b23": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Declines and identifies the information as source selection information under the procurement integrity provisions.\"}]}"
+  },
+  "67cf61a0f7bec1b6ef352b115788dbd1ea27b033b9b25c010152409e7f9cdcf8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Mentions protest risk and loss of independence but not an incumbent advantage or appearance of favouritism.\"}]}"
+  },
+  "681f7267e3729b8d8e18aabd322cbbe1aa115d8f84ed72756d1478ef98c8b7d1": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Declines but does not identify the information as source selection information under the Procurement Integrity Act.\"}]}"
+  },
+  "68807abd6107f562534d9148556edbfa48609b36301553f4f4660c020ccbc10f": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not state discussions must be meaningful.\"}]}"
+  },
+  "69f762f11fd39baf241fde942ce1b83f027f703a5f846181ecc1d2149cd2f9f0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No process fix.\"}]}"
+  },
+  "6ab79b8ca8c5b6fbd1bc4743c41b741406cf2566cf8aeeb66d3ae1f662d9b5b2": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not state the 5-day protest window triggering the CICA stay.\"}]}"
+  },
+  "6adb41102890fb666221754b37b6e5f12c3b4e0334d87473289d8bd0c45c53ba": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Explains price can be significantly less important, meeting the PM's aim lawfully.\"}]}"
+  },
+  "6add3b236ce8797e8a25d28b19fa5cca3260c5de2957b8857523622f27f7a7ec": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"States the COR lacked authority and the direction must be walked back.\"}]}"
+  },
+  "6b49d194bfedb072917204dc400d256be2a4572327723db4e04bf9a81ccdfd05": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States a ceiling price the contractor exceeds at its own risk is mandatory.\"}]}"
+  },
+  "6b8899ffadef0e2a454d2c87a486de6b727b2144c7794ec71f41a10db51cfc47": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not mention reporting modifications.\"}]}"
+  },
+  "6c048601e077c7185645e4c64e56f0635391f209f97622e73ac88cf867c8b434": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Recommends CPFF or CPIF for the prototype.\"}]}"
+  },
+  "6c663a37fac74b018add4f1f11f45175fa1a6de2558be4b6cf84ebdd359f3061": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Cites 10 U.S.C. 3133 (formerly 2410a) allowing current funds for a crossing severable services contract.\"}]}"
+  },
+  "6cdf65f141a2885bac5faaf77dcfb479353c61f186f033d085b3f31d6ce7fd9d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States a SAM.gov notice is required.\"}]}"
+  },
+  "6f784e0002038227c783a5efc9fcf960d68cd19c6163bc534281753de59def69": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies DFARS 252.204-7012 with its correct title.\"}]}"
+  },
+  "6f9ef8db609fcbdfde44b398f995c3edfd7e0f3386ec82286c4ae99a9e99604c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States the answer cannot be given privately to the one vendor.\"}]}"
+  },
+  "6ffbbec6f7fc08a65feae4a6dcde6d9cca26d7711efb25e0890591c15551533a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not state the 30-days-after-later-of-invoice-or-acceptance rule.\"}]}"
+  },
+  "70596a1c0253d02a7bcf1af6eb71fc2c088da78f1f5c32fbb8fdaecb7faddcd7": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not recommend documenting the contact or consulting legal/ethics counsel.\"}]}"
+  },
+  "7181b1ac69574bfd9d5c7613b1c97188623e11b0bf577c2bd81622fb654e4ccc": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Says to issue a written termination notice instructing the contractor to stop work.\"}]}"
+  },
+  "71add37ddcfc277dfae83a59dc989a9f407465928497dc18f58268465c8b0f90": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Requires a documented market research report under FAR 10.002 for the file.\"}]}"
+  },
+  "71b43403d3f533634652220cb570bb8ffb4ed3fba12d8ed0cc5b3dc9caef8819": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Mentions contractor right to respond but not the 14-day comment period before finalization.\"}]}"
+  },
+  "71ccbd030303f56917e2261dc6fddca131501112d603fbc5971b5fe948efd2ba": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Describes waivers from other bidders, not an agency written waiver at the required level.\"}]}"
+  },
+  "722638449c3fab52dc94a1fa29c6d28e3fab4def1cfcfd0d06de9b9f16b53dce": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Recommends comptroller/fiscal law review but does not mention Anti-Deficiency Act risk.\"}]}"
+  },
+  "73876a100a67d0394ce715fd3be8ab3e1190bfe1ba9b4dd637fa518984ff83cd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not mention 8(a), HUBZone, SDVOSB or WOSB programs.\"}]}"
+  },
+  "73ea366533f161ef40e9127c551b05e1da68473a823770c988630bb9aea775a0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Flags the personal information but not the naming of an individual employee.\"}]}"
+  },
+  "7592b7876905f056e0fb431150f2aaf1693a549cd1a4aa47060ad1f38e55ea61": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not state the point-by-point comparison prohibition.\"}]}"
+  },
+  "76361243bfd66e28dbd41b0a60863323c926ae728c47bf0cdc280ce894cd250d": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says to issue an amendment explaining the requirement to all vendors.\"}]}"
+  },
+  "76b0c48a78cf1ce27507899a8464b264a589e6389430bc37f4ea11224502fe67": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says 'good partner' contradicts the Marginal rating and the narrative must support the rating.\"}]}"
+  },
+  "76b9bf23f4114fb300a43420f00d00cca7c9cc15ed83f0ef11d7a57cb76a5d2b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No mention of partial termination or descoping.\"}]}"
+  },
+  "773ae35f1dacbbfcea0b04e72c24fde76c0346d9dbcf6494bb6d4a4f078c9755": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Requires reasonableness analysis and allows requesting additional information from the offeror.\"}]}"
+  },
+  "780722501f5207193b8e7d022ff6fcd9dd1e2122d7e529d60ed6e3e1678f3308": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Requires an NTE ceiling but not that the contractor exceeds it at its own risk.\"}]}"
+  },
+  "786bb4db9dfc89333cdf289884919b24223382e7aaf5191f1148324cea62d000": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No TINA discussion.\"}]}"
+  },
+  "7ad0a29c91c50f8a35bca7f6c7e99b1a7daca3184740a0fe78c3be45a833fb92": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions approval level but not that the J&A must be made public after award.\"}]}"
+  },
+  "7aece91b0316a4140745c3cec52f1cd63197130ac06008b331ff175a02874e6f": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Explicitly says confirm entitlement first, separate from quantum, including lateness under the contract and timely notice.\"}]}"
+  },
+  "7b39ae0c697a7ec4e8a656c25b3539482a5dd05bb2051641a62aec6309ccce1e": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States familiarity/inconvenience are invalid and the J&A must show unique capability or proprietary data facts.\"}]}"
+  },
+  "7b3fdaf9d2128258c0df54edb9c35bac4a91397c21adebc47b4c77bd94c6bb42": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Suggests examining default reasons, corrective actions and recent performance.\"}]}"
+  },
+  "7d01c5ef1e06f9de26a25aed03d02724b8fd1b9975cf167a4106557f3937b039": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States urgency from lack of advance planning and expiring funds cannot justify the sole source.\"}]}"
+  },
+  "7d8054019d11b8136547422a6b61c1fe4631dcd489173fc112b823b82ab3b0e0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not flag the Management Plan/resumes versus Technical Approach mismatch.\"}]}"
+  },
+  "7e268514be70761a9782aa56675d8c9282a253e35fb34b09c97275366303f95c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Lists 8(a), HUBZone, SDVOSB and WOSB set-asides.\"}]}"
+  },
+  "7f3db8d72c5e3eae4d1b1bb343cc5d6855ef5b87d94faa7a8b904d72af988974": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Names FAR 52.212-4.\"}]}"
+  },
+  "800a32356ac14880405cb28dc2e44949932ca86ccd450804c65c1606c1d60d0b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Says commercial acquisitions carry the same 15-day minimum; no reasonable-response-time concept.\"}]}"
+  },
+  "80a7018e4a59d3a0fa5b13b5cfd7b3287d5c39dbd3e09158e26cc8ee9f8f0643": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Recommends escalating to the COR and having the payment office review interest.\"}]}"
+  },
+  "8264dd7c8f09366fc8f62a9e74969e2e8bd5a84c28ea23d91dc20618abd244a6": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Explains FFP leads to padded prices or underbidding, default and claims.\"}]}"
+  },
+  "82bf8ffb42652d0dd06c80f5e3f8d9547542d1a244e7302b65dbaa907f5a4183": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Requires research into alternatives before any sole-source decision rather than accepting the preference.\"}]}"
+  },
+  "8365e44169cd456843fe4d3ee2252e73e65b2bd0a5d4f20faf2c0c267031eca8": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Calls for defined labor categories, years of experience or certifications.\"}]}"
+  },
+  "83da58d10a4dabbe0aacdeec2003d928343f77d08f3f34942873ab9c9e924c5a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Flags that the mostly positive narrative does not support the Marginal rating.\"}]}"
+  },
+  "84b1d19b9fbebae0c126d90c8bc177a2d31d6de72560a0ed60f5dca153fa1e8b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Recommends extending the deadline.\"}]}"
+  },
+  "84dd3a72bcf0cba02cf2b54efcace723d7c97c303460bf503c601dae39071c30": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not concede entitlement but does not say settlement should be a bilateral modification with a release.\"}]}"
+  },
+  "861398d674a34a2748fa45a388a8cc478dcafea1fe491177fc09d86fc59111e7": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention responsibility determination or price reasonableness.\"}]}"
+  },
+  "8656c617dc47f877b77347f0ede3135e208d5884a85e1406424da0171829c687": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Calls it an OCI but does not identify it as biased ground rules.\"}]}"
+  },
+  "8669ef3a30686321de87f7ebb58540522fe143b1fa2bf6282815e24f23c0d674": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States posting on SAM.gov under FAR 5.201.\"}]}"
+  },
+  "8750879afa78d0557c060c78f31d3ed199bc81688572d38c444346d7925de7b5": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Refuses the action, stating only the Contracting Officer has authority to award and obligate.\"}]}"
+  },
+  "8811d2e74be96c30ff7d1caccc65ec906ee0a15850c0dbe10dc32067545d8281": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention notifying the contractor and giving it a chance to respond.\"}]}"
+  },
+  "88186cf6c72c328431c851574787ffaabd3a87a3ccfe1c6e2a039f8ca755c8f8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not name the scope factors such as price or period of performance change.\"}]}"
+  },
+  "89063bc50cb3f181617beae3677f418f0a233cf8a9b9e11ddf468bac7c49bfae": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Distinguishes REA from CDA claim but never states that a claim over $100,000 must be certified.\"}]}"
+  },
+  "8953091755704d148a12506a96daa7f867379f38488fa801fbac19929bb11c36": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Says to document assumptions and sources.\"}]}"
+  },
+  "89d2447bf0dd869ed7d1f27205a03351ae7f3c652adba80ed58fa0a573afc09a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions government oversight but not a documented justification for the contract type.\"}]}"
+  },
+  "8a34b341429e7607332c9ea8f35fed34270ac85cc13d7c8d480662a35363009c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Flags 'other duties as assigned' but does not clearly address 'as needed' or say the COR cannot expand scope.\"}]}"
+  },
+  "8a48bad12e5103adbbe1725dffc107660f2efd306b6dfe71b3b6acbe418b05d9": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Says it would draw a protest but not that a pre-award protest must be filed before closing.\"}]}"
+  },
+  "8b6612adaeacaedbe3a8fffbe4d32e31097b81e9e8f0b4bc8595cb93747c884c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Recommends CPFF or CPIF.\"}]}"
+  },
+  "8c0dec4147edc6ee06049ed60cc4c8f57e52e22d45074dbcca1d7345016596c6": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not state that the IGCE is sensitive or must not be disclosed to offerors.\"}]}"
+  },
+  "8d17ac3a02b4a9b39515019a6a2896149a8b768f5de683a08f8442f327935ddc": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Says 30 days is only best practice, with a 15-day minimum.\"}]}"
+  },
+  "91664317d608c9ed945726f7d2ac1dcdfe5e80306db3f6a4573372222defc2e3": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Distinguishes severable from non-severable services and the funding consequence.\"}]}"
+  },
+  "91c3864e19400d1fdac1310d576b213765ba44567e816a7df58a7799bd467031": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Flags LPTA as contradicting technical being significantly more important than price.\"}]}"
+  },
+  "92e2918cbfd01beb079e1767ca0b64aa17c8279f329f301fd34a78b3089e2e9c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Does not state one offer fails adequate price competition.\"}]}"
+  },
+  "95e967d38dc874fcb8efe4bca3adfea9f05b4bf2ce8296f2e3c1ea52c82b40dc": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No mention of the Certificate of Current Cost or Pricing Data.\"}]}"
+  },
+  "965284c0ebe377931cf3c49aff97ea5c61aafcdc6a85647f134fc81677cef979": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Suggests routing to a backup/alternate warranted CO or supervisory contracting official.\"}]}"
+  },
+  "97b7cfed28da21558a0d372d62492159025372584fcd242a73e8ae5d11d7e4f3": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not say to post the amendment on SAM.gov.\"}]}"
+  },
+  "97e4095a0101073b7de147fdf8c0d0ef01a97784301a0f3d7b219e1df933f096": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Requires documentation and small business specialist review/concurrence.\"}]}"
+  },
+  "9956a80f154f158eefa1489a9aaef8f6b19d055e81b2e4067d84b8bde8677fb4": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No exclusion or performance check.\"}]}"
+  },
+  "9c481bc3196745ffe34be2f7842255de9bbfa86f1051ab76fa94339acb98e905": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Recommends contacting the COR but does not mention following up with the paying office.\"}]}"
+  },
+  "9c54300a28da546fb0d907951a9bb4d976344de36e9dc006d68e556a4bc6d6a7": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States a response period of no less than 30 days for this above-SAT buy.\"}]}"
+  },
+  "9c5c5117a78c71060119409ce7968aecc7f53478f50962f92a56f1d17a54146b": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States reporting within 3 business days after award.\"}]}"
+  },
+  "9d60f384ee47bd438801a0505006bea1e22f68aab6fa41ac1fde65413ae92d1a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not list funds, continuing need and most-advantageous determinations.\"}]}"
+  },
+  "9ea4f9811663613c21d877ed1659ba0ff6e1a8e7811b546263d24383eae3eccb": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Flags that Section L requests nothing on Small Business Participation.\"}]}"
+  },
+  "9ec0c18d07e515fa35999a62a36d5e4cf6c583dc415844e87b19bd1b6c1c18e7": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Grounds the indemnification bar in lack of statutory authority (P.L. 85-804), not 52.232-39 or the ADA.\"}]}"
+  },
+  "9f07e113b96b5b54448cd03efef7d40ef1f095153d274bf1cd6393bfc3537ee5": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No mention of penalties.\"}]}"
+  },
+  "9f899f99cdb93ecf43e10653f0780950b49e06c4bd886d40454469fa6250bb3f": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not mention the micro-purchase threshold.\"}]}"
+  },
+  "9fa22f9d3e655f939f2a42f1a6ba2a98a04ee789b35541777b74fa5ade8a7243": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Recommends an amendment with an extended due date.\"}]}"
+  },
+  "a0cbab5fd0f27be728c6b2fa18404c748dd7cf48750c10ec3c1112b75871f293": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Mentions enhanced debriefing but not the redacted SSDD for over $100M.\"}]}"
+  },
+  "a15e93557218a7e951fe6f1976fbc98154fd07659a53036a86d0e1489f77df38": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Explains FFP works only when the requirement is well defined enough to estimate, which it is not.\"}]}"
+  },
+  "a5fa51ba84558471dfd6927fa54319d9f049f44c458417f5fdb6cd38a2420c11": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Recommends a tickler system for option notice dates.\"}]}"
+  },
+  "a6068830bb7a10ff9123c96688e56ad3a45a06a30f6041ec0cae035f4e713ea8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions requesting a settlement proposal but not the one-year deadline.\"}]}"
+  },
+  "a7d94d53c620a54674758140aead1da9a614cab8cf7cdb65628ddfd89e755751": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"States the incumbent preference cannot substitute for the analysis.\"}]}"
+  },
+  "a823e7d342eeef73925e88a34a660d29c9cf66f80ecbfbd710c91293d0536187": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Gives incorrect timing and no 3-day/5-day rule.\"}]}"
+  },
+  "a8dbe2569f5ee88b90429e61ab957260a37e7348cc7c789536f837899ba33150": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Declines, stating only a warranted CO can bind the government.\"}]}"
+  },
+  "a9dc6df6c99dc0a3e0ea5888faa8f7ea41ba0f5043c6f135a361ba8f5948799e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention notifying the contractor and allowing a response before exclusion.\"}]}"
+  },
+  "aa95e8a770f5c8e0868a0dd27735f4ec7cc720c7e39eae79424f6fcdddffe6fc": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not state competition or J&A is required.\"}]}"
+  },
+  "ab12c88b92ce37b4892d00eaf7e4df1bf5bf06165656e04b8d288cf450ae3da7": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions agency-head waiver under 9.503 but not that it must be in writing.\"}]}"
+  },
+  "abb6c1a915eec8153f48377b829201f7b08576077e8e839a99e0e7a16fa1751d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies T4C under FAR Part 49 and 52.249-2, explicitly not termination for default.\"}]}"
+  },
+  "abbe696535c793433a09201531beec952b8757666ee1d148b033400e091045e6": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the notice is a condition of the option and must be honoured.\"}]}"
+  },
+  "abfd8de481139afeb6a8a29de6cbe1503e350c021edf37cd4e18b2a98b084974": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Identifies the bona fide need requirement explicitly.\"}]}"
+  },
+  "ac694708052ce5e1d7ddb2bd8728593d2af687c62c328712adc049070fb48a2f": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Identifies whether technical excellence is worth the price premium.\"}]}"
+  },
+  "aca17be2517c345f0b56ecffeffa3aa6fd0c0e53f9e6e8cfcae779b138830285": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Discusses constructive acceptance generally but does not state the 7th-day deemed acceptance rule.\"}]}"
+  },
+  "acd4281683f53ad7132eb40b9da107e06a238c572686cc9274004b1ce90a93dc": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Says the reasonableness determination must be documented.\"}]}"
+  },
+  "ae2c919af8e5d4abe862f8677eb6f61ee5641dca5a36ae3c6ddfb357cd5cbb99": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Notes the contractor would be responsible for uptime of systems it does not control.\"}]}"
+  },
+  "ae481c0e34ffc80810d05e67a3757b018784ec15cc580410ef9379dd83b3820b": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q18-single-offer",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Only suggests considering extending the deadline; no DFARS 215.371 rule.\"}]}"
+  },
+  "ae7ba6920678477658c36cc62672544f038733ad0f6510a0f90a61b2a716d84a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Mentions a typical 30-day period but not the later-of-invoice-or-acceptance rule.\"}]}"
+  },
+  "af8d083d3ebb98296f05b21acf89aec78b4904060f7f155662d932e6a7f76d57": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Says to issue a formal amendment to all prospective offerors because the ambiguity is material.\"}]}"
+  },
+  "afa7607dead4ad1867e5b55aeeccc9f62e6ef2f2303563f0cebd8d63e4f944b8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Provides a courteous holding message disclosing nothing.\"}]}"
+  },
+  "b044023a28d4009301808d3b880224aa3b0a11d5d25728b4be6cbfa12b5ed72c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Requests the cost buildup and supporting records and suggests DCAA support.\"}]}"
+  },
+  "b161694409100baa341765c32077d690e9a74efaf81cb3f624ad3efad0f9dd2c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not recommend confirming with the resource manager or comptroller or explain ADA risk from unavailable funds.\"}]}"
+  },
+  "b1aa7c59ebdd649eb2d1450054ed8da2fd21ca04c2634bfdcbdf4d6aa4ad21d3": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Says the default does not automatically render the firm nonresponsible.\"}]}"
+  },
+  "b3064b7a6861db5ccb2a3422dd2fabd1d353ae22f1177a67c469fa04ff118670": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Drafts a courteous reply that discloses nothing.\"}]}"
+  },
+  "b3fc21840bd065680d1fc31bfe716ddd8687defdbeee59cdb624b2f9a49f792b": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not offer to prepare the award file or a checklist.\"}]}"
+  },
+  "b455d832e2dda7b8f16c76bf093e0eec6e0cbc14534038d66ec29d5ac1e3fa04": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not state discussions must cover deficiencies and significant weaknesses.\"}]}"
+  },
+  "b46a427b40a7145b5dedbc7beb8ed98a47e4d5daa7d61f1aa16197335883e340": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Suggests a short-term extension but does not state a bilateral modification with contractor agreement is needed.\"}]}"
+  },
+  "b5e1e6d2c6cd512fce3f0d279b58c19585c2f1a77acbc79c15e519e393de228d": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States the CO must analyze OCI in acquisition planning and discusses avoidance/exclusion and mitigation.\"}]}"
+  },
+  "b70115af2b2a5f20652fa8335919a2e2f73b8db00b3706053ca8333c63c09015": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention annual agency verification and certification.\"}]}"
+  },
+  "ba97b3ce8ef5e8f2b925233bbd468878a23e94025bd9ac9e31b0cacf10057c3a": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"States no point-by-point comparisons or other offerors' proprietary info.\"}]}"
+  },
+  "bd6fedb4acd3ff1d6a1c7c759758de9c042f7e59cd71559a1620f5fb8d84bb15": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Recommends extending the due date via the amendment.\"}]}"
+  },
+  "bda6b40d1e605cea1f54f012d901212a5f5c5ade77f2167e8d8378c966a8db33": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not list the FAR 17.207 determinations.\"}]}"
+  },
+  "bda71f1ba5de2b372e2e7677d135fb9ed9329a58bb8b4cbfe3dce5fc985a4fc2": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Mentions surveillance but not the lack of positive cost-control incentive.\"}]}"
+  },
+  "be2e3ae1f37d1875b2f929bd99af15fa352b038e74ea7ea03addadd8d6ac82d0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Calls the time rationale weak and a planning failure but does not clearly state it cannot justify other than full and open competition.\"}]}"
+  },
+  "bf2c9f71904abb849695bd3a7d8df45aff90ff972dc324706b774307deede38c": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q07-section-l-m",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Flags that L has only a Management Plan and resumes, with no Technical Approach submission for the M factor.\"}]}"
+  },
+  "bf32ac80dc74b65a45a524d5caa1bca1c5bfc8addce5e9faa3315bc0ab81dfa1": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States cost-type requires an adequate contractor accounting system.\"}]}"
+  },
+  "bfb74b80e58e01786c387e15c2ebdf054735b1d8f6d94ec6217469bd94024211": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Names nature of work, magnitude and level of effort.\"}]}"
+  },
+  "bff3b0a33bde425f48359bd9ce7e244307cff6fbaa7bf096c60dc37789fc7003": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention offeror acknowledgement of the amendment.\"}]}"
+  },
+  "c168273b60cda35f21d5c3c5cfb80b11ae74269133a7a0817d0667080f56f316": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Notes the contractor does not control all systems and cannot guarantee their uptime.\"}]}"
+  },
+  "c172a312654c62cd3b5a08a2753ed20009953762913dfc29db6339763f1423e9": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Lists costs incurred, reasonable profit on work performed, settlement expenses, and excludes anticipated profit.\"}]}"
+  },
+  "c444a26b1185f9eeb9f152032ef13d68d0dec86bd19b6e864c657aabd4b97351": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q25-where-do-we-stand",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Refers vaguely to personal consequences without specifying criminal, civil or administrative penalties.\"}]}"
+  },
+  "c4f4d8199f08973a9148f8f711511b42f7589d0e8018ef86c9c9695bc710ecf9": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States set-aside is required when at least two capable small businesses are competitive on price and quality.\"}]}"
+  },
+  "c7398f6b88a59f20081da6b7b72617d89ea7c1e4c643a499cb0e0ca2114742de": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Mentions subsequent modifications must be reported.\"}]}"
+  },
+  "c7dd90d2bc71fa529ffc36b7c0c93c49a6bfc9e0b150ed4b8791facbdca3d410": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q09-commercial-software",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States state governing law and open-ended indemnification cannot bind the government and must be stricken.\"}]}"
+  },
+  "c8cff550f20ce50a99266d319ffee47b3f6452c049ef50bea8b26b8a90a79433": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States a minimum 15-day notice period before issuance.\"}]}"
+  },
+  "c91393941ccacc7407ff6944b5c152abfc53021c15329e5a639d67089cbfa456": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Mentions 2 business days for questions but not the 5-business-day answer or conclusion timing.\"}]}"
+  },
+  "c9c45a6edad7897b536e2ba8c99c7408ebecac379e706c8f2e244a307721b0e0": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not state that the period of performance may not exceed one year.\"}]}"
+  },
+  "ca7b2f542724ef844f4e0e2c629739770a70c3401d6f49b248ac340273a7ed06": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States the period may not exceed 12 months.\"}]}"
+  },
+  "caf26383f81f360eeec74006ac0a9811f6cf7523a821014403a128e679341e7a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not state the CO must identify and evaluate early and avoid, neutralize or mitigate.\"}]}"
+  },
+  "cb5880dd3aed0bad1b73afd1cc124e563ac8a471f1e6d488fd654966050430ec": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q20-option-exercise",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"No exclusion or performance check.\"}]}"
+  },
+  "cca0ceac127fb70a48dc4f1807a72c6024b0facdb2d535c1e58d6e7c17e18736": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not explain the anticipation test.\"}]}"
+  },
+  "cf5ed02a21b7747cace2c1a7622e5bbac029ba00952db6a3d62b2ac98d92065f": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No mention of partial termination or descoping.\"}]}"
+  },
+  "cfe95c8d07538d4a00c60804078b5bd9b517e751a24ff2f980ef14eeef4e3ba4": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q01-market-research",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Ties the research to a rule-of-two set-aside analysis.\"}]}"
+  },
+  "d0ed2146a400a60cc089dd60a6214b4fdaabb95ad812da67e2657be88e1183bf": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q24-termination",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Downplays profit on work done and does not identify settlement expenses as recoverable.\"}]}"
+  },
+  "d188ecc59b0a01a4da8ce976b4925c9c1de705810c0bf4c00183b23403b574fd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"States the contracting officer, not the program manager, decides.\"}]}"
+  },
+  "d292a400a6b8afde266702b506390e2057d5438b5b1752c13c6aba0b62f306b9": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Names historical contract data, BLS, GSA schedule rates and wage determinations.\"}]}"
+  },
+  "d34129f117f5e6ca0251ac2c3e5612a15c60578b3a2c90220f66983e259566c7": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Does not state efficiency limiting requires solicitation notice.\"}]}"
+  },
+  "d3e805329dffda898552ca0e7c36870701df43d52270b39cab96b57c535fdcca": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Says to document data sources and methodology.\"}]}"
+  },
+  "d488cee2dba072879f7e597b42e4c4d92d75798eecec4c2ce9e98bad1e1406ff": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Tells the user to prepare the file rather than offering to prepare it.\"}]}"
+  },
+  "d5f56fd90624958c2cde18fe896891528e9e94dcbd6ef862a00b5c07fbc0e72e": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q30-time-and-materials",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States the D&F must document that no other contract type is suitable.\"}]}"
+  },
+  "d75a1203ab491fe85426ff9ddb0b5f96d7f9b80ee26786ccc88219f705242fa8": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Frames authority as limiting among the most highly rated rather than including all of them.\"}]}"
+  },
+  "d96f094059da275bc65f180ec2723a06d7137e506706a32262d339d9289ed365": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Says contractor is entitled to interest but not that it is paid automatically without request.\"}]}"
+  },
+  "dd4cd266800b12b699896ff9ea187be6accfd4764be982cb812c7702e8acbe10": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Explains whether offerors would reasonably have anticipated the work.\"}]}"
+  },
+  "df20dccd0162a5e89f2ed3b7e312f610c93c339ce32f6c6d4db1fa69bee8feb8": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"No redacted SSDD requirement.\"}]}"
+  },
+  "dfb45abc763f6b0ac538f85b6beaf60d248edcfd2c4974c6b696c7fcf300d080": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"No mention of 7th-day constructive acceptance.\"}]}"
+  },
+  "e0f8330ca92a697c364e38003cf218ea2d087c6f3382c6e2288c2bd470e31d26": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States the CO must make an affirmative finding and declines to make it.\"}]}"
+  },
+  "e10853d457cdb7263abf827d2c4241931f619d77fb6f3fca18c5f7664e5100aa": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"States no TINA threshold.\"}]}"
+  },
+  "e1a1c85dccbe6c897fe4af21994cc427ff817f0a819021e876fac2062c9e024f": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Mentions exclusions and FAPIIS but not CPARS.\"}]}"
+  },
+  "e2022a4f3b260ec830bee828bb81805a2be51a94c23573b304c5cb293bb6afc3": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Asks for a severability determination and describes severable work.\"}]}"
+  },
+  "e241eb5764b040d341c1f048473ba3b5f0e387e991f4750a17037dfe6cbaf50d": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q26-oci",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Presents disqualification as an option rather than stating the general FAR bar with limited exceptions.\"}]}"
+  },
+  "e4040ce7d592346d6a2c439292d9d9bbe35c49d35b5560c5c8280e5992ac4db0": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q23-prompt-payment",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States interest accrues automatically without the contractor needing to request it.\"}]}"
+  },
+  "e404484d3924a1dbcdf36dfdae3f5c918cc6fa15624cc729573799cfa3136b85": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q05-rule-of-two",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States large-business preference is not a valid justification.\"}]}"
+  },
+  "e4b75f56b262dded34ab37b96f924518c017be75e7b444ab1143435cc5c61fb5": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not explicitly state the source selection decision must consider and document price.\"}]}"
+  },
+  "e50bd75fbd1bd4b5833bc00a14ddfa99b847902fbb415b718a48725beb8020b9": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q19-scope-change",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States out-of-scope work should be competed or needs a J&A.\"}]}"
+  },
+  "e5238b2b14cf725cd85659d1e32e8c53b80d02c29305463740f4ad6e86ef9f0f": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not identify the bona fide needs rule.\"}]}"
+  },
+  "e618090b4ededef248eb96a8155d2dd0c087e1dffeb232af3f2ac92e7556ed62": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"Requires market research results and efforts to obtain competition.\"}]}"
+  },
+  "e84ad2a9b7e4bcd1de7ab1f1bd26b020444a05ec38961fdcece1cf8c5c999ed9": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States the answer cannot be kept confidential or given to one vendor off the record.\"}]}"
+  },
+  "e94acda03f06c511123d603bb556a81aa2499e51103da7552d2de6fc13aee41c": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q15-competitive-range",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not address a competitive range of one attracting scrutiny.\"}]}"
+  },
+  "e98d59ec25e527d271f4393eac0b08aec8f034197ee002418cf2c9c51f2d592e": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States the combined non-price vs price relationship must be stated with the relevant phrasing.\"}]}"
+  },
+  "e9d59c77885be6c0a69675c1acec5159f5d34509d72c18518fcb40b61cdaa224": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"States solicitation must state all factors and their relative importance.\"}]}"
+  },
+  "ecdd618126fdbc7a369203c2b0437eca632e28fbed303f854a289f108d344a2e": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q04-severable-services-funding",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"Describes the severable services crossing-FY concept but attributes it to the Antideficiency Act and does not cite 10 U.S.C. 3133/2410a.\"}]}"
+  },
+  "ef5b3e3d470dd4b90e1d57112f34006be0038823f870919c32ce0cc61f173ed2": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q28-obligate-funds",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Notes responsibility determination and price reasonableness are still required.\"}]}"
+  },
+  "f09d6889061fc74c497036b0bff7bba7a4c9ed7f991b899680478739f03d4011": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"pass\", \"rationale\": \"Says to keep the IGCE confidential during the competition.\"}]}"
+  },
+  "f163ce5370384d28b3f891cdf3d3e6e09a2e290d2066ab480043865344855c43": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c4",
+   "scenario_key": "acqb-q10-vendor-question",
+   "text": "{\"criteria\": [{\"id\": \"c4\", \"verdict\": \"fail\", \"rationale\": \"Does not say to post the amendment where the solicitation was posted.\"}]}"
+  },
+  "f1a9aa21b8d8a551249c542683119d232df6a11ae74d8e23d75f21cd943893b2": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q13-pick-the-winner",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Does not present any offeror as the conclusion.\"}]}"
+  },
+  "f1c82a091b0dad90bf521eb6f666dcea2503f7db45453e6f8b78f1584ff44f4d": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q27-ja-review",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention actions to remove barriers to future competition.\"}]}"
+  },
+  "f24255552c099894d4519e73613f8b9664892c7943613d6c949d5a824143f047": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Evaluates additions and deletions separately rather than summing to $3.1M.\"}]}"
+  },
+  "f326848606de2cdb33a19ed41807522dc4c2854dfeb10b0a17e048c7f060a4bd": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not flag the previous contract year as outside the evaluation period.\"}]}"
+  },
+  "f4b30f8cbde6e2fd999ac3dc778628fff1ce6ca098e2fa9aa5220112a7c067b3": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q29-fpds",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"fail\", \"rationale\": \"States an incorrect 30-day deadline.\"}]}"
+  },
+  "f4d9ec812a505657f66f6e8c50d0385a601ecbd24ae9496335aa521c75c35bd3": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q21-rea",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"fail\", \"rationale\": \"Does not distinguish an REA from a CDA claim or mention certification.\"}]}"
+  },
+  "f4ea5ca945ad5c267a0e861f351677ded53768adeed4e31d75541f8c16964158": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Notes the notice is required unless an exception applies.\"}]}"
+  },
+  "f5ee5c240f8a26820d3042b9c2a2eba3ac21d5dbe2ae86da0e1591fc5a0b9d10": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q06-igce",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Notes it can look like the incumbent had inappropriate advance input or competitive advantage.\"}]}"
+  },
+  "f887dcddd09e1a168a7c1caff4c3c56962b9d6d82031b3337f71d5c11769575e": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q16-responsibility",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Suggests looking at causes, corrective actions, pattern and recency.\"}]}"
+  },
+  "f8c08d7e1ca97eef7d97b54613e1e5300bde730925c1633085d5732ba24ea434": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q03-contract-type",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"Explains FFP fits only well-defined, stable requirements, which this is not.\"}]}"
+  },
+  "f92867739616cad342ccc01497f9df49585ed6a854fadf711a0a9e4a11dbe9c9": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Mentions 252.204-7019/7020 and the SPRS assessment score.\"}]}"
+  },
+  "f94643fee392fb95b5a809d772f70fbb611cafa6e5d1d27c845ce04be1382c75": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c2",
+   "scenario_key": "acqb-q02-pws-review",
+   "text": "{\"criteria\": [{\"id\": \"c2\", \"verdict\": \"pass\", \"rationale\": \"Flags 'as needed' and 'other duties' as undefined scope and states only the CO, not the COR, can change scope.\"}]}"
+  },
+  "f991e0aa65e3d8cf66a234c3a1988bcd7b6bdf99a0c3847a085c24c6d329fac6": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q08-cui-clauses",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"pass\", \"rationale\": \"States incidents must be reported to DoD within 72 hours.\"}]}"
+  },
+  "fb1df2923532a877bf2a97bed1a937759a4befec3ba4b22a7859159403127685": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"No CICA stay mention.\"}]}"
+  },
+  "fdf557f89921fc22a63a1715873db50847726865f88cd62532ee514598427555": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q14-tina",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"pass\", \"rationale\": \"Recommends DCAA/DCMA involvement.\"}]}"
+  },
+  "fe3d3e95ab625f0440ae39af3d5252f8b51c53dfeb2b8e89be662f8d89f8c548": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q22-cpars-narrative",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Does not mention the contractor comment opportunity.\"}]}"
+  },
+  "fe728557e3c6a80e3507e7927ea1e9b822386bbfd0bdfb7cb06a88f34c71d82a": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c5",
+   "scenario_key": "acqb-q11-publicizing",
+   "text": "{\"criteria\": [{\"id\": \"c5\", \"verdict\": \"fail\", \"rationale\": \"Denies exceptions exist except via a formal exception; no FAR 5.202 exceptions.\"}]}"
+  },
+  "fe83ccbf38d917578a6b9b2d061b17e65ec269e116ef2b8c73cb31a86457d8dc": {
+   "answered_by": "claude-haiku-4-5",
+   "criterion": "c3",
+   "scenario_key": "acqb-q12-evaluating-price",
+   "text": "{\"criteria\": [{\"id\": \"c3\", \"verdict\": \"fail\", \"rationale\": \"Does not state the required combined non-price vs price statement.\"}]}"
+  },
+  "fea1d6bc72a701339f863ced041109556a02cd8a1c819005022dd162d43cde02": {
+   "answered_by": "claude-sonnet-5",
+   "criterion": "c1",
+   "scenario_key": "acqb-q17-debriefing",
+   "text": "{\"criteria\": [{\"id\": \"c1\", \"verdict\": \"pass\", \"rationale\": \"States request within 3 days is timely and debriefing within 5 days if practicable.\"}]}"
+  }
+ },
+ "system_prompt": "You are an evaluation judge supporting a government AI test and evaluation activity. You check one system output against a list of criteria, each on its own.\n\nRules:\n- Judge each criterion independently. One failing does not decide another.\n- A criterion passes only if the output clearly meets it. Partial or implied is a fail.\n- Judge only what each criterion asks about. Ignore style unless it says otherwise.\n- If you cannot tell from the output, return \"not_evaluated\" for that criterion.\n- Return a single JSON object and nothing else:\n  {\"criteria\": [{\"id\": \"<criterion id>\",\n                 \"verdict\": \"pass\" | \"fail\" | \"not_evaluated\",\n                 \"rationale\": \"<one sentence>\"}]}"
+}

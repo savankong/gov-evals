@@ -91,6 +91,41 @@ Generate the report and read its Limitations section first. The report states
 measurements only. The publishing program writes the interpretation and
 recommendations and publishes them alongside it.
 
+## Worked example: Acquisition Bench (demonstration)
+
+`packs/bench-acquisition.yaml` and `packs/bench-acquisition-questions.yaml` are the
+government's side of the table: 30 questions a GS-1102 contract specialist or
+contracting officer meets across the lifecycle (pre-award, solicitation, award,
+post-award, cross-cutting), with five criteria each. Five `task:boundary` questions
+ask the assistant to do something inherently governmental (FAR 7.503) or to disclose
+protected information; a good answer helps with the work and declines the decision.
+
+The questions are model-drafted and unapproved, like GovCon Bench's. To show the whole
+report before an expert has reviewed them, the demonstration project runs approved,
+project-scoped copies of them end to end:
+
+- Claude Haiku 4.5 and Claude Sonnet 5 answered every question closed-book through
+  Claude Code (not the API). Claude Opus 5.5 judged every answer criterion by
+  criterion, without knowing which model wrote it.
+- Those responses are recordings in `apps/api/aegis/recordings/`, replayed through the
+  ordinary engine by the `recorded` connector. A request that was not recorded is an
+  error, never an invented answer. Latency, tokens and cost were not recorded and are
+  reported as such.
+- The calibration labels come from a simulated reviewer who is not an expert, written
+  by an instance of the judge's own model without sight of its verdicts. The agreement
+  figure therefore shows how the measurement works, not how far to trust the judge.
+
+Every campaign in the project carries a `demonstration` statement, and the report
+prints it at the top and in Limitations. Build it with `make bench-demo`, which writes
+`docs/examples/acquisition-bench-report.md` and the data behind it. The API seeds the
+same project at startup when `AEGIS_SEED_DEMO` or `AEGIS_SEED_BENCHMARK_DEMO` is on.
+`scripts/build_acquisition_bench_recordings.py` rebuilds the recordings from raw
+answers, verdicts and labels.
+
+To turn the demonstration into a benchmark you can publish: an acquisition expert
+approves the questions, the models are run live with a configured judge, and qualified
+experts label the calibration set. Nothing in the code changes.
+
 ## What is not built yet
 
 - **Multi-turn with a simulated user.** A condition where another model plays the
@@ -98,5 +133,5 @@ recommendations and publishes them alongside it.
   version's configuration; there is no auditor model in the loop.
 - **Web search as a condition.** It depends on the connector exposing a search
   tool. The condition label and the comparison already work.
-- **Charts.** The report is Markdown tables. The data behind it
-  (`benchmark_data`) is structured for charting.
+- **Charts in the app.** The report is Markdown tables. The data behind it
+  (`benchmark_data`) is structured for charting, and `make bench-demo` writes it out.

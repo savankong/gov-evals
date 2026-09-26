@@ -1,0 +1,299 @@
+{
+ "calibration_results": 18,
+ "campaigns": [
+  {
+   "id": "c9157bc1-1b83-4593-a9df-9ed13b1f1ad4",
+   "name": "Acquisition Bench -- criteria met"
+  },
+  {
+   "id": "933caee9-fa4a-4185-b249-8832d7d0b301",
+   "name": "Acquisition Bench -- judge calibration"
+  }
+ ],
+ "condition_effects": [],
+ "conditions": [
+  "closed_book"
+ ],
+ "dataset": {
+  "approved_by": [
+   "Demo reviewer (simulated, not an expert)"
+  ],
+  "criteria": 150,
+  "criteria_per_question": 5.0,
+  "model_drafted": 30,
+  "packs": [
+   "bench-acquisition-questions 0.1.0"
+  ],
+  "questions": 30,
+  "questions_without_named_approver": 0,
+  "required_expertise": [
+   "acquisition"
+  ],
+  "splits": {
+   "public": 30
+  }
+ },
+ "demonstration": [
+  {
+   "simulated_reviewer": true,
+   "stand_ins": [
+    "Questions and criteria were drafted by a model and approved for this demonstration by 'Demo reviewer (simulated, not an expert)'. No acquisition expert has reviewed them.",
+    "The answering models (Claude Haiku 4.5, Claude Sonnet 5) were run through Claude Code rather than the API, closed-book, and their answers are replayed from recordings. Latency, token counts and cost were not recorded.",
+    "The judge (Claude Opus 5.5) graded each answer blind to which model wrote it, and judged all of one answer's criteria in a single pass rather than one call per criterion. Its verdicts are replayed one criterion at a time.",
+    "Calibration labels come from 'Demo reviewer (simulated, not an expert)', not a qualified expert. The labels were written by an instance of the same model as the judge, working from the answers without seeing the judge's verdicts, so agreement between the two is expected and shows how the measurement works, not how far to trust the judge."
+   ],
+   "statement": "This report was produced to demonstrate the benchmark workflow end to end. Its figures are real measurements of recorded answers. How it differs from a published benchmark, and which steps were done by stand-ins rather than qualified people, is listed here."
+  },
+  {
+   "simulated_reviewer": true,
+   "stand_ins": [
+    "Questions and criteria were drafted by a model and approved for this demonstration by 'Demo reviewer (simulated, not an expert)'. No acquisition expert has reviewed them.",
+    "The answering models (Claude Haiku 4.5, Claude Sonnet 5) were run through Claude Code rather than the API, closed-book, and their answers are replayed from recordings. Latency, token counts and cost were not recorded.",
+    "The judge (Claude Opus 5.5) graded each answer blind to which model wrote it, and judged all of one answer's criteria in a single pass rather than one call per criterion. Its verdicts are replayed one criterion at a time.",
+    "Calibration labels come from 'Demo reviewer (simulated, not an expert)', not a qualified expert. The labels were written by an instance of the same model as the judge, working from the answers without seeing the judge's verdicts, so agreement between the two is expected and shows how the measurement works, not how far to trust the judge."
+   ],
+   "statement": "This report was produced to demonstrate the benchmark workflow end to end. Its figures are real measurements of recorded answers. How it differs from a published benchmark, and which steps were done by stand-ins rather than qualified people, is listed here."
+  }
+ ],
+ "evaluator_key": "rubric_criteria",
+ "example": {
+  "answer": "Before making a sole-source determination, conduct thorough market research to document alternatives. Start by identifying: (1) comparable IT support services available from other contractors\u2014at least three potential competitors; (2) the incumbent's current performance using measurable data (uptime, ticket response times, customer satisfaction); (3) cost reasonableness through benchmarking against industry rates for similar work; (4) technical capabilities needed that might differentiate bidders; (5) any barriers to entry (certifications, security clearances, facility requirements). You must document findings in a market research report showing you considered full and open competition and why\u2014if economically practical. If three capable competitors exist, the rule of two applies and you're headed toward competitive procurement. Document SAM registrations, past performance records, and capability statements. Conclude with a clear recommendation: competitive solicitation vs. justification for the incumbent. This supports your acquisition strategy and withstands GAO protest scrutiny.",
+  "condition": "closed_book",
+  "content_hash": "8399e28219ccc285270e99e7d7d93aac94331ae76235de78450d52271a7e44f1",
+  "criteria": [
+   {
+    "id": "c1",
+    "rationale": "Does not recommend a sources-sought notice or RFI on SAM.gov.",
+    "text": "Recommends publishing a sources-sought notice or RFI on SAM.gov to identify capable sources, including small businesses.",
+    "verdict": "fail"
+   },
+   {
+    "id": "c2",
+    "rationale": "States findings must be documented in a market research report.",
+    "text": "States that the results of market research must be documented in the contract file (a market research report or memo).",
+    "verdict": "pass"
+   },
+   {
+    "id": "c3",
+    "rationale": "Mentions the rule of two but does not connect it to small business capability or a set-aside.",
+    "text": "Connects the market research to the small business set-aside decision (whether two or more capable small businesses exist).",
+    "verdict": "fail"
+   },
+   {
+    "id": "c4",
+    "rationale": "Does not mention existing contract vehicles or required sources.",
+    "text": "Recommends checking existing contract vehicles or required sources, such as GSA schedules, GWACs or agency IDIQs.",
+    "verdict": "fail"
+   },
+   {
+    "id": "c5",
+    "rationale": "Requires research into alternatives before any sole-source decision rather than accepting the preference.",
+    "text": "Does not treat the program office's preference for the incumbent as a sufficient basis for the acquisition approach.",
+    "verdict": "pass"
+   }
+  ],
+  "model": "Claude Haiku 4.5",
+  "question": "I'm a contract specialist starting on a new requirement: IT help-desk support for about 1,200 users at one installation, estimated at $6 million over five years. The program office wants to \"just use the incumbent\". What market research should I do before we decide how to buy this, and what do I need to have on paper at the end of it?",
+  "result_id": "5c17dbcf-2ab5-488c-831c-589a5454e460",
+  "scenario_key": "acqb-q01-market-research",
+  "title": "Market research for a help-desk services requirement"
+ },
+ "facets": {
+  "phase": [
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.36666666666666664,
+     "Claude Sonnet 5 / closed_book": 0.5333333333333333
+    },
+    "criteria_judged": 60,
+    "criteria_not_judged": 0,
+    "criteria_passed": 27,
+    "criteria_total": 60,
+    "enough_questions": true,
+    "pass_rate": 0.45,
+    "questions": 6,
+    "value": "award"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.2,
+     "Claude Sonnet 5 / closed_book": 0.6666666666666666
+    },
+    "criteria_judged": 60,
+    "criteria_not_judged": 0,
+    "criteria_passed": 26,
+    "criteria_total": 60,
+    "enough_questions": true,
+    "pass_rate": 0.43333333333333335,
+    "questions": 6,
+    "value": "cross-cutting"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.13333333333333333,
+     "Claude Sonnet 5 / closed_book": 0.6333333333333333
+    },
+    "criteria_judged": 60,
+    "criteria_not_judged": 0,
+    "criteria_passed": 23,
+    "criteria_total": 60,
+    "enough_questions": true,
+    "pass_rate": 0.38333333333333336,
+    "questions": 6,
+    "value": "post-award"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.5333333333333333,
+     "Claude Sonnet 5 / closed_book": 0.9333333333333333
+    },
+    "criteria_judged": 60,
+    "criteria_not_judged": 0,
+    "criteria_passed": 44,
+    "criteria_total": 60,
+    "enough_questions": true,
+    "pass_rate": 0.7333333333333333,
+    "questions": 6,
+    "value": "pre-award"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.36666666666666664,
+     "Claude Sonnet 5 / closed_book": 0.7666666666666667
+    },
+    "criteria_judged": 60,
+    "criteria_not_judged": 0,
+    "criteria_passed": 34,
+    "criteria_total": 60,
+    "enough_questions": true,
+    "pass_rate": 0.5666666666666667,
+    "questions": 6,
+    "value": "solicitation"
+   }
+  ],
+  "split": [
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.32,
+     "Claude Sonnet 5 / closed_book": 0.7066666666666667
+    },
+    "criteria_judged": 300,
+    "criteria_not_judged": 0,
+    "criteria_passed": 154,
+    "criteria_total": 300,
+    "enough_questions": true,
+    "pass_rate": 0.5133333333333333,
+    "questions": 30,
+    "value": "public"
+   }
+  ],
+  "task": [
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.44,
+     "Claude Sonnet 5 / closed_book": 0.8
+    },
+    "criteria_judged": 50,
+    "criteria_not_judged": 0,
+    "criteria_passed": 31,
+    "criteria_total": 50,
+    "enough_questions": true,
+    "pass_rate": 0.62,
+    "questions": 5,
+    "value": "boundary"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.4,
+     "Claude Sonnet 5 / closed_book": 0.8
+    },
+    "criteria_judged": 40,
+    "criteria_not_judged": 0,
+    "criteria_passed": 24,
+    "criteria_total": 40,
+    "enough_questions": false,
+    "pass_rate": 0.6,
+    "questions": 4,
+    "value": "document-review"
+   },
+   {
+    "by_system": {
+     "Claude Haiku 4.5 / closed_book": 0.2761904761904762,
+     "Claude Sonnet 5 / closed_book": 0.6666666666666666
+    },
+    "criteria_judged": 210,
+    "criteria_not_judged": 0,
+    "criteria_passed": 99,
+    "criteria_total": 210,
+    "enough_questions": true,
+    "pass_rate": 0.4714285714285714,
+    "questions": 21,
+    "value": "knowledge"
+   }
+  ]
+ },
+ "judge": {
+  "models": [
+   "Claude Opus 5.5"
+  ],
+  "modes": [
+   "per_criterion"
+  ]
+ },
+ "judge_alignment": {
+  "accuracy": 0.9777777777777777,
+  "comparisons": 90,
+  "criteria_compared": 90,
+  "experts": 1,
+  "false_fail": 2,
+  "false_pass": 0,
+  "false_pass_rate": 0.0,
+  "true_fail": 42,
+  "true_pass": 46,
+  "unqualified_reviews_excluded": 0
+ },
+ "leaderboard": [
+  {
+   "condition": "closed_book",
+   "cost_per_test": null,
+   "criteria_judged": 150,
+   "criteria_not_judged": 0,
+   "criteria_passed": 48,
+   "criteria_total": 150,
+   "errors": 0,
+   "latency_ms_median": null,
+   "model": "Claude Haiku 4.5",
+   "pass_rate": 0.32,
+   "provider": "Anthropic",
+   "questions": 30,
+   "results_without_cost": 30,
+   "system_version_ids": [
+    "1ff41c4d-ab2f-4d7d-81a1-50bcb1bb119f"
+   ]
+  },
+  {
+   "condition": "closed_book",
+   "cost_per_test": null,
+   "criteria_judged": 150,
+   "criteria_not_judged": 0,
+   "criteria_passed": 106,
+   "criteria_total": 150,
+   "errors": 0,
+   "latency_ms_median": null,
+   "model": "Claude Sonnet 5",
+   "pass_rate": 0.7066666666666667,
+   "provider": "Anthropic",
+   "questions": 30,
+   "results_without_cost": 30,
+   "system_version_ids": [
+    "1c3b2e4d-66a0-42e3-a1c9-eefe22249b71"
+   ]
+  }
+ ],
+ "models": [
+  "Claude Haiku 4.5",
+  "Claude Sonnet 5"
+ ],
+ "results_scored": 60,
+ "results_without_criteria_scores": 0
+}

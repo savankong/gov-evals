@@ -58,6 +58,7 @@ def benchmark_report(db, project: Project, data: dict, title: str | None = None)
         + ", ".join(f"{c['name']} (`{c['id']}`)" for c in data["campaigns"])
         + ".",
         "",
+        *_demonstration(data),
     ]
 
     if not data["leaderboard"] or data["results_scored"] == 0:
@@ -95,6 +96,29 @@ def benchmark_report(db, project: Project, data: dict, title: str | None = None)
     return "\n".join(lines)
 
 
+def _demonstration(data: dict) -> list[str]:
+    """The statement a demonstration campaign carries, at the top of the report.
+
+    It says what in the data is a stand-in, so nobody reads a demonstration as
+    a published benchmark or its reviewer as a qualified expert.
+    """
+    statements = []
+    for statement in data.get("demonstration") or []:
+        if statement not in statements:  # one statement per demonstration, not per campaign
+            statements.append(statement)
+    if not statements:
+        return []
+    out = ["> **DEMONSTRATION DATA -- NOT A PUBLISHED BENCHMARK.**", ">"]
+    for statement in statements:
+        out.append("> " + _cell(statement.get("statement") or "This campaign was run as a demonstration."))
+        out.extend(f"> - {_cell(item)}" for item in statement.get("stand_ins") or [])
+    return [*out, ""]
+
+
+def _simulated_review(data: dict) -> bool:
+    return any(s.get("simulated_reviewer") for s in data.get("demonstration") or [])
+
+
 def _key_measurements(data: dict) -> list[str]:
     out = ["## Key measurements", ""]
     for condition in data["conditions"]:
@@ -128,6 +152,12 @@ def _key_measurements(data: dict) -> list[str]:
         out.append(
             "- **Judge agreement with experts: not measured.** Scores below come from a model "
             "judge whose agreement with qualified experts has not been checked on these questions."
+        )
+    elif _simulated_review(data):
+        out.append(
+            f"- **Judge agreement with a simulated reviewer (not an expert):** "
+            f"{_pct(alignment['accuracy'])} over {alignment['comparisons']} criterion verdicts. "
+            "Agreement with qualified experts has not been measured."
         )
     else:
         out.append(
@@ -238,7 +268,9 @@ def _grading(data: dict) -> list[str]:
         f"{', '.join(judge['modes']) or 'not recorded'}). A criterion the judge could not "
         "decide is excluded from the pass rate and counted under *not judged*.",
         "",
-        "### Agreement with qualified experts",
+        "### Agreement with a simulated reviewer"
+        if _simulated_review(data)
+        else "### Agreement with qualified experts",
         "",
     ]
     if alignment["comparisons"] == 0:
@@ -249,10 +281,21 @@ def _grading(data: dict) -> list[str]:
             "",
         ]
     else:
+        who = "Reviewer" if _simulated_review(data) else "Expert"
+        if _simulated_review(data):
+            out += [
+                "**Simulated reviewer.** In this demonstration the labels below come from a "
+                "stand-in reviewer, not a qualified expert. The table shows how the agreement "
+                "measurement works; it is not evidence that the judge agrees with experts.",
+                "",
+            ]
         out += [
-            f"{alignment['experts']} qualified expert(s) labelled {alignment['criteria_compared']} "
+            f"{alignment['experts']} "
+            + ("reviewer(s)" if _simulated_review(data) else "qualified expert(s)")
+            + f" labelled {alignment['criteria_compared']} "
             f"criteria ({alignment['comparisons']} comparisons). Only reviews that counted as "
-            "expert evidence are compared"
+            + ("qualified under the platform's expertise rules" if _simulated_review(data) else "expert evidence")
+            + " are compared"
             + (
                 f"; {alignment['unqualified_reviews_excluded']} review(s) from outside the "
                 "required discipline were set aside."
@@ -260,14 +303,14 @@ def _grading(data: dict) -> list[str]:
                 else "."
             ),
             "",
-            "| | Expert: pass | Expert: fail |",
+            f"| | {who}: pass | {who}: fail |",
             "| --- | ---: | ---: |",
             f"| **Judge: pass** | {alignment['true_pass']} | {alignment['false_pass']} |",
             f"| **Judge: fail** | {alignment['false_fail']} | {alignment['true_fail']} |",
             "",
             f"- Agreement: **{_pct(alignment['accuracy'])}**",
-            f"- False passes (judge passed what an expert failed), as a share of expert "
-            f"fails: **{_pct(alignment['false_pass_rate'])}**. These inflate scores.",
+            f"- False passes (judge passed what the {who.lower()} failed), as a share of "
+            f"{who.lower()} fails: **{_pct(alignment['false_pass_rate'])}**. These inflate scores.",
             "",
         ]
     return out
@@ -323,7 +366,12 @@ def _methodology(data: dict) -> list[str]:
         "- Expertise required to judge: " + (", ".join(ds["required_expertise"]) or "not declared") + ".",
         "- Approved for use by: " + (", ".join(ds["approved_by"]) or "no named approver") + ".",
     ]
-    if ds["model_drafted"]:
+    if ds["model_drafted"] and data.get("demonstration"):
+        out.append(
+            f"- {ds['model_drafted']} question(s) were drafted by a model. For this demonstration "
+            "they were approved by the stand-in named above, not by an expert."
+        )
+    elif ds["model_drafted"]:
         out.append(
             f"- {ds['model_drafted']} question(s) were first drafted by a model and ran only after "
             "a person approved them."
@@ -352,6 +400,11 @@ def _methodology(data: dict) -> list[str]:
 
 def _limitations(data: dict) -> list[str]:
     notes = []
+    if data.get("demonstration"):
+        notes.append(
+            "Demonstration data. The stand-ins listed at the top of this report replace steps "
+            "a published benchmark gives to people; none of these figures is a finding."
+        )
     thin = [
         f"{facet} = {v['value']} ({v['questions']})"
         for facet, values in data["facets"].items()

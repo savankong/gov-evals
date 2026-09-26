@@ -224,6 +224,14 @@ def benchmark_data(
 
     return {
         "campaigns": [{"id": c.id, "name": c.name} for c in campaigns],
+        # A campaign built as a demonstration says so in its trigger detail, and
+        # every report over it carries that statement. Demonstration answers,
+        # approvals or labels are never presented as a real benchmark's.
+        "demonstration": [
+            c.trigger_detail["demonstration"]
+            for c in campaigns
+            if isinstance((c.trigger_detail or {}).get("demonstration"), dict)
+        ],
         "evaluator_key": evaluator_key,
         "models": models,
         "conditions": conditions,

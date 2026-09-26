@@ -3,6 +3,7 @@
 from . import (
     assurance,
     auth,
+    benchmarks,
     campaigns,
     capture,
     catalog,
@@ -37,6 +38,7 @@ ROUTERS = [
     findings.router,
     assurance.router,
     reports.router,
+    benchmarks.router,
     dashboard.router,
     onboarding.router,
     users.router,
