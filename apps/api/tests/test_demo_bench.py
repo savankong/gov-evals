@@ -239,3 +239,139 @@ class TestBenchmarkPages:
         finally:
             db.close()
         assert calibration and not (shown & calibration)
+
+
+# ---------------------------------------------------------------------------
+# Public benchmark pages: no login, published reports only
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def site():
+    """The demonstration seeded (and so published), an org admin, a read-only
+    member of the same organisation, and someone from elsewhere."""
+    from fastapi.testclient import TestClient
+
+    from aegis.db import SessionLocal, engine
+    from aegis.enums import Role
+    from aegis.main import create_app
+    from aegis.models import Base, Membership, Organization
+    from aegis.security import hash_password
+
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    install_all(db)
+    admin = User(email="owner@example.test", password_hash=hash_password("pw-owner"))
+    reader = User(email="reader@example.test", password_hash=hash_password("pw-reader"))
+    stranger = User(email="stranger@example.test", password_hash=hash_password("pw-stranger"))
+    db.add_all([admin, reader, stranger])
+    db.flush()
+    seed_acquisition_bench_demo(db, admin)
+    demo_org = db.execute(select(Organization).where(Organization.short_name == "DEMO-PEO")).scalar_one()
+    db.add(Membership(user_id=reader.id, organization_id=demo_org.id, role=Role.READ_ONLY))
+    other = Organization(name="Elsewhere", short_name="ELSE2")
+    db.add(other)
+    db.flush()
+    db.add(Membership(user_id=stranger.id, organization_id=other.id, role=Role.ORG_ADMIN))
+    db.commit()
+    db.close()
+
+    app = create_app()
+    app.router.on_startup.clear()
+    with TestClient(app) as client:
+        def login(email, password):
+            token = client.post(
+                "/api/v1/auth/login", json={"email": email, "password": password}
+            ).json()["access_token"]
+            return {"Authorization": f"Bearer {token}"}
+
+        yield (
+            client,
+            login("owner@example.test", "pw-owner"),
+            login("reader@example.test", "pw-reader"),
+            login("stranger@example.test", "pw-stranger"),
+        )
+
+
+def _report():
+    from aegis.db import SessionLocal
+
+    db = SessionLocal()
+    return db, db.execute(select(Report).where(Report.kind == "benchmark")).scalar_one()
+
+
+class TestPublicBenchmarks:
+    def test_the_published_demonstration_needs_no_login(self, site):
+        client = site[0]
+        items = client.get("/api/v1/public/benchmarks").json()
+        assert len(items) == 1 and items[0]["demonstration"] is True
+        detail = client.get(f"/api/v1/public/benchmarks/{items[0]['id']}")
+        assert detail.status_code == 200
+        assert len(detail.json()["question_rows"]) == 30
+
+    def test_nothing_on_the_public_page_points_into_the_app(self, site):
+        client = site[0]
+        report_id = client.get("/api/v1/public/benchmarks").json()[0]["id"]
+        body = client.get(f"/api/v1/public/benchmarks/{report_id}").json()
+        assert "result_id" not in str(body)
+        assert all("id" not in c for c in body["data"]["campaigns"])
+        assert "id" not in body["project"]
+
+    def test_a_held_out_question_is_counted_but_not_shown(self, site):
+        client, owner, *_ = site
+        report_id = client.get("/api/v1/public/benchmarks").json()[0]["id"]
+        db, _ = _report()
+        try:
+            scenario = db.execute(
+                select(Scenario).where(
+                    Scenario.key == "acqb-q01-market-research", Scenario.project_id.is_not(None)
+                )
+            ).scalar_one()
+            tags = list(scenario.tags)
+            scenario.tags = [t for t in tags if t != "split:public"] + ["split:private"]
+            db.commit()
+            public = client.get(f"/api/v1/public/benchmarks/{report_id}").json()
+            private = client.get(f"/api/v1/benchmarks/{report_id}", headers=owner).json()
+            assert "acqb-q01-market-research" not in {r["key"] for r in public["question_rows"]}
+            assert "acqb-q01-market-research" in {r["key"] for r in private["question_rows"]}
+            # Still in the pass rate: holding a question out hides it, not its score.
+            assert public["data"]["leaderboard"] == private["data"]["leaderboard"]
+            assert (public["data"]["example"] or {}).get("scenario_key") != "acqb-q01-market-research"
+        finally:
+            scenario.tags = tags
+            db.commit()
+            db.close()
+
+    def test_unpublishing_takes_it_off_the_public_pages(self, site):
+        client, owner, *_ = site
+        report_id = client.get("/api/v1/public/benchmarks").json()[0]["id"]
+        assert client.post(f"/api/v1/benchmarks/{report_id}/unpublish", headers=owner).status_code == 200
+        assert client.get("/api/v1/public/benchmarks").json() == []
+        assert client.get(f"/api/v1/public/benchmarks/{report_id}").status_code == 404
+        assert client.post(f"/api/v1/benchmarks/{report_id}/publish", headers=owner).status_code == 200
+        assert len(client.get("/api/v1/public/benchmarks").json()) == 1
+
+    def test_publishing_needs_the_report_permission_in_that_project(self, site):
+        client, _, reader, stranger = site
+        report_id = client.get("/api/v1/public/benchmarks").json()[0]["id"]
+        assert client.post(f"/api/v1/benchmarks/{report_id}/unpublish").status_code == 401
+        assert client.post(f"/api/v1/benchmarks/{report_id}/unpublish", headers=reader).status_code == 403
+        assert client.post(f"/api/v1/benchmarks/{report_id}/unpublish", headers=stranger).status_code == 404
+        assert len(client.get("/api/v1/public/benchmarks").json()) == 1
+
+    def test_only_an_unclassified_report_is_ever_public(self, site):
+        client, owner, *_ = site
+        db, report = _report()
+        try:
+            report.classification = "CUI"
+            db.commit()
+            # Already published, then marked CUI: it leaves the public pages.
+            assert client.get("/api/v1/public/benchmarks").json() == []
+            assert client.get(f"/api/v1/public/benchmarks/{report.id}").status_code == 404
+            refused = client.post(f"/api/v1/benchmarks/{report.id}/publish", headers=owner)
+            assert refused.status_code == 400
+        finally:
+            report.classification = "UNCLASSIFIED"
+            db.commit()
+            db.close()

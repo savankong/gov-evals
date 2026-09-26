@@ -9,7 +9,16 @@ import { type BenchmarkSummary, pct } from "@/lib/benchmark";
  *  the pass rate, with the link to the full report beside the title. The list
  *  shape follows the "top models" leaderboards of model gateways; the bar is
  *  the product's own 2px annotation, so the number stays the reading. */
-export function BenchmarkLeaders({ b, compact = false }: { b: BenchmarkSummary; compact?: boolean }) {
+export function BenchmarkLeaders({
+  b,
+  compact = false,
+  href,
+}: {
+  b: BenchmarkSummary;
+  compact?: boolean;
+  /** Where "View report" goes; the public index points at the public page. */
+  href?: string;
+}) {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
@@ -25,7 +34,7 @@ export function BenchmarkLeaders({ b, compact = false }: { b: BenchmarkSummary; 
             {formatDate(b.created_at)} · {b.models} models · {b.questions} questions · {b.criteria} criteria
           </p>
         </div>
-        <Link href={`/benchmarks/${b.id}`} className="link-underline shrink-0 text-xs text-ink">
+        <Link href={href ?? `/benchmarks/${b.id}`} className="link-underline shrink-0 text-xs text-ink">
           View report
         </Link>
       </div>

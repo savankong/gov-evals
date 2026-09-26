@@ -1101,6 +1101,10 @@ class Report(Base, TimestampMixin):
     sha256: Mapped[str] = mapped_column(String(64), default="")
     classification: Mapped[str] = mapped_column(String(64), default=Classification.UNCLASSIFIED)
     generated_by: Mapped[str | None] = mapped_column(String(255))
+    # Set when someone publishes the report to the public benchmark pages, which
+    # need no login. Unset is private: nothing is public by default.
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_by: Mapped[str | None] = mapped_column(String(255))
 
 
 class Pack(Base, TimestampMixin):

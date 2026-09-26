@@ -14,6 +14,7 @@ export interface BenchmarkSummary {
   questions: number;
   criteria: number;
   required_expertise: string[];
+  published_at: string | null;
   top: Array<{ model: string; condition: string; pass_rate: number | null }>;
 }
 
@@ -48,7 +49,7 @@ export interface Verdict {
 }
 
 export interface BenchmarkData {
-  campaigns: Array<{ id: string; name: string }>;
+  campaigns: Array<{ id?: string; name: string }>;
   demonstration: Array<{ statement?: string; stand_ins?: string[]; simulated_reviewer?: boolean }>;
   models: string[];
   conditions: string[];
@@ -80,7 +81,7 @@ export interface BenchmarkData {
     unqualified_reviews_excluded: number;
   };
   example: {
-    result_id: string;
+    result_id?: string;
     content_hash: string;
     title: string | null;
     question: string | null;
@@ -106,7 +107,8 @@ export interface QuestionRow {
     {
       model: string;
       condition: string;
-      result_id: string;
+      /** Absent on the public page, which never links into the app. */
+      result_id?: string;
       content_hash: string;
       answer: string | null;
       verdicts: Record<string, Verdict>;

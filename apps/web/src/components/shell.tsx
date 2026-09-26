@@ -818,9 +818,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     setNavOpen(false);
   }, [pathname]);
 
+  // Published benchmark pages are read without an account. They render
+  // outside the shell, which is where the session, navigation and project
+  // data live.
+  const isPublic = pathname === "/public" || pathname.startsWith("/public/");
+
   useEffect(() => {
-    if (!loading && !session && pathname !== "/login") router.replace("/login");
-  }, [loading, session, pathname, router]);
+    if (!loading && !session && pathname !== "/login" && !isPublic) router.replace("/login");
+  }, [loading, session, pathname, router, isPublic]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -844,7 +849,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleNav]);
 
-  if (pathname === "/login") return <>{children}</>;
+  if (pathname === "/login" || isPublic) return <>{children}</>;
 
   const initials = (session?.fullName ?? session?.email ?? "?")
     .split(/[\s@.]+/)
