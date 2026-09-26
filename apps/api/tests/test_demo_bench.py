@@ -85,8 +85,8 @@ class TestDemonstration:
                 select(Result).join(Run).where(Run.campaign_id.in_([c.id for c in campaigns]))
             ).scalars()
         )
-        # 30 questions and 9 calibration questions, for each of three models.
-        assert len(results) == (30 + 9) * 3
+        # 30 questions and 9 calibration questions, for each of two models.
+        assert len(results) == (30 + 9) * len(MODELS)
         assert not [r.id for r in results if r.error]
         for result in results:
             criteria = next(
@@ -118,7 +118,8 @@ class TestDemonstration:
         campaigns = list(db.execute(select(Campaign).where(Campaign.project_id == project.id)).scalars())
         alignment = benchmark_data(db, campaigns)["judge_alignment"]
         assert db.execute(select(HumanReview)).scalars().first() is not None
-        assert alignment["comparisons"] >= 100
+        # 9 calibration questions x 5 criteria x 2 models.
+        assert alignment["comparisons"] == 90
 
     def test_the_report_says_it_is_a_demonstration_and_names_no_expert(self, db):
         _, project = _seed(db)

@@ -43,7 +43,6 @@ QUESTIONS = ROOT / "packs" / "bench-acquisition-questions.yaml"
 ANSWER_FILES = {
     "claude-haiku-4-5": "answers-haiku.json",
     "claude-sonnet-5": "answers-sonnet.json",
-    "claude-opus-5-5": "answers-opus.json",
 }
 RECORDED_VIA = "Claude Code subagent, closed-book, September 2026"
 

@@ -1,6 +1,6 @@
 """Acquisition Bench demonstration: a benchmark report built end to end.
 
-Three Claude models answered the Acquisition Bench questions and a fourth
+Two Claude models answered the Acquisition Bench questions and a third
 graded every answer criterion by criterion. Those responses are recordings
 (`aegis/recordings/`), replayed here through the ordinary engine by the
 `recorded` connector, so every result carries the same request, response,
@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session
 from .benchmark import benchmark_data
 from .connectors.builtin import load_recording
 from .enums import Classification, Role, RunStatus, SystemKind
-from .hashing import content_hash
+from .hashing import content_hash, evidence_store
 from .models import (
     Campaign,
     Evaluation,
@@ -48,7 +48,6 @@ from .models import (
 )
 from .runner.engine import execute_campaign
 from .security import ensure_role_definitions
-from .storage import evidence_store
 
 log = logging.getLogger("aegis.demo_bench")
 
@@ -69,14 +68,13 @@ MODELS = [
     # (display name, model id, recording)
     ("Claude Haiku 4.5", "claude-haiku-4-5", "acquisition-bench-claude-haiku-4-5"),
     ("Claude Sonnet 5", "claude-sonnet-5", "acquisition-bench-claude-sonnet-5"),
-    ("Claude Opus 5.5", "claude-opus-5-5", "acquisition-bench-claude-opus-5-5"),
 ]
 
 JUDGE = {
     "connector_type": "recorded",
-    "model_name": "Claude Fable 5.1",
-    "model_version": "claude-fable-5-1",
-    "parameters": {"recording": "acquisition-bench-judge-claude-fable-5-1"},
+    "model_name": "Claude Opus 5.5",
+    "model_version": "claude-opus-5-5",
+    "parameters": {"recording": "acquisition-bench-judge-claude-opus-5-5"},
 }
 
 LABELS_RECORDING = "acquisition-bench-demo-labels"
@@ -87,20 +85,23 @@ REVIEWER_EMAIL = "demo.reviewer@aegis.local"
 DEMONSTRATION = {
     "statement": (
         "This report was produced to demonstrate the benchmark workflow end to end. "
-        "Its figures are real measurements of recorded answers, but three steps a published "
-        "benchmark gives to qualified people were done by stand-ins."
+        "Its figures are real measurements of recorded answers. How it differs from a "
+        "published benchmark, and which steps were done by stand-ins rather than qualified "
+        "people, is listed here."
     ),
     "stand_ins": [
         "Questions and criteria were drafted by a model and approved for this demonstration "
         f"by '{STAND_IN}'. No acquisition expert has reviewed them.",
-        "The answering models (Claude Haiku 4.5, Claude Sonnet 5, Claude Opus 5.5) were run "
-        "through Claude Code rather than the API, closed-book, and their answers are replayed "
-        "from recordings. Latency, token counts and cost were not recorded.",
-        "The judge (Claude Fable 5.1) graded each answer blind to which model wrote it, and "
+        "The answering models (Claude Haiku 4.5, Claude Sonnet 5) were run through Claude "
+        "Code rather than the API, closed-book, and their answers are replayed from "
+        "recordings. Latency, token counts and cost were not recorded.",
+        "The judge (Claude Opus 5.5) graded each answer blind to which model wrote it, and "
         "judged all of one answer's criteria in a single pass rather than one call per "
         "criterion. Its verdicts are replayed one criterion at a time.",
-        f"Calibration labels come from '{STAND_IN}', not a qualified expert, so the judge "
-        "agreement figure shows how the measurement works, not how far to trust the judge.",
+        f"Calibration labels come from '{STAND_IN}', not a qualified expert. The labels "
+        "were written by an instance of the same model as the judge, working from the "
+        "answers without seeing the judge's verdicts, so agreement between the two is "
+        "expected and shows how the measurement works, not how far to trust the judge.",
     ],
     "simulated_reviewer": True,
 }

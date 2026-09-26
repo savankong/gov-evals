@@ -104,14 +104,16 @@ The questions are model-drafted and unapproved, like GovCon Bench's. To show the
 report before an expert has reviewed them, the demonstration project runs approved,
 project-scoped copies of them end to end:
 
-- Claude Haiku 4.5, Claude Sonnet 5 and Claude Opus 5.5 answered every question
-  closed-book through Claude Code (not the API). Claude Fable 5.1 judged every answer
-  criterion by criterion, without knowing which model wrote it.
+- Claude Haiku 4.5 and Claude Sonnet 5 answered every question closed-book through
+  Claude Code (not the API). Claude Opus 5.5 judged every answer criterion by
+  criterion, without knowing which model wrote it.
 - Those responses are recordings in `apps/api/aegis/recordings/`, replayed through the
   ordinary engine by the `recorded` connector. A request that was not recorded is an
   error, never an invented answer. Latency, tokens and cost were not recorded and are
   reported as such.
-- The calibration labels come from a simulated reviewer who is not an expert.
+- The calibration labels come from a simulated reviewer who is not an expert, written
+  by an instance of the judge's own model without sight of its verdicts. The agreement
+  figure therefore shows how the measurement works, not how far to trust the judge.
 
 Every campaign in the project carries a `demonstration` statement, and the report
 prints it at the top and in Limitations. Build it with `make bench-demo`, which writes

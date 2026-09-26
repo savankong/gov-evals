@@ -102,7 +102,10 @@ def _demonstration(data: dict) -> list[str]:
     It says what in the data is a stand-in, so nobody reads a demonstration as
     a published benchmark or its reviewer as a qualified expert.
     """
-    statements = data.get("demonstration") or []
+    statements = []
+    for statement in data.get("demonstration") or []:
+        if statement not in statements:  # one statement per demonstration, not per campaign
+            statements.append(statement)
     if not statements:
         return []
     out = ["> **DEMONSTRATION DATA -- NOT A PUBLISHED BENCHMARK.**", ">"]
@@ -265,7 +268,9 @@ def _grading(data: dict) -> list[str]:
         f"{', '.join(judge['modes']) or 'not recorded'}). A criterion the judge could not "
         "decide is excluded from the pass rate and counted under *not judged*.",
         "",
-        "### Agreement with qualified experts",
+        "### Agreement with a simulated reviewer"
+        if _simulated_review(data)
+        else "### Agreement with qualified experts",
         "",
     ]
     if alignment["comparisons"] == 0:
@@ -289,7 +294,8 @@ def _grading(data: dict) -> list[str]:
             + ("reviewer(s)" if _simulated_review(data) else "qualified expert(s)")
             + f" labelled {alignment['criteria_compared']} "
             f"criteria ({alignment['comparisons']} comparisons). Only reviews that counted as "
-            "expert evidence are compared"
+            + ("qualified under the platform's expertise rules" if _simulated_review(data) else "expert evidence")
+            + " are compared"
             + (
                 f"; {alignment['unqualified_reviews_excluded']} review(s) from outside the "
                 "required discipline were set aside."
