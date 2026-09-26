@@ -45,7 +45,7 @@ describe("steps", () => {
     for (const path of PATH_IDS) {
       for (const step of PATHS[path].steps) {
         const clicks = step.assist.flatMap((a) => ("click" in a ? [a.click] : []));
-        for (const id of [...step.anchors, ...clicks]) {
+        for (const id of [...step.anchors, ...(step.keep ?? []), ...clicks]) {
           const found = patterns.some(({ pattern }) => pattern.test(id));
           expect(found, `${path}/${step.id}: no element carries data-tour="${id}"`).toBe(true);
         }

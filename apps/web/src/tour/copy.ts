@@ -60,14 +60,14 @@ export const PATH_COPY: Record<PathId, PathCopy> = {
       "raise-bar": {
         title: "Raise the bar to 0.9",
         body:
-          "Set Confident at to ≥ 0.9 and watch which area keeps its count. " +
+          "Set Confident at to ≥ 0.9, then see which area keeps its Confidently count. " +
           "That's where the model is wrong and sure of it.",
       },
       "pick-area": {
         title: "Open Source selection",
         body:
-          "8 of its 9 wrong answers came with 0.9 confidence or more, and 2 of those " +
-          "problems have no expert answer yet.",
+          "At 0.9, Small business set-asides drops to 0 confidently wrong. Source " +
+          "selection keeps 8 of its 9, and 2 of those problems have no expert answer yet.",
       },
       "open-problem": {
         title: "Open the top problem",

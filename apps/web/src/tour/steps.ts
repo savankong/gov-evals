@@ -7,7 +7,7 @@
  * "Next" in the popover.
  */
 
-import { SOURCE_SELECTION, TARGET_SCENARIO, WORKED_EXAMPLE } from "./sandbox/fixtures";
+import { SET_ASIDES, SOURCE_SELECTION, TARGET_SCENARIO, WORKED_EXAMPLE } from "./sandbox/fixtures";
 import type { PathDef, PathId, StepDef } from "./types";
 
 const AREA = encodeURIComponent(SOURCE_SELECTION);
@@ -22,6 +22,7 @@ export const anchor = {
   threshold: (value: string) => `weakness.threshold.${value}`,
   area: (knowledgeArea: string) => `weakness.area:${knowledgeArea}`,
   areaTable: "weakness.table",
+  confidentColumn: "weakness.col.confident",
   task: (scenarioId: string) => `capture.task:${scenarioId}`,
   document: (index: number) => `solve.document:${index}`,
   steps: "solve.steps",
@@ -55,7 +56,10 @@ const lead: StepDef[] = [
     at: /^\/weakness(\?|$)/,
     route: "/weakness",
     done: { route: /^\/capture\?(.*&)?area=Source/ },
-    keep: [anchor.areaTable],
+    // What raising the bar did: the Confidently column, and the area that
+    // dropped to 0 beside the one that did not. On a phone the column is off
+    // to the right and the row below the sheet; both are brought into view.
+    keep: [anchor.confidentColumn, anchor.area(SET_ASIDES), anchor.areaTable],
     assist: [{ click: anchor.area(SOURCE_SELECTION) }],
   },
   {

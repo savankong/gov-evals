@@ -90,10 +90,23 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
  *  a phone. Moves only as far as it has to. */
 export function reveal(el: HTMLElement, reservedBottom: number, smooth: boolean): void {
   const parent = scrollParent(el);
+  scrollIntoBand(parent, el.getBoundingClientRect(), reservedBottom, smooth);
+}
+
+/** The part of the screen a scroll container shows that nothing of the
+ *  tour's covers. */
+function band(parent: HTMLElement | null, reservedBottom: number): { top: number; bottom: number } {
   const frame = parent?.getBoundingClientRect() ?? { top: 0, bottom: window.innerHeight };
-  const top = frame.top + 12;
-  const bottom = Math.min(frame.bottom, window.innerHeight - reservedBottom) - 12;
-  const rect = el.getBoundingClientRect();
+  return { top: frame.top + 12, bottom: Math.min(frame.bottom, window.innerHeight - reservedBottom) - 12 };
+}
+
+function scrollIntoBand(
+  parent: HTMLElement | null,
+  rect: { top: number; bottom: number },
+  reservedBottom: number,
+  smooth: boolean,
+): void {
+  const { top, bottom } = band(parent, reservedBottom);
   let delta = 0;
   if (rect.bottom > bottom) delta = rect.bottom - bottom;
   // Taller than the space, or above it: line up its top instead.
@@ -104,14 +117,69 @@ export function reveal(el: HTMLElement, reservedBottom: number, smooth: boolean)
   else window.scrollBy({ top: delta, behavior });
 }
 
+function scrollParentX(el: HTMLElement): HTMLElement | null {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const { overflowX } = window.getComputedStyle(node);
+    if ((overflowX === "auto" || overflowX === "scroll") && node.scrollWidth > node.clientWidth) return node;
+  }
+  return null;
+}
+
+function pinned(el: Element | null | undefined): boolean {
+  return !!el && window.getComputedStyle(el).position === "sticky";
+}
+
+/** Scroll a wide table sideways so an element is in view, beside whatever
+ *  column is pinned at the left of its row. Always instant: a smooth scroll
+ *  of the page around the table, which usually follows, cancels a smooth one
+ *  still running inside it, and the table was left where it started. */
+function revealX(el: HTMLElement, box: HTMLElement): void {
+  const cell = el.closest("th, td");
+  // In the pinned column itself: always in view, whatever the scroll.
+  if (pinned(cell)) return;
+  const frame = box.getBoundingClientRect();
+  const first = el.closest("tr")?.firstElementChild;
+  const inset = first && first !== cell && pinned(first) ? first.getBoundingClientRect().width : 0;
+  const left = frame.left + inset + 8;
+  const right = frame.right - 8;
+  const rect = el.getBoundingClientRect();
+  let dx = 0;
+  if (rect.right > right) dx = rect.right - right;
+  if (rect.left - dx < left) dx = rect.left - left;
+  if (Math.abs(dx) >= 1) box.scrollBy({ left: dx, behavior: "auto" });
+}
+
 /** Bring into view what a step asks the reader to look at, as well as the
- *  control it points at -- but only where scrolling to it cannot push that
- *  control off screen, i.e. when the control does not scroll with it. */
+ *  control it points at, without ever pushing that control off screen.
+ *
+ *  Sideways, a kept element is scrolled to when the control does not scroll
+ *  with it or sits in a column pinned in place. Up and down, one that scrolls
+ *  with the control is brought in only together with it: kept elements are
+ *  taken in order while the control and everything taken so far still fit on
+ *  screen at once, and the rest are left where they are. */
 export function revealKept(target: HTMLElement, kept: HTMLElement[], reservedBottom: number, smooth: boolean): void {
+  const home = scrollParent(target);
+  const space = band(home, reservedBottom);
+  const first = target.getBoundingClientRect();
+  const together = { top: first.top, bottom: first.bottom };
   for (const el of kept) {
+    const box = scrollParentX(el);
+    if (box && (!box.contains(target) || pinned(target.closest("th, td")))) revealX(el, box);
     const parent = scrollParent(el);
-    if (parent && parent.contains(target)) continue;
-    reveal(el, reservedBottom, smooth);
+    if (!parent || !parent.contains(target)) {
+      reveal(el, reservedBottom, smooth);
+      continue;
+    }
+    const rect = el.getBoundingClientRect();
+    const top = Math.min(together.top, rect.top);
+    const bottom = Math.max(together.bottom, rect.bottom);
+    if (bottom - top <= space.bottom - space.top) {
+      together.top = top;
+      together.bottom = bottom;
+    }
+  }
+  if (together.top !== first.top || together.bottom !== first.bottom) {
+    scrollIntoBand(home, together, reservedBottom, smooth);
   }
 }
 

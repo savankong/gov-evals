@@ -178,10 +178,12 @@ export default function WeaknessMapPage() {
           <Table minWidth={980}>
             <thead>
               <tr>
-                <Th>Knowledge area</Th>
+                {/* Pinned below md, so a row keeps its name while the counts
+                    scroll sideways on a phone. */}
+                <Th className="max-md:sticky max-md:left-0 max-md:z-[1] max-md:bg-panel">Knowledge area</Th>
                 <Th align="right">Judged</Th>
                 <Th align="right">Wrong</Th>
-                <Th align="right">Confidently</Th>
+                <Th align="right" tour="weakness.col.confident">Confidently</Th>
                 <Th align="right">Unsure</Th>
                 <Th align="right">Unknown</Th>
                 <Th align="right">No judgement</Th>
@@ -193,7 +195,7 @@ export default function WeaknessMapPage() {
             <tbody>
               {rows.map((row, index) => (
                 <Tr key={row.label} index={index}>
-                  <Td>
+                  <Td className="max-md:sticky max-md:left-0 max-md:z-[1] max-md:bg-panel">
                     {row.declared ? (
                       <Link
                         href={`/capture?area=${encodeURIComponent(row.knowledge_area ?? "")}`}

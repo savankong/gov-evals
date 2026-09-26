@@ -480,23 +480,37 @@ function StepPopover({
   // gets that much room below it, and the element is scrolled clear of it.
   const sheet = narrow && size.measured ? Math.round(size.height) : 0;
   useEffect(() => (sheet ? reserveSheet(sheet) : undefined), [sheet]);
+  // Scheduled once per step and sheet height. A re-render of the page under
+  // the step (its data arriving, say) re-runs this effect with the same key;
+  // that must not cancel what is already scheduled, so the pending timers are
+  // cancelled only when replaced or when the step goes away.
   const revealed = useRef<string | null>(null);
+  const pending = useRef<{ frame: number; later: number } | null>(null);
+  const cancelPending = () => {
+    if (!pending.current) return;
+    window.cancelAnimationFrame(pending.current.frame);
+    window.clearTimeout(pending.current.later);
+    pending.current = null;
+  };
+  const kept = useRef(keepIds);
+  kept.current = keepIds;
+  useEffect(() => cancelPending, []);
   useEffect(() => {
     if (!focusTarget || !size.measured) return;
     const key = `${stepKey}:${sheet}`;
     if (revealed.current === key) return;
     revealed.current = key;
-    // After the page has laid out the room the sheet asked for.
-    const frame = window.requestAnimationFrame(() => reveal(focusTarget, sheet, smooth));
-    // What the step asks the reader to look at may still be opening (a
-    // disclosure animates for 200ms), so it is brought into view after that.
-    const later = window.setTimeout(() => {
-      const kept = keepIds.map((id) => findAnchor([id])?.el).filter((e): e is HTMLElement => !!e);
-      revealKept(focusTarget, kept, sheet, smooth);
-    }, 260);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearTimeout(later);
+    cancelPending();
+    const target = focusTarget;
+    pending.current = {
+      // After the page has laid out the room the sheet asked for.
+      frame: window.requestAnimationFrame(() => reveal(target, sheet, smooth)),
+      // What the step asks the reader to look at may still be opening (a
+      // disclosure animates for 200ms), so it is brought into view after that.
+      later: window.setTimeout(() => {
+        const els = kept.current.map((id) => findAnchor([id])?.el).filter((e): e is HTMLElement => !!e);
+        revealKept(target, els, sheet, smooth);
+      }, 260),
     };
   }, [focusTarget, stepKey, sheet, smooth, size.measured]);
 
