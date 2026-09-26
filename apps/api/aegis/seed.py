@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .config import get_settings
+from .demo_bench import seed_acquisition_bench_demo
 from .enums import Classification, ImpactLevel, Role, Severity, SystemKind
 from .hashing import content_hash
 from .models import (
@@ -64,6 +65,8 @@ def bootstrap(db: Session) -> dict:
 
     if settings.seed_demo:
         result["demo"] = seed_demo(db, admin)
+    if settings.seed_demo or settings.seed_benchmark_demo:
+        result["benchmark_demo"] = seed_acquisition_bench_demo(db, admin)
 
     db.flush()
     return result

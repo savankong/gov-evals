@@ -11,6 +11,8 @@ import json
 import math
 import os
 import re
+from functools import lru_cache
+from pathlib import Path
 
 import httpx
 
@@ -319,6 +321,60 @@ class HttpRagAdapter(GenericRestAdapter):
             "score": passage.get("score") or passage.get("relevance"),
             "metadata": passage.get("metadata") or {},
         }
+
+
+RECORDINGS_DIR = Path(__file__).resolve().parent.parent / "recordings"
+
+
+def recording_key(system_prompt: str | None, prompt: str) -> str:
+    """The identity of one request in a recording: its system prompt and prompt."""
+    return hashlib.sha256(json.dumps([system_prompt or "", prompt]).encode()).hexdigest()
+
+
+@lru_cache(maxsize=16)
+def load_recording(name: str) -> dict:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]*", name or ""):
+        raise ValueError(f"Invalid recording name {name!r}")
+    return json.loads((RECORDINGS_DIR / f"{name}.json").read_text())
+
+
+@register_adapter
+class RecordedAdapter(ModelAdapter):
+    """Replays responses a model gave earlier, request for request.
+
+    For demonstrations and reproducible examples where the model cannot be
+    called from the deployment. A request is matched on its exact system
+    prompt and prompt; one that was never recorded is an error, never a
+    made-up answer. Latency and token counts are not recorded, so they are
+    reported as unknown rather than as the replay's own timing.
+    """
+
+    key = "recorded"
+    label = "Recorded responses (replay of an earlier model run)"
+    requires_egress = False
+
+    def invoke(self, request: TargetRequest) -> TargetResponse:
+        name = self.parameters.get("recording", "")
+        recording = load_recording(name)
+        key = recording_key(request.system_prompt, request.prompt)
+        entry = (recording.get("responses") or {}).get(key)
+        if entry is None:
+            return TargetResponse(
+                text="",
+                latency_ms=None,
+                error=f"No recorded response for this request in recording '{name}' ({key[:12]}).",
+            )
+        return TargetResponse(
+            text=entry["text"],
+            raw={
+                "recording": name,
+                "request_sha256": key,
+                "recorded_model": recording.get("model"),
+                "recorded_via": recording.get("recorded_via"),
+            },
+            latency_ms=None,
+            trace=[{"step": "replay", "detail": f"recording {name}, request {key[:12]}"}],
+        )
 
 
 @register_adapter

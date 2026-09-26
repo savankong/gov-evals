@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     # only where one is actually used.
     bootstrap_local_admin: bool = True
     seed_demo: bool = True
+    # The Acquisition Bench demonstration: one self-labelling project whose
+    # benchmark report states on its first line that it is demonstration data.
+    # Unlike seed_demo it creates no account anyone can sign in with and touches
+    # no other project, so a deployment used for demonstrations may turn it on.
+    seed_benchmark_demo: bool = False
 
     oidc_issuer: str = ""
     oidc_client_id: str = ""

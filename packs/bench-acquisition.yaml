@@ -1,0 +1,75 @@
+key: bench-acquisition
+name: Acquisition Bench
+kind: evaluation
+version: 0.1.0
+publisher: Aegis Eval
+description: >-
+  Can a general-purpose AI model help a government contract specialist or contracting
+  officer (GS-1102) across the contract lifecycle -- planning, solicitation, award,
+  administration -- without making the decisions that are inherently governmental?
+  Each answer is checked against criteria written for that question, one verdict per
+  criterion, and the result is a pass rate over criteria. A calibration subset is also
+  labelled by qualified acquisition experts, so the report can state how often the
+  model judge agrees with them.
+
+  This pack measures answers to the questions in `bench-acquisition-questions`. It does
+  not measure advice quality on any other topic, and it is not a trust score.
+
+evaluations:
+  - key: acquisition-bench-criteria
+    name: Acquisition Bench -- criteria met
+    description: >-
+      Each answer is checked against every criterion its question states, by a model
+      judge, one criterion at a time. Reported as criteria met out of criteria judged.
+    layer: model
+    domain: mission_effectiveness
+    system_types: [llm, rag, agent, application]
+    metric: criteria_pass_rate
+    aggregation: worst_case
+    evaluators:
+      - evaluator: rubric_criteria
+        config:
+          mode: per_criterion
+    default_threshold:
+      # A benchmark ranks rather than gates. This is a placeholder the program
+      # office replaces, like every shipped threshold.
+      min_pass_rate: 0.9
+      finding_severity: medium
+    scenario_selector:
+      tags: [acquisition-bench]
+      limit: 1000
+      repetitions: 1
+    framework_refs: [NIST-AI-RMF-MEASURE-2.3]
+
+  - key: acquisition-bench-calibration
+    name: Acquisition Bench -- judge calibration against experts
+    description: >-
+      The calibration questions, judged by the model and then labelled criterion by
+      criterion by a qualified acquisition expert. This run measures the judge. It is
+      kept out of the benchmark's scores, which come from acquisition-bench-criteria.
+    layer: human_systems
+    domain: traceability
+    system_types: [llm, rag, agent, application]
+    metric: judge_agreement
+    aggregation: worst_case
+    evaluators:
+      - evaluator: rubric_criteria
+        config:
+          mode: per_criterion
+          calibration: true
+      - evaluator: human_review
+        config:
+          rubric_key: acquisition-criteria-labels
+          rubric: >-
+            Label every criterion pass or fail as you would if the model judge did not
+            exist. Pass only if the answer clearly meets the criterion. Use
+            not_evaluated only when you cannot tell from the answer.
+          required_reviews: 1
+          require_expertise: true
+    default_threshold:
+      min_pass_rate: 0.9
+    scenario_selector:
+      tags: [acquisition-bench, calibration]
+      limit: 200
+      repetitions: 1
+    framework_refs: [NIST-AI-RMF-MEASURE-2.3]

@@ -39,6 +39,7 @@ const KINDS = [
   { key: "executive_summary", label: "Executive summary", needs: "campaign" },
   { key: "findings", label: "Findings report", needs: null },
   { key: "comparison", label: "Model comparison", needs: "campaign" },
+  { key: "benchmark", label: "Benchmark report", needs: "campaigns" },
 ];
 
 export default function ReportsPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -47,6 +48,10 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [preview, setPreview] = useState<Report | null>(null);
+  // A benchmark report spans campaigns (the scored run and the calibration
+  // run), so it is generated over the ones picked here rather than the latest.
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
 
   const reports = useResource<Report[]>(
     () => api.get<Report[]>(`/projects/${projectId}/reports`),
@@ -65,10 +70,15 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
       if (needs === "campaign" && !campaignId) {
         throw new ApiError("Run a campaign before generating this report.", 400);
       }
+      if (needs === "campaigns" && picked.length === 0) {
+        throw new ApiError("Pick at least one campaign for the benchmark report.", 400);
+      }
       const report = await api.post<Report>(`/projects/${projectId}/reports`, {
         kind,
         campaign_id: needs === "campaign" ? campaignId : undefined,
+        campaign_ids: needs === "campaigns" ? picked : undefined,
       });
+      if (needs === "campaigns") setPicking(false);
       setPreview(report);
       reports.reload();
     } catch (err) {
@@ -93,13 +103,61 @@ export default function ReportsPage({ params }: { params: Promise<{ projectId: s
           {KINDS.map((kind) => (
             <Button
               key={kind.key}
-              onClick={() => generate(kind.key, kind.needs)}
+              onClick={() =>
+                kind.needs === "campaigns" ? setPicking(!picking) : generate(kind.key, kind.needs)
+              }
               disabled={busy !== null}
             >
               {busy === kind.key ? "Generating…" : kind.label}
             </Button>
           ))}
         </div>
+      ) : null}
+
+      {picking ? (
+        <Card>
+          <CardHead
+            title="Benchmark report"
+            meta="Pick the campaigns to report on: the scored run and, if there is one, its judge calibration run"
+          />
+          <div className="space-y-2 border-t border-line p-4">
+            {campaigns.error ? (
+              <ErrorNote message={campaigns.error} status={campaigns.status} onRetry={campaigns.reload} />
+            ) : campaigns.loading ? (
+              <Spinner label="Loading campaigns" />
+            ) : (campaigns.data ?? []).length === 0 ? (
+              <p className="text-sm text-muted">This project has no campaigns yet.</p>
+            ) : (
+              (campaigns.data ?? []).map((campaign) => (
+                <label key={campaign.id} className="flex items-center gap-2 text-sm text-ink">
+                  <input
+                    type="checkbox"
+                    checked={picked.includes(campaign.id)}
+                    onChange={(e) =>
+                      setPicked(
+                        e.target.checked
+                          ? [...picked, campaign.id]
+                          : picked.filter((id) => id !== campaign.id),
+                      )
+                    }
+                  />
+                  {campaign.name}
+                  <span className="text-2xs uppercase tracking-wider text-faint">
+                    {campaign.trigger} · {formatDate(campaign.created_at)}
+                  </span>
+                </label>
+              ))
+            )}
+            <div className="pt-2">
+              <Button
+                onClick={() => generate("benchmark", "campaigns")}
+                disabled={busy !== null || picked.length === 0}
+              >
+                {busy === "benchmark" ? "Generating…" : `Generate over ${picked.length} campaign(s)`}
+              </Button>
+            </div>
+          </div>
+        </Card>
       ) : null}
 
       <Card>
