@@ -9,6 +9,7 @@ top what was a stand-in and never calls the simulated reviewer an expert.
 
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import select
 
 from aegis.benchmark import benchmark_data
@@ -135,3 +136,106 @@ class TestDemonstration:
     def test_seeding_twice_does_not_duplicate(self, db):
         admin, _ = _seed(db)
         assert seed_acquisition_bench_demo(db, admin) == "exists"
+
+
+# ---------------------------------------------------------------------------
+# Benchmark pages
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def pages():
+    """The demonstration seeded, one user inside its organisation, one outside."""
+    from fastapi.testclient import TestClient
+
+    from aegis.db import SessionLocal, engine
+    from aegis.main import create_app
+    from aegis.models import Base, Membership, Organization
+    from aegis.security import hash_password
+
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    install_all(db)
+    insider = User(email="insider@example.test", password_hash=hash_password("pw-inside"))
+    outsider = User(email="outsider@example.test", password_hash=hash_password("pw-outside"))
+    db.add_all([insider, outsider])
+    db.flush()
+    seed_acquisition_bench_demo(db, insider)
+    other = Organization(name="Elsewhere", short_name="ELSE")
+    db.add(other)
+    db.flush()
+    db.add(Membership(user_id=outsider.id, organization_id=other.id, role="viewer"))
+    db.commit()
+    db.close()
+
+    app = create_app()
+    app.router.on_startup.clear()
+    with TestClient(app) as client:
+        def login(email, password):
+            token = client.post(
+                "/api/v1/auth/login", json={"email": email, "password": password}
+            ).json()["access_token"]
+            return {"Authorization": f"Bearer {token}"}
+
+        yield client, login("insider@example.test", "pw-inside"), login("outsider@example.test", "pw-outside")
+
+
+class TestBenchmarkPages:
+    def test_the_index_lists_the_demonstration_with_its_leaders(self, pages):
+        client, inside, _ = pages
+        items = client.get("/api/v1/benchmarks", headers=inside).json()
+        assert len(items) == 1
+        item = items[0]
+        assert item["demonstration"] is True
+        assert item["questions"] == 30 and item["models"] == len(MODELS)
+        rates = [t["pass_rate"] for t in item["top"]]
+        assert rates == sorted(rates, reverse=True)
+
+    def test_a_report_carries_every_question_without_calibration_repeats(self, pages):
+        client, inside, _ = pages
+        report_id = client.get("/api/v1/benchmarks", headers=inside).json()[0]["id"]
+        body = client.get(f"/api/v1/benchmarks/{report_id}", headers=inside).json()
+        rows = body["question_rows"]
+        assert len(rows) == 30
+        assert all(len(r["results"]) == len(MODELS) for r in rows)
+        for row in rows:
+            for result in row["results"].values():
+                assert set(result["verdicts"]) == {c["id"] for c in row["criteria"]}
+        # The page's figures are the report's figures.
+        met = sum(
+            v["verdict"] == "pass"
+            for r in rows for res in r["results"].values() for v in res["verdicts"].values()
+        )
+        assert met == sum(r["criteria_passed"] for r in body["data"]["leaderboard"])
+
+    def test_another_organisation_cannot_see_it(self, pages):
+        client, inside, outside = pages
+        report_id = client.get("/api/v1/benchmarks", headers=inside).json()[0]["id"]
+        assert client.get("/api/v1/benchmarks", headers=outside).json() == []
+        assert client.get(f"/api/v1/benchmarks/{report_id}", headers=outside).status_code == 404
+
+    def test_an_unknown_report_is_not_found(self, pages):
+        client, inside, _ = pages
+        assert client.get("/api/v1/benchmarks/nope", headers=inside).status_code == 404
+
+    def test_the_answers_shown_are_the_scored_ones_not_calibration(self, pages):
+        """Calibration results repeat the same questions to measure the judge.
+        The page shows the scored result for each question, never its
+        calibration twin, even where the two carry the same verdicts."""
+        from aegis.db import SessionLocal
+
+        client, inside, _ = pages
+        report_id = client.get("/api/v1/benchmarks", headers=inside).json()[0]["id"]
+        rows = client.get(f"/api/v1/benchmarks/{report_id}", headers=inside).json()["question_rows"]
+        shown = {res["result_id"] for r in rows for res in r["results"].values()}
+        db = SessionLocal()
+        try:
+            calibration = {
+                r.id
+                for r in db.execute(select(Result)).scalars()
+                if any((j.get("evaluator_metadata") or {}).get("calibration") for j in r.judgements or [])
+            }
+        finally:
+            db.close()
+        assert calibration and not (shown & calibration)

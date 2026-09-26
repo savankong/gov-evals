@@ -29,6 +29,12 @@ export const IconPortfolio = (p: Props) => (
   </svg>
 );
 
+export const IconBenchmark = (p: Props) => (
+  <svg {...base} {...p}>
+    <path d="M2 3.5h11M2 8h7M2 12.5h9" />
+  </svg>
+);
+
 export const IconReadiness = (p: Props) => (
   <svg {...base} {...p}>
     <path d="M2 13h12" />
