@@ -27,13 +27,12 @@ os.environ["AEGIS_SEED_DEMO"] = "false"
 os.environ["AEGIS_SEED_BENCHMARK_DEMO"] = "true"
 sys.path.insert(0, str(ROOT / "apps" / "api"))
 
-from sqlalchemy import select  # noqa: E402
-
-from aegis.benchmark import benchmark_data  # noqa: E402
-from aegis.db import SessionLocal, init_db  # noqa: E402
-from aegis.demo_bench import PROJECT_SLUG  # noqa: E402
-from aegis.models import Campaign, Project, Report  # noqa: E402
-from aegis.seed import bootstrap  # noqa: E402
+from aegis.benchmark import benchmark_data
+from aegis.db import SessionLocal, init_db
+from aegis.demo_bench import PROJECT_SLUG
+from aegis.models import Campaign, Project, Report
+from aegis.seed import bootstrap
+from sqlalchemy import select
 
 
 def main() -> int:

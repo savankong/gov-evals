@@ -108,8 +108,7 @@ def _demonstration(data: dict) -> list[str]:
     out = ["> **DEMONSTRATION DATA -- NOT A PUBLISHED BENCHMARK.**", ">"]
     for statement in statements:
         out.append("> " + _cell(statement.get("statement") or "This campaign was run as a demonstration."))
-        for item in statement.get("stand_ins") or []:
-            out.append(f"> - {_cell(item)}")
+        out.extend(f"> - {_cell(item)}" for item in statement.get("stand_ins") or [])
     return [*out, ""]
 
 

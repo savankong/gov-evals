@@ -26,10 +26,15 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps" / "api"))
 
-from aegis.connectors.builtin import RECORDINGS_DIR, recording_key  # noqa: E402
-from aegis.demo_bench import ANSWER_SYSTEM_PROMPT, JUDGE, LABELS_RECORDING, MODELS  # noqa: E402
-from aegis.evaluators import EvaluationContext  # noqa: E402
-from aegis.evaluators.model_based import (  # noqa: E402
+from aegis.connectors.builtin import RECORDINGS_DIR, recording_key
+from aegis.demo_bench import (
+    ANSWER_SYSTEM_PROMPT,
+    JUDGE,
+    LABELS_RECORDING,
+    MODELS,
+)
+from aegis.evaluators import EvaluationContext
+from aegis.evaluators.model_based import (
     CRITERIA_SYSTEM_PROMPT,
     RubricCriteriaEvaluator,
 )
