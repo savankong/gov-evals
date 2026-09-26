@@ -61,6 +61,25 @@ export function setToken(token: string | null): void {
   }
 }
 
+/** Something other than the network that can answer a request.
+ *
+ *  Installed by the product tour while it shows sample data, so every screen
+ *  reads the sample through the same client it reads real data through, and
+ *  the sample cannot reach the server. Identity is the exception: signing in
+ *  and reading who you are always go to the server. */
+export type Transport = (path: string, init: RequestInit) => Promise<Response>;
+
+let transport: Transport | null = null;
+
+export function setTransport(next: Transport | null): void {
+  transport = next;
+}
+
+function send(path: string, init: RequestInit): Promise<Response> {
+  if (transport && !path.startsWith("/auth/")) return transport(path, init);
+  return fetch(`${API}${path}`, init);
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(init.headers);
@@ -71,7 +90,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(`${API}${path}`, { ...init, headers, cache: "no-store" });
+  const response = await send(path, { ...init, headers, cache: "no-store" });
 
   if (response.status === 401) {
     setToken(null);
@@ -120,7 +139,7 @@ export const api = {
     const token = getToken();
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const response = await fetch(`${API}${path}`, { headers, cache: "no-store" });
+    const response = await send(path, { headers, cache: "no-store" });
     if (response.status === 401) {
       setToken(null);
       throw new ApiError("Session expired. Sign in again.", 401);

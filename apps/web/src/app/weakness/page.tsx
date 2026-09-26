@@ -19,6 +19,7 @@ import {
   Tr,
 } from "@/components/ui";
 import { api } from "@/lib/api";
+import { tourSignal } from "@/tour/signal";
 
 interface AreaRow {
   knowledge_area: string | null;
@@ -109,9 +110,12 @@ export default function WeaknessMapPage() {
         <div className="flex items-center gap-2">
           <span className="text-2xs uppercase tracking-wider text-faint">Confident at</span>
           <Segmented
-            options={THRESHOLDS.map((t) => ({ key: t, label: `≥ ${t}` }))}
+            options={THRESHOLDS.map((t) => ({ key: t, label: `≥ ${t}`, tour: `weakness.threshold.${t}` }))}
             active={threshold}
-            onChange={(key) => setThreshold(key ?? "0.8")}
+            onChange={(key) => {
+              setThreshold(key ?? "0.8");
+              tourSignal(`weakness.threshold:${key}`);
+            }}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -157,7 +161,7 @@ export default function WeaknessMapPage() {
         </div>
       ) : null}
 
-      <Card>
+      <Card tour="weakness.table">
         {map.loading && !data ? (
           <TableSkeleton rows={5} cols={6} />
         ) : map.error ? null : rows.length === 0 ? (
@@ -194,6 +198,7 @@ export default function WeaknessMapPage() {
                       <Link
                         href={`/capture?area=${encodeURIComponent(row.knowledge_area ?? "")}`}
                         className="link-underline text-ink"
+                        data-tour={`weakness.area:${row.knowledge_area}`}
                       >
                         {row.label}
                       </Link>

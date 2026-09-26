@@ -24,8 +24,13 @@ import { BenchmarkLeaders } from "@/components/benchmark-leaders";
 import { api } from "@/lib/api";
 import type { BenchmarkSummary } from "@/lib/benchmark";
 import type { Overview, Severity } from "@/lib/types";
+import { tourEnabled } from "@/tour";
 
 const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
+
+// With the product tour on, it replaces the first-run walkthrough: the tour
+// offers itself here instead of the primer and the checklist card.
+const WALKTHROUGH = !tourEnabled();
 
 export default function PortfolioPage() {
   const { session } = useAuth();
@@ -57,7 +62,7 @@ export default function PortfolioPage() {
         </p>
       </div>
 
-      {onboarding.data && !onboarding.data.complete ? (
+      {WALKTHROUGH && onboarding.data && !onboarding.data.complete ? (
         <GettingStarted data={onboarding.data} onOpenPrimer={primer.open} />
       ) : null}
 
@@ -231,7 +236,7 @@ export default function PortfolioPage() {
         </>
       ) : null}
     
-      <Primer open={primer.show} onClose={primer.close} />
+      {WALKTHROUGH ? <Primer open={primer.show} onClose={primer.close} /> : null}
     </div>
   );
 }

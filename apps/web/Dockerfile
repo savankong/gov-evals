@@ -27,6 +27,12 @@ COPY . .
 # Baked at build time: Next.js inlines NEXT_PUBLIC_* into the client bundle.
 ARG NEXT_PUBLIC_API_BASE=http://localhost:8000
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
+# The product tour and its presenter mode (src/tour/flags.ts). Empty is off in
+# a production build.
+ARG NEXT_PUBLIC_AEGIS_TOUR=
+ARG NEXT_PUBLIC_AEGIS_TOUR_PRESENTER=
+ENV NEXT_PUBLIC_AEGIS_TOUR=$NEXT_PUBLIC_AEGIS_TOUR
+ENV NEXT_PUBLIC_AEGIS_TOUR_PRESENTER=$NEXT_PUBLIC_AEGIS_TOUR_PRESENTER
 RUN npm run build
 
 FROM node:22-alpine@sha256:b6f26b36c8ff49624cfdac716b8ea1138d606df02586a77d364bb5536a634f85

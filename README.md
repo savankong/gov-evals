@@ -71,6 +71,27 @@ make web     # :3000
 make test    # 287 tests
 ```
 
+### Product tour
+
+Two short tours, one for a lead who decides where expert hours go and one for
+an expert who solves the problems. Each ends with something the reader
+finished themselves: a package manifest, or a recorded trace next to the
+model's confidently wrong answer. They run on a sample that lives in the
+browser and is never sent to the server, so nothing a reader does in a tour
+can reach a weakness map, a checklist or a delivery. With the tour on, it
+replaces the first-run walkthrough; with it off, the walkthrough is unchanged.
+
+| | |
+| --- | --- |
+| Turn it on | `NEXT_PUBLIC_AEGIS_TOUR=1` at build time. Unset: on under `npm run dev`, off in a production build. |
+| Start it | Offered on the portfolio at first sign-in; **?** → *Take the tour* / *Replay the tour*; or *Getting started*. |
+| Edit the words | `apps/web/src/tour/copy.ts`. Nothing in it is logic. |
+| Presenter mode | `NEXT_PUBLIC_AEGIS_TOUR_PRESENTER=1`, for accounts that can administer an organization. `?tour=lead&step=4` on any page, or **?** → *Presenter mode* for a step picker. |
+| Tests | `cd apps/web && npm test` |
+
+The code is in `apps/web/src/tour/`; `index.ts` says where it touches the rest
+of the app.
+
 ## How it works
 
 An evaluation project pairs an AI capability with the mission it is meant for.

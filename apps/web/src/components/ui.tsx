@@ -21,12 +21,19 @@ export function Card({
   children,
   className = "",
   as: Tag = "div",
+  tour,
 }: {
   children: ReactNode;
   className?: string;
   as?: "div" | "section" | "article";
+  /** A `data-tour` anchor for the product tour. */
+  tour?: string;
 }) {
-  return <Tag className={`border border-line bg-panel ${className}`}>{children}</Tag>;
+  return (
+    <Tag className={`border border-line bg-panel ${className}`} data-tour={tour}>
+      {children}
+    </Tag>
+  );
 }
 
 export function CardHead({
@@ -200,7 +207,8 @@ export function Segmented({
   active,
   onChange,
 }: {
-  options: Array<{ key: string | null; label: string; count?: number }>;
+  /** `tour` sets a `data-tour` anchor on that option for the product tour. */
+  options: Array<{ key: string | null; label: string; count?: number; tour?: string }>;
   active: string | null;
   onChange: (key: string | null) => void;
 }) {
@@ -213,6 +221,7 @@ export function Segmented({
         {options.map((option, index) => (
           <button
             key={option.key ?? "all"}
+            data-tour={option.tour}
             onClick={() => onChange(option.key)}
             className={`h-7 shrink-0 whitespace-nowrap px-2.5 text-sm transition-colors duration-150 ease-out ${
               index > 0 ? "border-l border-line" : ""
@@ -879,15 +888,18 @@ export function Disclosure({
   summary,
   children,
   className = "",
+  tour,
 }: {
   open: boolean;
   onToggle: () => void;
   summary: ReactNode;
   children: ReactNode;
   className?: string;
+  /** A `data-tour` anchor for the product tour. */
+  tour?: string;
 }) {
   return (
-    <div className={className}>
+    <div className={className} data-tour={tour}>
       <button
         type="button"
         onClick={onToggle}

@@ -2,8 +2,11 @@
 
 import { Walkthrough } from "@/components/onboarding";
 import { PageTitle } from "@/components/ui";
+import { TourWelcome, tourEnabled } from "@/tour";
 
 export default function WelcomePage() {
+  // The tour replaces the walkthrough when it is on; see src/tour/flags.ts.
+  if (tourEnabled()) return <TourWelcome />;
   return (
     <div className="space-y-4">
       <PageTitle
