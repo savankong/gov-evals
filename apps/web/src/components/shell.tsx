@@ -29,6 +29,7 @@ import {
   IconPackage,
   IconPortfolio,
   IconReview,
+  IconRoster,
   IconSearch,
   IconSun,
   IconTarget,
@@ -686,6 +687,25 @@ function Sidebar({
         {NAV_FOOTER.map((item) => (
           <NavLink key={item.href} item={item} expanded={expanded} />
         ))}
+        {/* Aegis Eval is part of Your Roster. Said once, at the foot of the
+            rail below everything you would come here to use, in the faintest
+            ink the interface has: present for anyone who looks, never in the
+            way of anyone who does not. */}
+        <a
+          href="https://www.yourrosterapp.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Aegis Eval is part of Your Roster"
+          aria-label="Part of Your Roster"
+          className={`mt-1 flex h-7 items-center text-faint transition-colors duration-150 hover:text-muted ${
+            expanded ? "gap-2 px-2.5" : "justify-center"
+          }`}
+        >
+          <IconRoster className="shrink-0" aria-hidden />
+          {expanded ? (
+            <span className="whitespace-nowrap text-2xs">Part of Your Roster</span>
+          ) : null}
+        </a>
       </div>
 
       {!expanded ? (
