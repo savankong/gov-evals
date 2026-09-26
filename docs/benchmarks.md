@@ -126,6 +126,19 @@ To turn the demonstration into a benchmark you can publish: an acquisition exper
 approves the questions, the models are run live with a configured judge, and qualified
 experts label the calibration set. Nothing in the code changes.
 
+## Public pages
+
+`/public/benchmarks` and `/public/benchmarks/{id}` need no login. A benchmark report
+appears there only after someone with `report:generate` on its project presses
+**Publish** on the report page (`POST /api/v1/benchmarks/{id}/publish`), and only
+while it is marked UNCLASSIFIED. **Unpublish** takes it down. Both are audited.
+
+The public page is the same report with three things removed: questions not
+tagged `split:public` (they still count in the pass rates, but their wording,
+criteria and answers stay private), anything that links into the app (result and
+campaign ids, the project id), and the sample answer if its question is held out.
+The demonstration seed publishes its own report when it creates it.
+
 ## What is not built yet
 
 - **Multi-turn with a simulated user.** A condition where another model plays the

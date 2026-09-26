@@ -45,6 +45,7 @@ from .models import (
     System,
     SystemVersion,
     User,
+    utcnow,
 )
 from .runner.engine import execute_campaign
 from .security import ensure_role_definitions
@@ -359,6 +360,10 @@ def _report(db: Session, project: Project, admin: User, campaigns: list[Campaign
         sha256=stored["sha256"],
         classification=project.classification,
         generated_by=admin.email,
+        # Published so the public benchmark pages have the worked example. The
+        # report states on its first line that it is demonstration data.
+        published_at=utcnow(),
+        published_by="demonstration seed",
     )
     db.add(report)
     db.flush()
