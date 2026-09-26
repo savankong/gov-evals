@@ -186,6 +186,17 @@ services:
       - key: NEXT_PUBLIC_API_BASE
         scope: BUILD_TIME
         value: ${APP_URL}
+      # The product tour, which replaces the first-run walkthrough, and its
+      # presenter mode (?tour=lead&step=4). Presenter mode is shown only to
+      # accounts that can administer an organization. See apps/web/src/tour.
+      # The image that serves traffic is built by the deploy workflow, which
+      # passes these as build arguments; the validator keeps the two in step.
+      - key: NEXT_PUBLIC_AEGIS_TOUR
+        scope: BUILD_TIME
+        value: "1"
+      - key: NEXT_PUBLIC_AEGIS_TOUR_PRESENTER
+        scope: BUILD_TIME
+        value: "1"
 
 workers:
   # Campaign execution runs here rather than in the API, so a long campaign

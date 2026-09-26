@@ -83,7 +83,7 @@ replaces the first-run walkthrough; with it off, the walkthrough is unchanged.
 
 | | |
 | --- | --- |
-| Turn it on | `NEXT_PUBLIC_AEGIS_TOUR=1` at build time. Unset: on under `npm run dev`, off in a production build. |
+| Turn it on | `NEXT_PUBLIC_AEGIS_TOUR=1` at build time. Unset: on under `npm run dev`, off in a production build. The DigitalOcean deploy turns both flags on, in `.do/app.yaml` and in the workflow's web build (the image that serves); the pack validator fails if the two disagree. |
 | Start it | Offered on the portfolio at first sign-in; **?** → *Take the tour* / *Replay the tour*; or *Getting started*. |
 | Edit the words | `apps/web/src/tour/copy.ts`. Nothing in it is logic. |
 | Presenter mode | `NEXT_PUBLIC_AEGIS_TOUR_PRESENTER=1`, for accounts that can administer an organization. `?tour=lead&step=4` on any page, or **?** → *Presenter mode* for a step picker. |
