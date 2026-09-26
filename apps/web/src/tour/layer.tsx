@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { Button, Key, Note } from "@/components/ui";
 
 import { PATH_COPY, UI } from "./copy";
-import { findAnchor, reserveSheet, reveal, runAssist } from "./dom";
+import { findAnchor, reserveSheet, reveal, revealKept, runAssist } from "./dom";
 import { place, sameRect, type Rect } from "./placement";
 import { useTour } from "./provider";
 import { PATHS } from "./steps";
@@ -372,6 +372,7 @@ function ActiveStep() {
       <StepPopover
         rect={missing ? null : rect}
         keep={keep}
+        keepIds={step.keep ?? []}
         narrow={narrow}
         smooth={!reduced}
         heading={`${UI.tourName} · ${PATH_COPY[state.path].name} · ${UI.stepOf(state.step + 1, path.steps.length)}`}
@@ -422,6 +423,7 @@ function Ring({ rect }: { rect: Rect }) {
 function StepPopover({
   rect,
   keep,
+  keepIds,
   narrow,
   smooth,
   heading,
@@ -436,6 +438,7 @@ function StepPopover({
 }: {
   rect: Rect | null;
   keep: Rect[];
+  keepIds: string[];
   narrow: boolean;
   smooth: boolean;
   heading: string;
@@ -485,7 +488,16 @@ function StepPopover({
     revealed.current = key;
     // After the page has laid out the room the sheet asked for.
     const frame = window.requestAnimationFrame(() => reveal(focusTarget, sheet, smooth));
-    return () => window.cancelAnimationFrame(frame);
+    // What the step asks the reader to look at may still be opening (a
+    // disclosure animates for 200ms), so it is brought into view after that.
+    const later = window.setTimeout(() => {
+      const kept = keepIds.map((id) => findAnchor([id])?.el).filter((e): e is HTMLElement => !!e);
+      revealKept(focusTarget, kept, sheet, smooth);
+    }, 260);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(later);
+    };
   }, [focusTarget, stepKey, sheet, smooth, size.measured]);
 
   const position = narrow ? null : place(rect, size.width, size.height, keep);
@@ -508,7 +520,7 @@ function StepPopover({
           <span className="truncate text-2xs uppercase tracking-wider text-faint">{heading}</span>
           <Progress total={total} at={at} />
         </div>
-        <h2 id={titleId} ref={titleRef} tabIndex={-1} className="mt-1.5 text-base text-ink outline-none">
+        <h2 id={titleId} ref={titleRef} tabIndex={-1} className="mt-1.5 text-base text-ink focus-visible:outline-none">
           {title}
         </h2>
         <p id={bodyId} className="mt-1 text-sm leading-relaxed text-ink-soft">
@@ -626,7 +638,7 @@ function Finish() {
           </span>
           <Progress total={PATHS[path].steps.length} at={PATHS[path].steps.length} />
         </div>
-        <h2 id={titleId} ref={titleRef} tabIndex={-1} className="mt-1.5 font-serif text-xl text-ink outline-none">
+        <h2 id={titleId} ref={titleRef} tabIndex={-1} className="mt-1.5 font-serif text-xl text-ink focus-visible:outline-none">
           {copy.finish.title}
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-ink-soft">{copy.finish.body}</p>

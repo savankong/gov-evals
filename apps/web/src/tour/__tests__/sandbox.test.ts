@@ -82,6 +82,26 @@ describe("the sample's answers", () => {
     expect(area(data, SOURCE_SELECTION).failed_without_trace).toBe(2);
   });
 
+  it("backs what the lead's steps 5 and 6 say about the top problem", () => {
+    const data = seed();
+    // "yes, at 0.91 confidence or more all 3 times"
+    const answers = data.results.filter((r) => r.scenario_id === TARGET_SCENARIO);
+    expect(answers).toHaveLength(3);
+    for (const r of answers) {
+      expect(r.status).toBe("fail");
+      expect(r.confidence).toBeGreaterThanOrEqual(0.91);
+      expect(r.text).toMatch(/^Yes\./);
+    }
+    // "No expert has solved this one yet ... Three other Source selection problems have been."
+    expect(data.traces.some((t) => t.scenario_id === TARGET_SCENARIO)).toBe(false);
+    handle(data, "POST", "/data-packages", { name: "x", knowledge_areas: [SOURCE_SELECTION] });
+    const packaged = data.packages[0].body.trim().split("\n").map((line) => JSON.parse(line));
+    expect(packaged).toHaveLength(3);
+    const scenarios = new Set(packaged.map((r) => data.traces.find((t) => t.id === r.id)!.scenario_id));
+    expect(scenarios.size).toBe(3);
+    expect(scenarios.has(TARGET_SCENARIO)).toBe(false);
+  });
+
   it("puts the target problem first in its area", () => {
     const body = handle(seed(), "GET", `/capture/tasks?scope=mine&knowledge_area=${encodeURIComponent(SOURCE_SELECTION)}`)
       .body as { tasks: Array<{ scenario_id: string }> };

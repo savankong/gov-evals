@@ -81,6 +81,8 @@ const lead: StepDef[] = [
     at: /^/,
     route: "/packages",
     done: { request: "POST /data-packages" },
+    // Arrives with the model's answer just opened; leave it readable.
+    keep: [anchor.modelAnswer],
     assist: [
       { navigate: "/packages" },
       {

@@ -76,23 +76,26 @@ export const PATH_COPY: Record<PathId, PathCopy> = {
       "see-answer": {
         title: "Read what the model said",
         body:
-          "Open the model's answer. It was judged wrong 3 times, at 0.91 confidence or " +
-          "more each time.",
+          "Open the model's answer: yes, at 0.91 confidence or more all 3 times. The " +
+          "right answer is no. Letting one offeror fix its price is discussions, and " +
+          "discussions include everyone in the competitive range (FAR 15.306(d)).",
       },
       "build-package": {
         title: "Package it for the lab",
         body:
-          "In Packages, give it a name, pick Source selection, and build it. " +
-          "The platform decides what may leave, not you.",
+          "No expert has solved this one yet, so it's next in Solve. Three other Source " +
+          "selection problems have been. In Packages, pick Source selection and build " +
+          "it; the platform decides what may leave, not you.",
         assist: "Fill it in for me",
       },
     },
     finish: {
       title: "That's the loop",
       body:
-        "You found where the model is confidently wrong and built a delivery for exactly " +
-        "that. Three traces went in. Two were left out, and the manifest says why. No " +
-        "score anywhere: the counts and the hash are the evidence.",
+        "You found where the model is sure and wrong, and packaged the expert reasoning " +
+        "already captured there. Three traces went in; two were left out, and the " +
+        "manifest says why. The problem you read is still unsolved, first in the Solve " +
+        "queue. No score anywhere: the counts and the hash are the evidence.",
     },
   },
 

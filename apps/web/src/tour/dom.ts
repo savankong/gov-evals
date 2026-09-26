@@ -104,6 +104,17 @@ export function reveal(el: HTMLElement, reservedBottom: number, smooth: boolean)
   else window.scrollBy({ top: delta, behavior });
 }
 
+/** Bring into view what a step asks the reader to look at, as well as the
+ *  control it points at -- but only where scrolling to it cannot push that
+ *  control off screen, i.e. when the control does not scroll with it. */
+export function revealKept(target: HTMLElement, kept: HTMLElement[], reservedBottom: number, smooth: boolean): void {
+  for (const el of kept) {
+    const parent = scrollParent(el);
+    if (parent && parent.contains(target)) continue;
+    reveal(el, reservedBottom, smooth);
+  }
+}
+
 /** Tell the shell how much room to leave below the page for a bottom sheet. */
 export function reserveSheet(height: number): () => void {
   document.documentElement.style.setProperty("--tour-sheet", `${Math.round(height)}px`);
