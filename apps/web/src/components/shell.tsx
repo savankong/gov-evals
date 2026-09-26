@@ -486,65 +486,48 @@ interface NavItem {
 }
 
 interface NavGroup {
-  /** Null for the first group, which needs no heading above the first item. */
+  /** Null for a group that needs no heading above its first item. */
   label: string | null;
-  /** Position in the pipeline, shown beside the verb. */
-  step?: number;
   items: NavItem[];
 }
 
 /**
- * The rail is the pipeline, in order, one verb per stage.
- *
- * Target decides where expert time goes, and reads what Evaluate measured last
- * time round -- it is a loop drawn as a list. See docs/platform.md.
+ * Three groups, by what you came to do: see where the model stands, move data
+ * through, or do expert work. The six pipeline verbs in the README are the
+ * design; the rail is for getting somewhere, and a heading over one link is
+ * a heading with nothing to group. See docs/platform.md.
  */
 const NAV: NavGroup[] = [
   {
     label: null,
-    items: [{ href: "/welcome", label: "Getting started", Icon: IconCompass }],
+    items: [
+      { href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true },
+      { href: "/weakness", label: "Weakness map", Icon: IconTarget },
+      { href: "/benchmarks", label: "Benchmarks", Icon: IconBenchmark },
+    ],
   },
   {
-    label: "Target",
-    step: 1,
-    items: [{ href: "/weakness", label: "Weakness map", Icon: IconTarget }],
-  },
-  {
-    label: "Ingest",
-    step: 2,
-    items: [{ href: "/datasets", label: "Datasets", Icon: IconDataset }],
-  },
-  {
-    label: "Store",
-    step: 3,
-    items: [{ href: "/library", label: "Library", Icon: IconLibrary }],
+    label: "Data",
+    items: [
+      { href: "/datasets", label: "Datasets", Icon: IconDataset },
+      { href: "/library", label: "Library", Icon: IconLibrary },
+      { href: "/packages", label: "Packages", Icon: IconPackage },
+    ],
   },
   {
     label: "Capture",
-    step: 4,
     items: [
       { href: "/capture", label: "Solve", Icon: IconCapture },
       { href: "/review", label: "Review queue", Icon: IconReview },
       { href: "/experts", label: "Experts", Icon: IconExpert },
     ],
   },
-  {
-    label: "Evaluate",
-    step: 5,
-    items: [
-      { href: "/", label: "Portfolio", Icon: IconPortfolio, exact: true },
-      { href: "/benchmarks", label: "Benchmarks", Icon: IconBenchmark },
-    ],
-  },
-  {
-    label: "Deliver",
-    step: 6,
-    items: [{ href: "/packages", label: "Packages", Icon: IconPackage }],
-  },
-  {
-    label: "Manage",
-    items: [{ href: "/admin", label: "Administration", Icon: IconAdmin }],
-  },
+];
+
+/** Pinned to the foot of the rail: visited once, or rarely, not every day. */
+const NAV_FOOTER: NavItem[] = [
+  { href: "/welcome", label: "Getting started", Icon: IconCompass },
+  { href: "/admin", label: "Administration", Icon: IconAdmin },
 ];
 
 const NAV_STORAGE_KEY = "aegis.nav.expanded";
@@ -677,12 +660,11 @@ function Sidebar({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
-        {NAV.map((group, index) => (
+        {NAV.map((group) => (
           <div key={group.label ?? "root"}>
             {group.label ? (
               expanded ? (
-                <div className="flex items-baseline gap-1.5 px-2.5 pb-1 text-2xs uppercase tracking-wider text-faint">
-                  {group.step ? <span className="tnum font-mono">{group.step}</span> : null}
+                <div className="px-2.5 pb-1 text-2xs uppercase tracking-wider text-faint">
                   {group.label}
                 </div>
               ) : (
@@ -696,8 +678,13 @@ function Sidebar({
                 <NavLink key={item.href} item={item} expanded={expanded} />
               ))}
             </div>
-            {index === NAV.length - 1 ? null : null}
           </div>
+        ))}
+      </div>
+
+      <div className="mt-3 flex shrink-0 flex-col border-t border-line pt-3">
+        {NAV_FOOTER.map((item) => (
+          <NavLink key={item.href} item={item} expanded={expanded} />
         ))}
       </div>
 
